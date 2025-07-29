@@ -1,7 +1,5 @@
 import { Button } from "@/components/ui/button";
 
-const HomePage = () => {
+export default function Home() {
   return <Button>Bootcamp!</Button>;
-};
-
-export default HomePage;
+}
