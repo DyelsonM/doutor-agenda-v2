@@ -17,9 +17,11 @@ const ClinicFormPage = async () => {
     headers: await headers(),
   });
   if (!session) {
-    redirect("/authentication");
+    redirect("/login");
   }
-
+  if (!session.user.plan) {
+    redirect("/new-subscription");
+  }
   return (
     <div>
       <Dialog open>
