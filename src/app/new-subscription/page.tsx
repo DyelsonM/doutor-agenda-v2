@@ -9,9 +9,11 @@ export default async function Home() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
+
   if (!session) {
-    redirect("/login");
+    redirect("/clinic-form");
   }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 p-6">
       <div className="mb-8 w-full max-w-3xl text-center">

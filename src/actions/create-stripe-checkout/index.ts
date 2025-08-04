@@ -13,9 +13,6 @@ export const createStripeCheckout = actionClient.action(async () => {
   if (!session?.user) {
     throw new Error("Unauthorized");
   }
-  if (!session.user.clinic) {
-    throw new Error("Clinic not found");
-  }
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error("Stripe secret key not found");
   }
@@ -35,7 +32,7 @@ export const createStripeCheckout = actionClient.action(async () => {
     },
     line_items: [
       {
-        price: process.env.STRIPE_ESSENTIAL_PLAN_PRICE_ID!,
+        price: "price_1RsQxsDJYwlskp7iBPOZdq5h",
         quantity: 1,
       },
     ],
