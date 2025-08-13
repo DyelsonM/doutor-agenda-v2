@@ -149,7 +149,7 @@ const UpsertDoctorForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Nome</FormLabel>
-                <FormControl>
+                <FormControl placeholder="Adicione o nome do médico.">
                   <Input {...field} />
                 </FormControl>
                 <FormMessage />
