@@ -124,7 +124,7 @@ const ProfilePage = async () => {
                   <label className="text-muted-foreground text-sm font-medium">
                     Clínica
                   </label>
-                  <p className="text-sm">{session.user.clinic.name}</p>
+                  <p className="text-sm">{session.user.clinic?.name}</p>
                 </div>
                 <div>
                   <label className="text-muted-foreground text-sm font-medium">
