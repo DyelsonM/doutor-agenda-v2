@@ -42,12 +42,11 @@ export function SubscriptionPlan({
     },
   });
   const features = [
-    "Cadastro de até 3 médicos",
+    "Cadastro ilimitado de médicos",
     "Agendamentos ilimitados",
     "Métricas básicas",
-    "Cadastro de pacientes",
-    "Confirmação manual",
-    "Suporte via e-mail",
+    "Cadastro ilimitado de pacientes",
+    "Suporte via e-mail e whatsapp",
   ];
 
   const handleSubscribeClick = () => {
@@ -75,7 +74,7 @@ export function SubscriptionPlan({
           Para profissionais autônomos ou pequenas clínicas
         </p>
         <div className="flex items-baseline">
-          <span className="text-3xl font-bold text-gray-900">R$59</span>
+          <span className="text-3xl font-bold text-gray-900">R$209</span>
           <span className="ml-1 text-gray-600">/ mês</span>
         </div>
       </CardHeader>

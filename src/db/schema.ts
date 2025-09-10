@@ -107,6 +107,7 @@ export const clinicsTableRelations = relations(clinicsTable, ({ many }) => ({
   doctors: many(doctorsTable),
   patients: many(patientsTable),
   appointments: many(appointmentsTable),
+  documents: many(documentsTable),
   usersToClinics: many(usersToClinicsTable),
 }));
 
@@ -138,6 +139,7 @@ export const doctorsTableRelations = relations(
       references: [clinicsTable.id],
     }),
     appointments: many(appointmentsTable),
+    documents: many(documentsTable),
   }),
 );
 
@@ -166,6 +168,7 @@ export const patientsTableRelations = relations(
       references: [clinicsTable.id],
     }),
     appointments: many(appointmentsTable),
+    documents: many(documentsTable),
   }),
 );
 
@@ -190,7 +193,7 @@ export const appointmentsTable = pgTable("appointments", {
 
 export const appointmentsTableRelations = relations(
   appointmentsTable,
-  ({ one }) => ({
+  ({ one, many }) => ({
     clinic: one(clinicsTable, {
       fields: [appointmentsTable.clinicId],
       references: [clinicsTable.id],
@@ -203,5 +206,57 @@ export const appointmentsTableRelations = relations(
       fields: [appointmentsTable.doctorId],
       references: [doctorsTable.id],
     }),
+    documents: many(documentsTable),
   }),
 );
+
+export const documentTypeEnum = pgEnum("document_type", [
+  "anamnesis",
+  "prescription",
+  "medical_certificate",
+  "exam_request",
+  "medical_report",
+  "other",
+]);
+
+export const documentsTable = pgTable("documents", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clinicId: uuid("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  patientId: uuid("patient_id")
+    .notNull()
+    .references(() => patientsTable.id, { onDelete: "cascade" }),
+  doctorId: uuid("doctor_id")
+    .notNull()
+    .references(() => doctorsTable.id, { onDelete: "cascade" }),
+  appointmentId: uuid("appointment_id").references(() => appointmentsTable.id, {
+    onDelete: "set null",
+  }),
+  type: documentTypeEnum("type").notNull(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const documentsTableRelations = relations(documentsTable, ({ one }) => ({
+  clinic: one(clinicsTable, {
+    fields: [documentsTable.clinicId],
+    references: [clinicsTable.id],
+  }),
+  patient: one(patientsTable, {
+    fields: [documentsTable.patientId],
+    references: [patientsTable.id],
+  }),
+  doctor: one(doctorsTable, {
+    fields: [documentsTable.doctorId],
+    references: [doctorsTable.id],
+  }),
+  appointment: one(appointmentsTable, {
+    fields: [documentsTable.appointmentId],
+    references: [appointmentsTable.id],
+  }),
+}));

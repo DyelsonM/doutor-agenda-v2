@@ -25,9 +25,6 @@ const DoctorsPage = async () => {
   if (!session?.user) {
     redirect("/authentication");
   }
-  if (!session.user.plan) {
-    redirect("/new-subscription");
-  }
   if (!session.user.clinic) {
     redirect("/clinic-form");
   }
@@ -46,11 +43,19 @@ const DoctorsPage = async () => {
         </PageActions>
       </PageHeader>
       <PageContent>
-        <div className="grid grid-cols-3 gap-6">
-          {doctors.map((doctor) => (
-            <DoctorCard key={doctor.id} doctor={doctor} />
-          ))}
-        </div>
+        {doctors.length > 0 ? (
+          <div className="grid grid-cols-3 gap-6">
+            {doctors.map((doctor) => (
+              <DoctorCard key={doctor.id} doctor={doctor} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center py-3">
+            <div className="w-full rounded-lg border border-gray-200 bg-white px-6 py-8 text-center">
+              <p className="text-black">No results.</p>
+            </div>
+          </div>
+        )}
       </PageContent>
     </PageContainer>
   );
