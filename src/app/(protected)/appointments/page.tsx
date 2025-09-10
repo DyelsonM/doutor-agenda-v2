@@ -1,6 +1,4 @@
-import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { eq, and } from "drizzle-orm";
 
 import { DataTable } from "@/components/ui/data-table";
 import {
@@ -14,30 +12,51 @@ import {
 } from "@/components/ui/page-container";
 import { db } from "@/db";
 import { appointmentsTable, doctorsTable, patientsTable } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { getAuthSession, getDoctorIdFromUser } from "@/lib/auth-utils";
 
 import AddAppointmentButton from "./_components/add-appointment-button";
 import { appointmentsTableColumns } from "./_components/table-columns";
 
 const AppointmentsPage = async () => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  if (!session?.user) {
-    redirect("/authentication");
+  const session = await getAuthSession();
+
+  let appointmentsFilter;
+  let patientsFilter;
+  let doctorsFilter;
+
+  if (session.user.role === "admin") {
+    // Admin vê todos os agendamentos da clínica
+    appointmentsFilter = eq(appointmentsTable.clinicId, session.user.clinic.id);
+    patientsFilter = eq(patientsTable.clinicId, session.user.clinic.id);
+    doctorsFilter = eq(doctorsTable.clinicId, session.user.clinic.id);
+  } else {
+    // Médico vê apenas seus agendamentos
+    const doctorId = await getDoctorIdFromUser(session.user.id);
+    if (!doctorId) {
+      // Se médico não está vinculado, redirecionar
+      redirect("/unauthorized");
+    }
+
+    appointmentsFilter = and(
+      eq(appointmentsTable.clinicId, session.user.clinic.id),
+      eq(appointmentsTable.doctorId, doctorId),
+    );
+    patientsFilter = eq(patientsTable.clinicId, session.user.clinic.id);
+    doctorsFilter = and(
+      eq(doctorsTable.clinicId, session.user.clinic.id),
+      eq(doctorsTable.id, doctorId),
+    );
   }
-  if (!session.user.clinic) {
-    redirect("/clinic-form");
-  }
+
   const [patients, doctors, appointments] = await Promise.all([
     db.query.patientsTable.findMany({
-      where: eq(patientsTable.clinicId, session.user.clinic.id),
+      where: patientsFilter,
     }),
     db.query.doctorsTable.findMany({
-      where: eq(doctorsTable.clinicId, session.user.clinic.id),
+      where: doctorsFilter,
     }),
     db.query.appointmentsTable.findMany({
-      where: eq(appointmentsTable.clinicId, session.user.clinic.id),
+      where: appointmentsFilter,
       with: {
         patient: true,
         doctor: true,

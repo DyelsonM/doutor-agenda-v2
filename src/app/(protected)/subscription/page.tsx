@@ -1,6 +1,3 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-
 import {
   PageContainer,
   PageContent,
@@ -9,20 +6,15 @@ import {
   PageHeaderContent,
   PageTitle,
 } from "@/components/ui/page-container";
-import { auth } from "@/lib/auth";
+import { getAuthSession, requireAdmin } from "@/lib/auth-utils";
 
 import { SubscriptionPlan } from "./_components/subscription-plan";
 
 const SubscriptionPage = async () => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  if (!session) {
-    redirect("/login");
-  }
-  if (!session.user.clinic) {
-    redirect("/clinic-form");
-  }
+  const session = await getAuthSession();
+
+  // Apenas administradores podem gerenciar assinaturas
+  requireAdmin(session);
   return (
     <PageContainer>
       <PageHeader>

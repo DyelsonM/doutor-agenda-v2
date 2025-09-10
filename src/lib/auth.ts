@@ -39,6 +39,7 @@ export const auth = betterAuth({
         user: {
           ...user,
           plan: userData?.plan,
+          role: userData?.role || "admin",
           clinic: clinic?.clinicId
             ? {
                 id: clinic?.clinicId,
@@ -66,6 +67,11 @@ export const auth = betterAuth({
       plan: {
         type: "string",
         fieldName: "plan",
+        required: false,
+      },
+      role: {
+        type: "string",
+        fieldName: "role",
         required: false,
       },
     },

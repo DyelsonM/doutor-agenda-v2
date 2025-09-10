@@ -8,6 +8,7 @@ import {
   LogOut,
   Stethoscope,
   UsersRound,
+  User,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -34,7 +35,7 @@ import {
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 
-const items = [
+const adminItems = [
   {
     title: "Dashboard",
     url: "/dashboard",
@@ -62,10 +63,37 @@ const items = [
   },
 ];
 
+const doctorItems = [
+  {
+    title: "Meus Agendamentos",
+    url: "/appointments",
+    icon: CalendarDays,
+  },
+  {
+    title: "Meus Pacientes",
+    url: "/patients",
+    icon: UsersRound,
+  },
+  {
+    title: "Meus Documentos",
+    url: "/documents",
+    icon: FileText,
+  },
+  {
+    title: "Meu Perfil",
+    url: "/profile",
+    icon: User,
+  },
+];
+
 export function AppSidebar() {
   const router = useRouter();
   const session = authClient.useSession();
   const pathname = usePathname();
+
+  // Determinar quais itens mostrar baseado no role do usuário
+  const menuItems =
+    session.data?.user?.role === "doctor" ? doctorItems : adminItems;
 
   const handleSignOut = async () => {
     await authClient.signOut({
@@ -86,7 +114,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={pathname === item.url}>
                     <Link href={item.url}>
@@ -99,24 +127,26 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Outros</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === "/subscription"}
-                >
-                  <Link href="/subscription">
-                    <Gem />
-                    <span>Assinatura</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {session.data?.user?.role === "admin" && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Outros</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === "/subscription"}
+                  >
+                    <Link href="/subscription">
+                      <Gem />
+                      <span>Assinatura</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>

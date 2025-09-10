@@ -1,7 +1,5 @@
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { FileText, Stethoscope, Users } from "lucide-react";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
@@ -16,31 +14,50 @@ import {
 } from "@/components/ui/page-container";
 import { db } from "@/db";
 import { doctorsTable, documentsTable, patientsTable } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { getAuthSession, getDoctorIdFromUser } from "@/lib/auth-utils";
 
 import { AddDocumentButton } from "./_components/add-document-button";
 import { documentsTableColumns } from "./_components/table-columns";
 
 const DocumentsPage = async () => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  if (!session?.user) {
-    redirect("/authentication");
-  }
-  if (!session.user.clinic) {
-    redirect("/clinic-form");
+  const session = await getAuthSession();
+
+  let documentsFilter;
+  let patientsFilter;
+  let doctorsFilter;
+
+  if (session.user.role === "admin") {
+    // Admin vê todos os documentos da clínica
+    documentsFilter = eq(documentsTable.clinicId, session.user.clinic.id);
+    patientsFilter = eq(patientsTable.clinicId, session.user.clinic.id);
+    doctorsFilter = eq(doctorsTable.clinicId, session.user.clinic.id);
+  } else {
+    // Médico vê apenas seus documentos
+    const doctorId = await getDoctorIdFromUser(session.user.id);
+    if (!doctorId) {
+      redirect("/unauthorized");
+    }
+
+    documentsFilter = and(
+      eq(documentsTable.clinicId, session.user.clinic.id),
+      eq(documentsTable.doctorId, doctorId),
+    );
+    patientsFilter = eq(patientsTable.clinicId, session.user.clinic.id);
+    doctorsFilter = and(
+      eq(doctorsTable.clinicId, session.user.clinic.id),
+      eq(doctorsTable.id, doctorId),
+    );
   }
 
   const [patients, doctors, documents] = await Promise.all([
     db.query.patientsTable.findMany({
-      where: eq(patientsTable.clinicId, session.user.clinic.id),
+      where: patientsFilter,
     }),
     db.query.doctorsTable.findMany({
-      where: eq(doctorsTable.clinicId, session.user.clinic.id),
+      where: doctorsFilter,
     }),
     db.query.documentsTable.findMany({
-      where: eq(documentsTable.clinicId, session.user.clinic.id),
+      where: documentsFilter,
       with: {
         patient: true,
         doctor: true,

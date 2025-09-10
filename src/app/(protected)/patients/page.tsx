@@ -1,6 +1,4 @@
 import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 
 import { DataTable } from "@/components/ui/data-table";
 import {
@@ -14,22 +12,19 @@ import {
 } from "@/components/ui/page-container";
 import { db } from "@/db";
 import { patientsTable } from "@/db/schema";
-import { auth } from "@/lib/auth";
+import { getAuthSession } from "@/lib/auth-utils";
 
 import AddPatientButton from "./_components/add-patient-button";
 import { patientsTableColumns } from "./_components/table-columns";
 
 const PatientsPage = async () => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  if (!session?.user) {
-    redirect("/authentication");
-  }
-  if (!session.user.clinic) {
-    redirect("/clinic-form");
-  }
-  const patients = await db.query.patientsTable.findMany({
+  const session = await getAuthSession();
+
+  let patients;
+
+  // Tanto admin quanto médico veem todos os pacientes da clínica
+  // Médicos podem atender qualquer paciente da clínica
+  patients = await db.query.patientsTable.findMany({
     where: eq(patientsTable.clinicId, session.user.clinic.id),
   });
   return (
@@ -38,7 +33,9 @@ const PatientsPage = async () => {
         <PageHeaderContent>
           <PageTitle>Pacientes</PageTitle>
           <PageDescription>
-            Gerencie os pacientes da sua clínica
+            {session.user.role === "admin"
+              ? "Gerencie os pacientes da sua clínica"
+              : "Visualize e gerencie todos os pacientes da clínica"}
           </PageDescription>
         </PageHeaderContent>
         <PageActions>

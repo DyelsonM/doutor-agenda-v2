@@ -1,6 +1,5 @@
 import dayjs from "dayjs";
 import { Calendar } from "lucide-react";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +14,7 @@ import {
   PageTitle,
 } from "@/components/ui/page-container";
 import { getDashboard } from "@/data/get-dashboard";
-import { auth } from "@/lib/auth";
+import { getAuthSession, requireAdmin } from "@/lib/auth-utils";
 
 import { appointmentsTableColumns } from "../appointments/_components/table-columns";
 import AppointmentsChart from "./_components/appointments-chart";
@@ -32,15 +31,15 @@ interface DashboardPageProps {
 }
 
 const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  if (!session?.user) {
-    redirect("/authentication");
+  const session = await getAuthSession();
+
+  // Médicos devem ser redirecionados para seus agendamentos
+  if (session.user.role === "doctor") {
+    redirect("/appointments");
   }
-  if (!session.user.clinic) {
-    redirect("/clinic-form");
-  }
+
+  // Apenas administradores podem ver o dashboard
+  requireAdmin(session);
 
   const { from, to } = await searchParams;
   if (!from || !to) {

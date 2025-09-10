@@ -10,6 +10,8 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+export const userRoleEnum = pgEnum("user_role", ["admin", "doctor"]);
+
 export const usersTable = pgTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -19,12 +21,17 @@ export const usersTable = pgTable("users", {
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
   plan: text("plan"),
+  role: userRoleEnum("role").notNull().default("admin"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
 });
 
-export const usersTableRelations = relations(usersTable, ({ many }) => ({
+export const usersTableRelations = relations(usersTable, ({ many, one }) => ({
   usersToClinics: many(usersToClinicsTable),
+  doctor: one(doctorsTable, {
+    fields: [usersTable.id],
+    references: [doctorsTable.userId],
+  }),
 }));
 
 export const sessionsTable = pgTable("sessions", {
@@ -116,6 +123,9 @@ export const doctorsTable = pgTable("doctors", {
   clinicId: uuid("clinic_id")
     .notNull()
     .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  userId: text("user_id").references(() => usersTable.id, {
+    onDelete: "set null",
+  }),
   name: text("name").notNull(),
   avatarImageUrl: text("avatar_image_url"),
   // 1 - Monday, 2 - Tuesday, 3 - Wednesday, 4 - Thursday, 5 - Friday, 6 - Saturday, 0 - Sunday
@@ -137,6 +147,10 @@ export const doctorsTableRelations = relations(
     clinic: one(clinicsTable, {
       fields: [doctorsTable.clinicId],
       references: [clinicsTable.id],
+    }),
+    user: one(usersTable, {
+      fields: [doctorsTable.userId],
+      references: [usersTable.id],
     }),
     appointments: many(appointmentsTable),
     documents: many(documentsTable),

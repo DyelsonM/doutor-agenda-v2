@@ -5,6 +5,7 @@ import {
   ClockIcon,
   DollarSignIcon,
   TrashIcon,
+  UserPlus,
 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
@@ -37,6 +38,8 @@ import { doctorsTable } from "@/db/schema";
 import { formatCurrencyInCents } from "@/helpers/currency";
 
 import { getAvailability } from "../_helpers/availability";
+import { CreateDoctorUserDialog } from "./create-doctor-user-dialog";
+import { ManageDoctorCredentials } from "./manage-doctor-credentials";
 import UpsertDoctorForm from "./upsert-doctor-form";
 
 interface DoctorCardProps {
@@ -113,10 +116,33 @@ const DoctorCard = ({ doctor }: DoctorCardProps) => {
             isOpen={isUpsertDoctorDialogOpen}
           />
         </Dialog>
+
+        {!doctor.userId ? (
+          <CreateDoctorUserDialog
+            doctorId={doctor.id}
+            doctorName={doctor.name}
+            hasUser={!!doctor.userId}
+          >
+            <Button variant="outline" className="w-full gap-2">
+              <UserPlus className="h-4 w-4" />
+              Criar Login
+            </Button>
+          </CreateDoctorUserDialog>
+        ) : (
+          <ManageDoctorCredentials
+            doctorId={doctor.id}
+            doctorName={doctor.name}
+          >
+            <Button variant="outline" className="w-full gap-2">
+              <UserPlus className="h-4 w-4" />
+              Gerenciar Login
+            </Button>
+          </ManageDoctorCredentials>
+        )}
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="outline" className="w-full">
-              <TrashIcon />
+            <Button variant="outline" className="w-full gap-2">
+              <TrashIcon className="h-4 w-4" />
               Deletar médico
             </Button>
           </AlertDialogTrigger>
