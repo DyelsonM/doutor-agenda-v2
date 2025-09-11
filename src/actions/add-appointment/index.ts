@@ -24,6 +24,8 @@ export const addAppointment = actionClient
     if (!session?.user.clinic?.id) {
       throw new Error("Clinic not found");
     }
+
+    // Validar horário disponível
     const availableTimes = await getAvailableTimes({
       doctorId: parsedInput.doctorId,
       date: dayjs(parsedInput.date).format("YYYY-MM-DD"),
@@ -37,13 +39,17 @@ export const addAppointment = actionClient
     if (!isTimeAvailable) {
       throw new Error("Time not available");
     }
+
+    // Criar data/hora do agendamento
     const appointmentDateTime = dayjs(parsedInput.date)
       .set("hour", parseInt(parsedInput.time.split(":")[0]))
       .set("minute", parseInt(parsedInput.time.split(":")[1]))
       .toDate();
 
     await db.insert(appointmentsTable).values({
-      ...parsedInput,
+      patientId: parsedInput.patientId,
+      doctorId: parsedInput.doctorId,
+      appointmentPriceInCents: parsedInput.appointmentPriceInCents,
       clinicId: session?.user.clinic?.id,
       date: appointmentDateTime,
     });

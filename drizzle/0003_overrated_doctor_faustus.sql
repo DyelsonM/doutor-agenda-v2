@@ -1,0 +1,2 @@
+CREATE TYPE "public"."expense_category" AS ENUM('rent', 'utilities', 'equipment', 'supplies', 'marketing', 'staff', 'insurance', 'software', 'other');--> statement-breakpoint
+ALTER TABLE "transactions" ADD COLUMN "expense_category" "expense_category";

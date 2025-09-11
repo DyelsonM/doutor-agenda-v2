@@ -23,6 +23,8 @@ import { db } from "@/db";
 import { documentsTable } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
+import { ExportDocumentButton } from "../_components/export-document-button";
+
 const documentTypeLabels = {
   anamnesis: "Anamnese",
   prescription: "Receita",
@@ -97,6 +99,10 @@ const DocumentPage = async ({ params }: DocumentPageProps) => {
         </PageHeaderContent>
 
         <PageActions>
+          <ExportDocumentButton
+            documentId={document.id}
+            documentTitle={document.title}
+          />
           <Link href={`/documents/${id}/edit`}>
             <Button>
               <Edit className="mr-2 h-4 w-4" />

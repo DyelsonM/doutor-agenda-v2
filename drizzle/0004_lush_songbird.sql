@@ -1,0 +1,2 @@
+CREATE TYPE "public"."report_period" AS ENUM('daily', 'monthly', 'yearly');--> statement-breakpoint
+ALTER TABLE "financial_reports" ALTER COLUMN "report_type" SET DATA TYPE "public"."report_period" USING "report_type"::"public"."report_period";

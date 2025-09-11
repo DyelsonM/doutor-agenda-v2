@@ -2,6 +2,7 @@
 
 import {
   CalendarDays,
+  DollarSign,
   FileText,
   Gem,
   LayoutDashboard,
@@ -60,6 +61,11 @@ const adminItems = [
     title: "Documentos",
     url: "/documents",
     icon: FileText,
+  },
+  {
+    title: "Financeiro",
+    url: "/financial",
+    icon: DollarSign,
   },
 ];
 

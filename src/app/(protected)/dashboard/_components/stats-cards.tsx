@@ -1,32 +1,19 @@
-import {
-  CalendarIcon,
-  DollarSignIcon,
-  UserIcon,
-  UsersIcon,
-} from "lucide-react";
+import { CalendarIcon, UserIcon, UsersIcon } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrencyInCents } from "@/helpers/currency";
 
 interface StatsCardsProps {
-  totalRevenue: number | null;
   totalAppointments: number;
   totalPatients: number;
   totalDoctors: number;
 }
 
 const StatsCards = ({
-  totalRevenue,
   totalAppointments,
   totalPatients,
   totalDoctors,
 }: StatsCardsProps) => {
   const stats = [
-    {
-      title: "Faturamento",
-      value: totalRevenue ? formatCurrencyInCents(totalRevenue) : "R$ 0,00",
-      icon: DollarSignIcon,
-    },
     {
       title: "Agendamentos",
       value: totalAppointments.toString(),
@@ -45,7 +32,7 @@ const StatsCards = ({
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {stats.map((stat) => {
         const Icon = stat.icon;
         return (

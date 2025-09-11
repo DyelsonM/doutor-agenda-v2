@@ -17,7 +17,7 @@ import { getDashboard } from "@/data/get-dashboard";
 import { getAuthSession, requireAdmin } from "@/lib/auth-utils";
 
 import { appointmentsTableColumns } from "../appointments/_components/table-columns";
-import AppointmentsChart from "./_components/appointments-chart";
+import AppointmentsOnlyChart from "./_components/appointments-only-chart";
 import { DatePicker } from "./_components/date-picker";
 import StatsCards from "./_components/stats-cards";
 import TopDoctors from "./_components/top-doctors";
@@ -83,34 +83,29 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
       </PageHeader>
       <PageContent>
         <StatsCards
-          totalRevenue={totalRevenue.total ? Number(totalRevenue.total) : null}
           totalAppointments={totalAppointments.total}
           totalPatients={totalPatients.total}
           totalDoctors={totalDoctors.total}
         />
-        <div className="grid grid-cols-[2.25fr_1fr] gap-4">
-          <AppointmentsChart dailyAppointmentsData={dailyAppointmentsData} />
+        <AppointmentsOnlyChart dailyAppointmentsData={dailyAppointmentsData} />
+        <div className="grid grid-cols-[1fr_1fr] gap-4">
           <TopDoctors doctors={topDoctors} />
-        </div>
-        <div className="grid grid-cols-[2.25fr_1fr] gap-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <Calendar className="text-muted-foreground" />
-                <CardTitle className="text-base">
-                  Agendamentos de hoje
-                </CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <DataTable
-                columns={appointmentsTableColumns}
-                data={todayAppointments}
-              />
-            </CardContent>
-          </Card>
           <TopSpecialties topSpecialties={topSpecialties} />
         </div>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <Calendar className="text-muted-foreground" />
+              <CardTitle className="text-base">Agendamentos de hoje</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <DataTable
+              columns={appointmentsTableColumns}
+              data={todayAppointments}
+            />
+          </CardContent>
+        </Card>
       </PageContent>
     </PageContainer>
   );

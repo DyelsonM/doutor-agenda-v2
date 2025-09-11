@@ -116,6 +116,8 @@ export const clinicsTableRelations = relations(clinicsTable, ({ many }) => ({
   appointments: many(appointmentsTable),
   documents: many(documentsTable),
   usersToClinics: many(usersToClinicsTable),
+  transactions: many(transactionsTable),
+  financialReports: many(financialReportsTable),
 }));
 
 export const doctorsTable = pgTable("doctors", {
@@ -221,6 +223,7 @@ export const appointmentsTableRelations = relations(
       references: [doctorsTable.id],
     }),
     documents: many(documentsTable),
+    transactions: many(transactionsTable),
   }),
 );
 
@@ -230,6 +233,48 @@ export const documentTypeEnum = pgEnum("document_type", [
   "medical_certificate",
   "exam_request",
   "medical_report",
+  "other",
+]);
+
+export const transactionTypeEnum = pgEnum("transaction_type", [
+  "appointment_payment",
+  "subscription_payment",
+  "refund",
+  "expense",
+  "other",
+]);
+
+export const expenseCategoryEnum = pgEnum("expense_category", [
+  "rent",
+  "utilities",
+  "equipment",
+  "supplies",
+  "marketing",
+  "staff",
+  "insurance",
+  "software",
+  "other",
+]);
+
+export const reportPeriodEnum = pgEnum("report_period", [
+  "daily",
+  "monthly",
+  "yearly",
+]);
+
+export const paymentStatusEnum = pgEnum("payment_status", [
+  "pending",
+  "completed",
+  "failed",
+  "cancelled",
+  "refunded",
+]);
+
+export const paymentMethodEnum = pgEnum("payment_method", [
+  "stripe",
+  "cash",
+  "pix",
+  "bank_transfer",
   "other",
 ]);
 
@@ -274,3 +319,73 @@ export const documentsTableRelations = relations(documentsTable, ({ one }) => ({
     references: [appointmentsTable.id],
   }),
 }));
+
+// Tabelas Financeiras
+export const transactionsTable = pgTable("transactions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clinicId: uuid("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  appointmentId: uuid("appointment_id").references(() => appointmentsTable.id, {
+    onDelete: "set null",
+  }),
+  type: transactionTypeEnum("type").notNull(),
+  amountInCents: integer("amount_in_cents").notNull(),
+  description: text("description").notNull(),
+  paymentMethod: paymentMethodEnum("payment_method").notNull(),
+  status: paymentStatusEnum("status").notNull().default("pending"),
+  expenseCategory: expenseCategoryEnum("expense_category"),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  stripeChargeId: text("stripe_charge_id"),
+  metadata: text("metadata"), // JSON string para dados adicionais
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const transactionsTableRelations = relations(
+  transactionsTable,
+  ({ one }) => ({
+    clinic: one(clinicsTable, {
+      fields: [transactionsTable.clinicId],
+      references: [clinicsTable.id],
+    }),
+    appointment: one(appointmentsTable, {
+      fields: [transactionsTable.appointmentId],
+      references: [appointmentsTable.id],
+    }),
+  }),
+);
+
+export const financialReportsTable = pgTable("financial_reports", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clinicId: uuid("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  reportType: reportPeriodEnum("report_type").notNull(), // daily, monthly, yearly
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  totalRevenue: integer("total_revenue").notNull().default(0),
+  totalExpenses: integer("total_expenses").notNull().default(0),
+  netProfit: integer("net_profit").notNull().default(0),
+  appointmentCount: integer("appointment_count").notNull().default(0),
+  averageAppointmentValue: integer("average_appointment_value")
+    .notNull()
+    .default(0),
+  reportData: text("report_data"), // JSON string com dados detalhados
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const financialReportsTableRelations = relations(
+  financialReportsTable,
+  ({ one }) => ({
+    clinic: one(clinicsTable, {
+      fields: [financialReportsTable.clinicId],
+      references: [clinicsTable.id],
+    }),
+  }),
+);

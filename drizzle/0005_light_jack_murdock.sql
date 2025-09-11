@@ -1,0 +1,1 @@
+ALTER TABLE "appointments" ADD COLUMN IF NOT EXISTS "is_walk_in" boolean DEFAULT false NOT NULL;

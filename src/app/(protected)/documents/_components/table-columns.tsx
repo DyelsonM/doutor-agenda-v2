@@ -9,6 +9,7 @@ import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 
 import { deleteDocumentAction } from "@/actions/delete-document";
+import { ExportDocumentButton } from "./export-document-button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -136,67 +137,75 @@ export const documentsTableColumns: ColumnDef<Document>[] = [
       );
 
       return (
-        // Mantém o AlertDialog FORA do DropdownMenuContent para não desmontar
-        <AlertDialog>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Abrir menu</span>
-                <Pencil className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
+        <div className="flex items-center gap-2">
+          {/* Botão de exportação */}
+          <ExportDocumentButton
+            documentId={document.id}
+            documentTitle={document.title}
+          />
 
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => router.push(`/documents/${document.id}`)}
-              >
-                <Eye className="mr-2 h-4 w-4" />
-                Visualizar
-              </DropdownMenuItem>
+          {/* Menu de ações */}
+          <AlertDialog>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Abrir menu</span>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
 
-              <DropdownMenuItem
-                onClick={() => router.push(`/documents/${document.id}/edit`)}
-              >
-                <Pencil className="mr-2 h-4 w-4" />
-                Editar
-              </DropdownMenuItem>
-
-              {/* Trigger fica dentro do menu, mas previne o "select" que fecharia o menu antes */}
-              <AlertDialogTrigger asChild>
+              <DropdownMenuContent align="end">
                 <DropdownMenuItem
-                  onSelect={(e) => e.preventDefault()}
-                  className="text-red-600 focus:text-red-600"
+                  onClick={() => router.push(`/documents/${document.id}`)}
+                >
+                  <Eye className="mr-2 h-4 w-4" />
+                  Visualizar
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => router.push(`/documents/${document.id}/edit`)}
+                >
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Editar
+                </DropdownMenuItem>
+
+                {/* Trigger fica dentro do menu, mas previne o "select" que fecharia o menu antes */}
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem
+                    onSelect={(e) => e.preventDefault()}
+                    className="text-red-600 focus:text-red-600"
+                    disabled={isExecuting}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Excluir
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* O conteúdo do diálogo fica fora do menu, assim ele permanece aberto */}
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir documento?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Essa ação não pode ser desfeita. O documento será removido do
+                  sistema.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isExecuting}>
+                  Cancelar
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => deleteDocument({ id: document.id })}
                   disabled={isExecuting}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Excluir
-                </DropdownMenuItem>
-              </AlertDialogTrigger>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* O conteúdo do diálogo fica fora do menu, assim ele permanece aberto */}
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Excluir documento?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Essa ação não pode ser desfeita. O documento será removido do
-                sistema.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={isExecuting}>
-                Cancelar
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => deleteDocument({ id: document.id })}
-                disabled={isExecuting}
-              >
-                {isExecuting ? "Excluindo..." : "Confirmar"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                  {isExecuting ? "Excluindo..." : "Confirmar"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       );
     },
   },

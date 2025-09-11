@@ -20,12 +20,10 @@ import { patientsTableColumns } from "./_components/table-columns";
 const PatientsPage = async () => {
   const session = await getAuthSession();
 
-  let patients;
-
   // Tanto admin quanto médico veem todos os pacientes da clínica
   // Médicos podem atender qualquer paciente da clínica
-  patients = await db.query.patientsTable.findMany({
-    where: eq(patientsTable.clinicId, session.user.clinic.id),
+  const patients = await db.query.patientsTable.findMany({
+    where: eq(patientsTable.clinicId, session.user.clinic?.id ?? ""),
   });
   return (
     <PageContainer>

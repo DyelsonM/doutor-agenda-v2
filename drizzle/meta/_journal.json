@@ -15,6 +15,34 @@
       "when": 1757538178252,
       "tag": "0001_greedy_ravenous",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1757615827717,
+      "tag": "0002_parallel_starfox",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1757617954451,
+      "tag": "0003_overrated_doctor_faustus",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1757626148255,
+      "tag": "0004_lush_songbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1757626173837,
+      "tag": "0005_light_jack_murdock",
+      "breakpoints": true
     }
   ]
 }
