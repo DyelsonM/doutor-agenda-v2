@@ -30,16 +30,21 @@ export function ExportDocumentButton({
   const { execute: exportDocument, isExecuting } = useAction(
     exportDocumentAction,
     {
-      onSuccess: ({ data }) => {
+      onSuccess: async ({ data }) => {
         if (data?.success && data.data) {
           const exportData = data.data as ExportDocumentData;
 
-          if (data.format === "pdf") {
-            exportToPDF(exportData);
-            toast.success("Documento exportado como PDF com sucesso!");
-          } else {
-            exportToText(exportData);
-            toast.success("Documento exportado como texto com sucesso!");
+          try {
+            if (data.format === "pdf") {
+              await exportToPDF(exportData);
+              toast.success("Documento exportado como PDF com sucesso!");
+            } else {
+              exportToText(exportData);
+              toast.success("Documento exportado como texto com sucesso!");
+            }
+          } catch (error) {
+            console.error("Erro ao exportar documento:", error);
+            toast.error("Erro ao exportar documento");
           }
         }
       },

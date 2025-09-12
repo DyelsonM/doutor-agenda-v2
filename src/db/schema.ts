@@ -77,6 +77,24 @@ export const verificationsTable = pgTable("verifications", {
 export const clinicsTable = pgTable("clinics", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
+  logoUrl: text("logo_url"),
+  // Informações de contato
+  email: text("email"),
+  phone: text("phone"),
+  website: text("website"),
+  // Endereço
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  zipCode: text("zip_code"),
+  country: text("country").default("Brasil"),
+  // Documentos
+  cnpj: text("cnpj"),
+  crmNumber: text("crm_number"),
+  // Informações adicionais
+  description: text("description"),
+  // Horário de funcionamento
+  openingHours: text("opening_hours"), // JSON object com horários
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -169,6 +187,7 @@ export const patientsTable = pgTable("patients", {
   name: text("name").notNull(),
   email: text("email").notNull(),
   phoneNumber: text("phone_number").notNull(),
+  responsiblePhoneNumber: text("responsible_phone_number"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   sex: patientSexEnum("sex").notNull(),
   updatedAt: timestamp("updated_at")

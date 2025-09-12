@@ -70,6 +70,7 @@ export const exportDocumentAction = action
       },
       clinic: {
         name: document.clinic.name,
+        logoUrl: document.clinic.logoUrl,
       },
       appointment: document.appointment
         ? {

@@ -43,6 +43,34 @@
       "when": 1757626173837,
       "tag": "0005_light_jack_murdock",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1757687923556,
+      "tag": "0006_many_hawkeye",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1757688895189,
+      "tag": "0007_abandoned_scourge",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1757689302508,
+      "tag": "0008_nebulous_randall_flagg",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1757690964774,
+      "tag": "0009_big_the_enforcers",
+      "breakpoints": true
     }
   ]
 }

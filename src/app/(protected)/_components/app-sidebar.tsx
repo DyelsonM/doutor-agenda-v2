@@ -7,6 +7,7 @@ import {
   Gem,
   LayoutDashboard,
   LogOut,
+  Settings,
   Stethoscope,
   UsersRound,
   User,
@@ -138,6 +139,17 @@ export function AppSidebar() {
             <SidebarGroupLabel>Outros</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === "/clinic-settings"}
+                  >
+                    <Link href="/clinic-settings">
+                      <Settings />
+                      <span>Configurações</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild

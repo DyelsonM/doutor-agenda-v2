@@ -70,6 +70,12 @@ const PatientCard = ({ patient }: PatientCardProps) => {
           <Phone className="mr-1 h-3 w-3" />
           {formatPhoneNumber(patient.phoneNumber)}
         </Badge>
+        {patient.responsiblePhoneNumber && (
+          <Badge variant="outline">
+            <Phone className="mr-1 h-3 w-3" />
+            Responsável: {formatPhoneNumber(patient.responsiblePhoneNumber)}
+          </Badge>
+        )}
         <Badge variant="outline">
           <User className="mr-1 h-3 w-3" />
           {getSexLabel(patient.sex)}

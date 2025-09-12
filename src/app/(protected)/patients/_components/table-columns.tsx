@@ -35,6 +35,21 @@ export const patientsTableColumns: ColumnDef<Patient>[] = [
     },
   },
   {
+    id: "responsiblePhoneNumber",
+    accessorKey: "responsiblePhoneNumber",
+    header: "Tel. Responsável",
+    cell: (params) => {
+      const patient = params.row.original;
+      const phoneNumber = patient.responsiblePhoneNumber;
+      if (!phoneNumber) return "-";
+      const formatted = phoneNumber.replace(
+        /(\d{2})(\d{5})(\d{4})/,
+        "($1) $2-$3",
+      );
+      return formatted;
+    },
+  },
+  {
     id: "sex",
     accessorKey: "sex",
     header: "Sexo",

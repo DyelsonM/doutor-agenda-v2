@@ -1,5 +1,37 @@
 import jsPDF from "jspdf";
 
+// Função auxiliar para carregar imagem e converter para base64
+const loadImageAsBase64 = (url: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) {
+        reject(new Error("Erro ao criar canvas"));
+        return;
+      }
+
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      try {
+        const dataURL = canvas.toDataURL("image/jpeg", 0.8);
+        resolve(dataURL);
+      } catch (error) {
+        reject(error);
+      }
+    };
+
+    img.onerror = () => reject(new Error("Erro ao carregar imagem"));
+    img.src = url;
+  });
+};
+
 export interface ExportDocumentData {
   document: {
     id: string;
@@ -21,13 +53,14 @@ export interface ExportDocumentData {
   };
   clinic: {
     name: string;
+    logoUrl: string | null;
   };
   appointment: {
     date: Date;
   } | null;
 }
 
-export const exportToPDF = (data: ExportDocumentData): void => {
+export const exportToPDF = async (data: ExportDocumentData): Promise<void> => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -38,17 +71,40 @@ export const exportToPDF = (data: ExportDocumentData): void => {
   // Configurações de fonte
   doc.setFont("helvetica");
 
-  // Cabeçalho
+  // Logo da clínica (apenas se estiver configurada)
+  if (data.clinic.logoUrl && data.clinic.logoUrl.trim()) {
+    try {
+      const logoBase64 = await loadImageAsBase64(data.clinic.logoUrl);
+      const logoHeight = 40;
+      const logoWidth = 40;
+
+      // Centralizar logo horizontalmente
+      const logoX = (pageWidth - logoWidth) / 2;
+
+      doc.addImage(logoBase64, "JPEG", logoX, yPosition, logoWidth, logoHeight);
+
+      yPosition += logoHeight + 10;
+    } catch (error) {
+      console.warn("Erro ao carregar logo da clínica:", error);
+      // Se falhar ao carregar a logo, não adiciona nada e continua sem logo
+    }
+  }
+
+  // Cabeçalho - título centralizado
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
-  doc.text(data.document.title, margin, yPosition);
-  yPosition += 10;
+  const titleWidth = doc.getTextWidth(data.document.title);
+  const titleX = (pageWidth - titleWidth) / 2;
+  doc.text(data.document.title, titleX, yPosition);
+  yPosition += 15;
 
-  // Informações da clínica
+  // Informações da clínica - nome centralizado
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text(data.clinic.name, margin, yPosition);
-  yPosition += 5;
+  const clinicNameWidth = doc.getTextWidth(data.clinic.name);
+  const clinicNameX = (pageWidth - clinicNameWidth) / 2;
+  doc.text(data.clinic.name, clinicNameX, yPosition);
+  yPosition += 10;
 
   // Linha separadora
   doc.setLineWidth(0.5);

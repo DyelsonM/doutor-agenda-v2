@@ -1,0 +1,1 @@
+ALTER TABLE "patients" ADD COLUMN "responsible_phone_number" text;
