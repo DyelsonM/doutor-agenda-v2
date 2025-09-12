@@ -38,6 +38,7 @@ export type Document = {
     | "medical_certificate"
     | "exam_request"
     | "medical_report"
+    | "referral_form"
     | "other";
   title: string;
   content: string;
@@ -54,6 +55,7 @@ const documentTypeLabels: Record<Document["type"], string> = {
   medical_certificate: "Atestado",
   exam_request: "Solicitação de Exame",
   medical_report: "Relatório Médico",
+  referral_form: "Encaminhamento",
   other: "Outro",
 };
 
@@ -63,6 +65,7 @@ const documentTypeColors: Record<Document["type"], string> = {
   medical_certificate: "bg-yellow-100 text-yellow-800",
   exam_request: "bg-purple-100 text-purple-800",
   medical_report: "bg-red-100 text-red-800",
+  referral_form: "bg-orange-100 text-orange-800",
   other: "bg-gray-100 text-gray-800",
 };
 

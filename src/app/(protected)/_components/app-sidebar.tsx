@@ -62,6 +62,16 @@ const adminItems = [
     title: "Documentos",
     url: "/documents",
     icon: FileText,
+    items: [
+      {
+        title: "Documentos",
+        url: "/documents",
+      },
+      {
+        title: "Templates",
+        url: "/documents/templates",
+      },
+    ],
   },
   {
     title: "Financeiro",

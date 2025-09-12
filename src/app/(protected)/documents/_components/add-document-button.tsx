@@ -30,14 +30,24 @@ type Doctor = {
   name: string;
 };
 
+type DocumentTemplate = {
+  id: string;
+  name: string;
+  type: string;
+  content: string;
+  isActive: boolean;
+};
+
 interface AddDocumentButtonProps {
   patients: Patient[];
   doctors: Doctor[];
+  templates?: DocumentTemplate[];
 }
 
 export function AddDocumentButton({
   patients,
   doctors,
+  templates = [],
 }: AddDocumentButtonProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -69,6 +79,7 @@ export function AddDocumentButton({
           <UpsertDocumentForm
             patients={patients}
             doctors={doctors}
+            templates={templates}
             onSuccess={() => setOpen(false)}
           />
         </DialogContent>

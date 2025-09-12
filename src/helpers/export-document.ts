@@ -60,6 +60,21 @@ export interface ExportDocumentData {
   } | null;
 }
 
+export interface ExportTemplateData {
+  template: {
+    id: string;
+    name: string;
+    type: string;
+    content: string;
+    createdAt: Date;
+    updatedAt: Date | null;
+  };
+  clinic: {
+    name: string;
+    logoUrl: string | null;
+  };
+}
+
 export const exportToPDF = async (data: ExportDocumentData): Promise<void> => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -262,4 +277,103 @@ export const exportToText = (data: ExportDocumentData): void => {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+};
+
+export const exportTemplateToPDF = async (
+  data: ExportTemplateData,
+): Promise<void> => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 20;
+  const contentWidth = pageWidth - 2 * margin;
+  let yPosition = margin;
+
+  // Configurações de fonte
+  doc.setFont("helvetica");
+
+  // Logo da clínica (apenas se estiver configurada)
+  if (data.clinic.logoUrl && data.clinic.logoUrl.trim()) {
+    try {
+      const logoBase64 = await loadImageAsBase64(data.clinic.logoUrl);
+      const logoHeight = 40;
+      const logoWidth = 40;
+
+      // Centralizar logo horizontalmente
+      const logoX = (pageWidth - logoWidth) / 2;
+
+      doc.addImage(logoBase64, "JPEG", logoX, yPosition, logoWidth, logoHeight);
+
+      yPosition += logoHeight + 10;
+    } catch (error) {
+      console.warn("Erro ao carregar logo da clínica:", error);
+      // Se falhar ao carregar a logo, não adiciona nada e continua sem logo
+    }
+  }
+
+  // Cabeçalho - nome do template centralizado
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  const titleWidth = doc.getTextWidth(data.template.name);
+  const titleX = (pageWidth - titleWidth) / 2;
+  doc.text(data.template.name, titleX, yPosition);
+  yPosition += 15;
+
+  // Informações da clínica - nome centralizado
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  const clinicNameWidth = doc.getTextWidth(data.clinic.name);
+  const clinicNameX = (pageWidth - clinicNameWidth) / 2;
+  doc.text(data.clinic.name, clinicNameX, yPosition);
+  yPosition += 10;
+
+  // Linha separadora
+  doc.setLineWidth(0.5);
+  doc.line(margin, yPosition, pageWidth - margin, yPosition);
+  yPosition += 15;
+
+  // Conteúdo do template
+  const content = data.template.content;
+  const lines = content.split("\n");
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+
+  for (const line of lines) {
+    // Verificar se precisa de nova página
+    if (yPosition > pageHeight - margin - 10) {
+      doc.addPage();
+      yPosition = margin;
+    }
+
+    // Processar linhas longas
+    const splitLines = doc.splitTextToSize(line, contentWidth);
+
+    for (const splitLine of splitLines) {
+      if (yPosition > pageHeight - margin - 10) {
+        doc.addPage();
+        yPosition = margin;
+      }
+
+      doc.text(splitLine, margin, yPosition);
+      yPosition += 5;
+    }
+
+    yPosition += 2; // Espaçamento entre linhas
+  }
+
+  // Rodapé com data de criação
+  const footerY = pageHeight - 15;
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "italic");
+  const createdAt = new Date(data.template.createdAt);
+  doc.text(
+    `Documento criado em: ${createdAt.toLocaleString("pt-BR")}`,
+    margin,
+    footerY,
+  );
+
+  // Download do PDF
+  const filename = `template_${data.template.name.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`;
+  doc.save(filename);
 };

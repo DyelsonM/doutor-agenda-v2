@@ -11,6 +11,7 @@ export const upsertDocumentSchema = z.object({
       "medical_certificate",
       "exam_request",
       "medical_report",
+      "referral_form",
       "other",
     ],
     {

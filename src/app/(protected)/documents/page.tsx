@@ -1,5 +1,6 @@
-import { eq, and } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { FileText, Stethoscope, Users } from "lucide-react";
+import { redirect } from "next/navigation";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
@@ -13,7 +14,12 @@ import {
   PageTitle,
 } from "@/components/ui/page-container";
 import { db } from "@/db";
-import { doctorsTable, documentsTable, patientsTable } from "@/db/schema";
+import {
+  doctorsTable,
+  documentsTable,
+  documentTemplatesTable,
+  patientsTable,
+} from "@/db/schema";
 import { getAuthSession, getDoctorIdFromUser } from "@/lib/auth-utils";
 
 import { AddDocumentButton } from "./_components/add-document-button";
@@ -49,7 +55,7 @@ const DocumentsPage = async () => {
     );
   }
 
-  const [patients, doctors, documents] = await Promise.all([
+  const [patients, doctors, documents, templates] = await Promise.all([
     db.query.patientsTable.findMany({
       where: patientsFilter,
     }),
@@ -64,6 +70,10 @@ const DocumentsPage = async () => {
         appointment: true,
       },
       orderBy: (documents, { desc }) => [desc(documents.createdAt)],
+    }),
+    db.query.documentTemplatesTable.findMany({
+      where: eq(documentTemplatesTable.clinicId, session.user.clinic.id),
+      orderBy: (templates, { asc }) => [asc(templates.name)],
     }),
   ]);
 
@@ -91,7 +101,11 @@ const DocumentsPage = async () => {
           </PageDescription>
         </PageHeaderContent>
         <PageActions>
-          <AddDocumentButton patients={patients} doctors={doctors} />
+          <AddDocumentButton
+            patients={patients}
+            doctors={doctors}
+            templates={templates}
+          />
         </PageActions>
       </PageHeader>
       <PageContent>

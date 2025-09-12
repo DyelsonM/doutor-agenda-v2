@@ -133,6 +133,7 @@ export const clinicsTableRelations = relations(clinicsTable, ({ many }) => ({
   patients: many(patientsTable),
   appointments: many(appointmentsTable),
   documents: many(documentsTable),
+  documentTemplates: many(documentTemplatesTable),
   usersToClinics: many(usersToClinicsTable),
   transactions: many(transactionsTable),
   financialReports: many(financialReportsTable),
@@ -272,6 +273,8 @@ export const expenseCategoryEnum = pgEnum("expense_category", [
   "staff",
   "insurance",
   "software",
+  "laboratory",
+  "shipping",
   "other",
 ]);
 
@@ -320,6 +323,21 @@ export const documentsTable = pgTable("documents", {
     .$onUpdate(() => new Date()),
 });
 
+export const documentTemplatesTable = pgTable("document_templates", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clinicId: uuid("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  type: documentTypeEnum("type").notNull(),
+  content: text("content").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
 export const documentsTableRelations = relations(documentsTable, ({ one }) => ({
   clinic: one(clinicsTable, {
     fields: [documentsTable.clinicId],
@@ -338,6 +356,16 @@ export const documentsTableRelations = relations(documentsTable, ({ one }) => ({
     references: [appointmentsTable.id],
   }),
 }));
+
+export const documentTemplatesTableRelations = relations(
+  documentTemplatesTable,
+  ({ one }) => ({
+    clinic: one(clinicsTable, {
+      fields: [documentTemplatesTable.clinicId],
+      references: [clinicsTable.id],
+    }),
+  }),
+);
 
 // Tabelas Financeiras
 export const transactionsTable = pgTable("transactions", {

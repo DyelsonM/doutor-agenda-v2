@@ -29,6 +29,8 @@ export const createTransactionSchema = z.object({
       "staff",
       "insurance",
       "software",
+      "laboratory",
+      "shipping",
       "other",
     ])
     .optional(),

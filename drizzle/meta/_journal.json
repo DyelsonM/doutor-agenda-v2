@@ -71,6 +71,48 @@
       "when": 1757690964774,
       "tag": "0009_big_the_enforcers",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1757691586078,
+      "tag": "0010_glorious_hellcat",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1757692534326,
+      "tag": "0011_shallow_snowbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1757697098343,
+      "tag": "0012_chilly_leper_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1757702286655,
+      "tag": "0013_wealthy_nocturne",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1757703009373,
+      "tag": "0014_slim_inhumans",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1757704740511,
+      "tag": "0015_nebulous_gorgon",
+      "breakpoints": true
     }
   ]
 }
