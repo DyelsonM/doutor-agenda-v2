@@ -113,6 +113,20 @@
       "when": 1757704740511,
       "tag": "0015_nebulous_gorgon",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1757965603133,
+      "tag": "0016_optimal_felicia_hardy",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1757965762914,
+      "tag": "0017_loud_the_stranger",
+      "breakpoints": true
     }
   ]
 }

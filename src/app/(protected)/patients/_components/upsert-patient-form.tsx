@@ -49,6 +49,10 @@ const formSchema = z.object({
   sex: z.enum(["male", "female"], {
     required_error: "Sexo é obrigatório.",
   }),
+  patientType: z.enum(["particular", "cliente_oro", "convenio"], {
+    required_error: "Tipo de paciente é obrigatório.",
+  }),
+  insuranceName: z.string().optional().or(z.literal("")),
 });
 
 interface UpsertPatientFormProps {
@@ -71,6 +75,8 @@ const UpsertPatientForm = ({
       phoneNumber: patient?.phoneNumber ?? "",
       responsiblePhoneNumber: patient?.responsiblePhoneNumber ?? "",
       sex: patient?.sex ?? undefined,
+      patientType: patient?.patientType ?? "particular",
+      insuranceName: patient?.insuranceName ?? "",
     },
   });
 
@@ -208,6 +214,44 @@ const UpsertPatientForm = ({
                     <SelectItem value="female">Feminino</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="patientType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tipo de paciente</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="particular">Particular</SelectItem>
+                    <SelectItem value="cliente_oro">Cliente Oro</SelectItem>
+                    <SelectItem value="convenio">Convênio</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="insuranceName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nome do convênio (opcional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Digite o nome do convênio" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

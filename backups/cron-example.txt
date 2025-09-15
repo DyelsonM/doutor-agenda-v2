@@ -1,0 +1,19 @@
+# Cron jobs para backup automático
+# Adicione estas linhas ao crontab (crontab -e)
+
+# Backup diário às 2:00 AM
+0 2 * * * cd /path/to/doutor-agenda-v2 && npm run backup:daily >> /var/log/backup-daily.log 2>&1
+
+# Backup semanal aos domingos às 3:00 AM
+0 3 * * 0 cd /path/to/doutor-agenda-v2 && npm run backup:weekly >> /var/log/backup-weekly.log 2>&1
+
+# Backup mensal no dia 1 às 4:00 AM
+0 4 1 * * cd /path/to/doutor-agenda-v2 && npm run backup:monthly >> /var/log/backup-monthly.log 2>&1
+
+# Limpeza automática diária às 2:30 AM
+30 2 * * * cd /path/to/doutor-agenda-v2 && npm run backup:cleanup >> /var/log/backup-cleanup.log 2>&1
+
+# Para usar com PM2 (alternativa ao cron)
+# pm2 start "npm run backup:daily" --name "backup-daily" --cron "0 2 * * *"
+# pm2 start "npm run backup:weekly" --name "backup-weekly" --cron "0 3 * * 0"
+# pm2 start "npm run backup:monthly" --name "backup-monthly" --cron "0 4 1 * *"

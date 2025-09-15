@@ -1,0 +1,12 @@
+# Backups
+backups/
+*.sql
+*.tar.gz
+*.log
+
+# Temporary files
+temp/
+tmp/
+
+# Restored files
+restored_files/

@@ -59,6 +59,20 @@ export const patientsTableColumns: ColumnDef<Patient>[] = [
     },
   },
   {
+    id: "patientType",
+    accessorKey: "patientType",
+    header: "Tipo",
+    cell: (params) => {
+      const patient = params.row.original;
+      const typeLabels = {
+        particular: "Particular",
+        cliente_oro: "Cliente Oro",
+        convenio: patient.insuranceName || "Convênio",
+      };
+      return typeLabels[patient.patientType] || "Particular";
+    },
+  },
+  {
     id: "actions",
     cell: (params) => {
       const patient = params.row.original;

@@ -179,6 +179,11 @@ export const doctorsTableRelations = relations(
 );
 
 export const patientSexEnum = pgEnum("patient_sex", ["male", "female"]);
+export const patientTypeEnum = pgEnum("patient_type", [
+  "particular",
+  "cliente_oro",
+  "convenio",
+]);
 
 export const patientsTable = pgTable("patients", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -189,6 +194,8 @@ export const patientsTable = pgTable("patients", {
   email: text("email").notNull(),
   phoneNumber: text("phone_number").notNull(),
   responsiblePhoneNumber: text("responsible_phone_number"),
+  patientType: patientTypeEnum("patient_type").notNull().default("particular"),
+  insuranceName: text("insurance_name"), // Nome do convênio quando for convênio
   createdAt: timestamp("created_at").defaultNow().notNull(),
   sex: patientSexEnum("sex").notNull(),
   updatedAt: timestamp("updated_at")

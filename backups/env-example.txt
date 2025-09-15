@@ -1,0 +1,35 @@
+# Configuração do Sistema de Backup
+# Copie este arquivo para .env.backup e configure as variáveis
+
+# URL do banco de dados PostgreSQL
+DATABASE_URL=postgres://usuario:senha@localhost:5432/doutor_agenda
+
+# Configurações de backup (opcional)
+BACKUP_RETENTION_DAILY=7
+BACKUP_RETENTION_WEEKLY=4
+BACKUP_RETENTION_MONTHLY=12
+
+# Diretório de backup (opcional)
+BACKUP_DIR=./backups
+
+# Configurações de limpeza automática
+CLEANUP_SCHEDULE=0 2 * * *
+CLEANUP_LOG_FILE=./backups/cleanup.log
+
+# Configurações de notificação (opcional)
+NOTIFICATION_EMAIL=admin@exemplo.com
+NOTIFICATION_WEBHOOK_URL=https://hooks.slack.com/services/...
+
+# Configurações de compressão
+COMPRESSION_LEVEL=6
+COMPRESSION_ALGORITHM=gzip
+
+# Configurações de segurança
+BACKUP_ENCRYPTION=false
+BACKUP_ENCRYPTION_KEY=
+
+# Configurações de monitoramento
+MONITOR_DISK_USAGE=true
+MONITOR_DISK_THRESHOLD=80
+MONITOR_BACKUP_SIZE=true
+MONITOR_BACKUP_SIZE_THRESHOLD=1000
