@@ -1,13 +1,13 @@
 "use server";
 
+import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import bcrypt from "bcryptjs";
 
 import { db } from "@/db";
 import { doctorsTable, usersTable } from "@/db/schema";
-import { actionClient } from "@/lib/next-safe-action";
 import { getAuthSession, requireAdmin } from "@/lib/auth-utils";
+import { actionClient } from "@/lib/next-safe-action";
 
 import { updateDoctorCredentialsSchema } from "./schema";
 

@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageContainer } from "@/components/ui/page-container";
 import { db } from "@/db";
 import {
-  documentTemplatesTable,
   doctorsTable,
+  documentTemplatesTable,
   patientsTable,
 } from "@/db/schema";
 import { getAuthSession, getDoctorIdFromUser } from "@/lib/auth-utils";

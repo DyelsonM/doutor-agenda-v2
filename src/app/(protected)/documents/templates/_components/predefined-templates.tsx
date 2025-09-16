@@ -19,8 +19,8 @@ import {
 } from "@/components/ui/dialog";
 
 import { UpsertDocumentForm } from "../../_components/upsert-document-form";
-import { UpsertTemplateForm } from "./upsert-template-form";
 import { predefinedTemplates } from "./predefined-templates-data";
+import { UpsertTemplateForm } from "./upsert-template-form";
 
 interface PredefinedTemplatesProps {
   patients: Array<{ id: string; name: string }>;

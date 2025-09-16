@@ -137,6 +137,7 @@ export const clinicsTableRelations = relations(clinicsTable, ({ many }) => ({
   usersToClinics: many(usersToClinicsTable),
   transactions: many(transactionsTable),
   financialReports: many(financialReportsTable),
+  payables: many(payablesTable),
 }));
 
 export const doctorsTable = pgTable("doctors", {
@@ -443,3 +444,57 @@ export const financialReportsTableRelations = relations(
     }),
   }),
 );
+
+// Enums para contas a pagar
+export const payableStatusEnum = pgEnum("payable_status", [
+  "pending",
+  "paid",
+  "overdue",
+  "cancelled",
+]);
+
+export const payableCategoryEnum = pgEnum("payable_category", [
+  "rent",
+  "utilities",
+  "equipment",
+  "supplies",
+  "marketing",
+  "staff",
+  "insurance",
+  "software",
+  "laboratory",
+  "shipping",
+  "maintenance",
+  "professional_services",
+  "taxes",
+  "other",
+]);
+
+// Tabela de contas a pagar
+export const payablesTable = pgTable("payables", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clinicId: uuid("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  description: text("description").notNull(),
+  amountInCents: integer("amount_in_cents").notNull(),
+  category: payableCategoryEnum("category").notNull(),
+  status: payableStatusEnum("status").notNull().default("pending"),
+  dueDate: timestamp("due_date").notNull(),
+  paidDate: timestamp("paid_date"),
+  supplierName: text("supplier_name"),
+  supplierDocument: text("supplier_document"), // CPF/CNPJ
+  invoiceNumber: text("invoice_number"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const payablesTableRelations = relations(payablesTable, ({ one }) => ({
+  clinic: one(clinicsTable, {
+    fields: [payablesTable.clinicId],
+    references: [clinicsTable.id],
+  }),
+}));

@@ -77,6 +77,24 @@ const adminItems = [
     title: "Financeiro",
     url: "/financial",
     icon: DollarSign,
+    items: [
+      {
+        title: "Resumo",
+        url: "/financial",
+      },
+      {
+        title: "Transações",
+        url: "/financial/transactions",
+      },
+      {
+        title: "Contas a Pagar",
+        url: "/financial/payables",
+      },
+      {
+        title: "Relatórios",
+        url: "/financial/reports",
+      },
+    ],
   },
 ];
 

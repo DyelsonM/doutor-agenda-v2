@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { Eye, EyeOff } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Eye, EyeOff } from "lucide-react";
 
+import { createDoctorUserAction } from "@/actions/create-doctor-user";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,7 +26,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { createDoctorUserAction } from "@/actions/create-doctor-user";
 
 const formSchema = z.object({
   email: z.string().email("Email inválido"),

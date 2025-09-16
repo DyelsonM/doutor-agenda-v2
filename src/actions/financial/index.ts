@@ -17,6 +17,7 @@ import {
   appointmentsTable,
   financialReportsTable,
   patientsTable,
+  payablesTable,
   transactionsTable,
 } from "@/db/schema";
 import { getAuthSession, getDoctorIdFromUser } from "@/lib/auth-utils";
@@ -441,6 +442,46 @@ export const generateFinancialReportAction = action
       )
       .groupBy(transactionsTable.expenseCategory);
 
+    // Dados de contas a pagar
+    const payablesSummary = await db
+      .select({
+        total: sum(payablesTable.amountInCents),
+        pending: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' THEN ${payablesTable.amountInCents} ELSE 0 END)`,
+        paid: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'paid' THEN ${payablesTable.amountInCents} ELSE 0 END)`,
+        overdue: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' AND ${payablesTable.dueDate} < NOW() THEN ${payablesTable.amountInCents} ELSE 0 END)`,
+        count: count(payablesTable.id),
+      })
+      .from(payablesTable)
+      .where(eq(payablesTable.clinicId, session.user.clinic.id));
+
+    // Contas a pagar por categoria
+    const payablesByCategory = await db
+      .select({
+        category: payablesTable.category,
+        total: sum(payablesTable.amountInCents),
+        pending: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' THEN ${payablesTable.amountInCents} ELSE 0 END)`,
+        paid: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'paid' THEN ${payablesTable.amountInCents} ELSE 0 END)`,
+        count: count(payablesTable.id),
+      })
+      .from(payablesTable)
+      .where(eq(payablesTable.clinicId, session.user.clinic.id))
+      .groupBy(payablesTable.category);
+
+    // Contas a pagar vencidas no período
+    const overduePayables = await db
+      .select({
+        total: sum(payablesTable.amountInCents),
+        count: count(payablesTable.id),
+      })
+      .from(payablesTable)
+      .where(
+        and(
+          eq(payablesTable.clinicId, session.user.clinic.id),
+          eq(payablesTable.status, "pending"),
+          lte(payablesTable.dueDate, parsedInput.periodEnd),
+        ),
+      );
+
     // Calcular métricas adicionais
     let appointmentsInPeriod;
     if (isDaily) {
@@ -506,6 +547,20 @@ export const generateFinancialReportAction = action
         count: appointmentsInPeriod[0]?.count || 0,
         totalValue: appointmentsInPeriod[0]?.totalValue || 0,
         averageValue: averageAppointmentValue,
+      },
+      payables: {
+        summary: {
+          total: payablesSummary[0]?.total || 0,
+          pending: payablesSummary[0]?.pending || 0,
+          paid: payablesSummary[0]?.paid || 0,
+          overdue: payablesSummary[0]?.overdue || 0,
+          count: payablesSummary[0]?.count || 0,
+        },
+        byCategory: payablesByCategory,
+        overdueInPeriod: {
+          total: overduePayables[0]?.total || 0,
+          count: overduePayables[0]?.count || 0,
+        },
       },
     };
 

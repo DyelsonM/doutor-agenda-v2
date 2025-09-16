@@ -6,8 +6,8 @@ import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 
 import {
-  updateTransactionAction,
   deleteTransactionAction,
+  updateTransactionAction,
 } from "@/actions/financial";
 import {
   AlertDialog,

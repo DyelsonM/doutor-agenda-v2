@@ -1,5 +1,11 @@
-import { and, count, desc, eq, gte, lte, sum, sql } from "drizzle-orm";
-import { BarChart3, DollarSign, FileText, TrendingUp } from "lucide-react";
+import { and, count, desc, eq, gte, lte, sql,sum } from "drizzle-orm";
+import {
+  AlertTriangle,
+  BarChart3,
+  DollarSign,
+  FileText,
+  TrendingUp,
+} from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -14,7 +20,7 @@ import {
   PageTitle,
 } from "@/components/ui/page-container";
 import { db } from "@/db";
-import { transactionsTable } from "@/db/schema";
+import { payablesTable,transactionsTable } from "@/db/schema";
 import { formatCurrencyInCents } from "@/helpers/financial";
 import { getAuthSession, getDoctorIdFromUser } from "@/lib/auth-utils";
 
@@ -72,6 +78,8 @@ const FinancialPage = async () => {
     expenseData,
     totalTransactions,
     pendingAmount,
+    // Dados de contas a pagar
+    payablesData,
     // Dados do período anterior para comparação
     previousRevenueData,
     previousExpenseData,
@@ -112,6 +120,16 @@ const FinancialPage = async () => {
       .select({ total: sum(transactionsTable.amountInCents) })
       .from(transactionsTable)
       .where(and(periodFilter, eq(transactionsTable.status, "pending"))),
+
+    // Dados de contas a pagar
+    db
+      .select({
+        total: sum(payablesTable.amountInCents),
+        pending: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' THEN ${payablesTable.amountInCents} ELSE 0 END)`,
+        overdue: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' AND ${payablesTable.dueDate} < NOW() THEN ${payablesTable.amountInCents} ELSE 0 END)`,
+      })
+      .from(payablesTable)
+      .where(eq(payablesTable.clinicId, session.user.clinic.id)),
 
     // Receitas (entradas) - período anterior
     db
@@ -279,6 +297,10 @@ const FinancialPage = async () => {
     netProfit: currentNetProfit,
     totalTransactions: totalTransactions[0]?.count || 0,
     pendingAmount: pendingAmount[0]?.total || 0,
+    // Contas a pagar
+    totalPayables: payablesData[0]?.total || 0,
+    pendingPayables: payablesData[0]?.pending || 0,
+    overduePayables: payablesData[0]?.overdue || 0,
     // Tendências calculadas em tempo real
     revenueTrend,
     expenseTrend,
@@ -306,6 +328,12 @@ const FinancialPage = async () => {
                 Ver Transações
               </Button>
             </Link>
+            <Link href="/financial/payables">
+              <Button variant="outline">
+                <AlertTriangle className="mr-2 h-4 w-4" />
+                Contas a Pagar
+              </Button>
+            </Link>
             <Link href="/financial/reports">
               <Button variant="outline">
                 <FileText className="mr-2 h-4 w-4" />
@@ -321,7 +349,7 @@ const FinancialPage = async () => {
             <FinancialSummaryCards stats={financialStats} />
 
             {/* Navegação rápida */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <Link href="/financial/transactions">
                 <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -336,6 +364,26 @@ const FinancialPage = async () => {
                     </div>
                     <p className="text-muted-foreground text-xs">
                       Total de receita
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+
+              <Link href="/financial/payables">
+                <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Contas a Pagar
+                    </CardTitle>
+                    <AlertTriangle className="text-muted-foreground h-4 w-4" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {formatCurrencyInCents(financialStats.totalPayables)}
+                    </div>
+                    <p className="text-muted-foreground text-xs">
+                      {financialStats.pendingPayables} pendentes,{" "}
+                      {financialStats.overduePayables} vencidas
                     </p>
                   </CardContent>
                 </Card>

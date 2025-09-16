@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertTriangle,
   ArrowDown,
   ArrowUp,
   Calendar,
@@ -22,6 +23,10 @@ interface FinancialStats {
   pendingAmount: number;
   appointmentCount: number;
   appointmentValue: number;
+  // Contas a pagar
+  totalPayables: number;
+  pendingPayables: number;
+  overduePayables: number;
   // Tendências calculadas em tempo real
   revenueTrend: number;
   expenseTrend: number;
@@ -74,13 +79,13 @@ export function FinancialSummaryCards({ stats }: FinancialSummaryCardsProps) {
       color: stats.netProfit >= 0 ? "text-green-600" : "text-red-600",
     },
     {
-      title: "Transações",
-      value: formatNumber(stats.totalTransactions),
-      icon: Calendar,
-      description: "Total de movimentações",
-      trend: formatTrend(stats.transactionTrend),
-      trendUp: stats.transactionTrend >= 0,
-      color: "text-blue-600",
+      title: "Contas a Pagar",
+      value: formatCurrencyInCents(stats.totalPayables),
+      icon: AlertTriangle,
+      description: `${stats.pendingPayables} pendentes, ${stats.overduePayables} vencidas`,
+      trend: "",
+      trendUp: true,
+      color: stats.overduePayables > 0 ? "text-red-600" : "text-orange-600",
     },
   ];
 
@@ -100,21 +105,25 @@ export function FinancialSummaryCards({ stats }: FinancialSummaryCardsProps) {
               <div className={`text-2xl font-bold ${card.color}`}>
                 {card.value}
               </div>
-              <div className="text-muted-foreground flex items-center space-x-2 text-xs">
-                <div className="flex items-center space-x-1">
-                  {card.trendUp ? (
-                    <ArrowUp className="h-3 w-3 text-green-500" />
-                  ) : (
-                    <ArrowDown className="h-3 w-3 text-red-500" />
-                  )}
-                  <span
-                    className={card.trendUp ? "text-green-500" : "text-red-500"}
-                  >
-                    {card.trend}
-                  </span>
+              {card.trend && (
+                <div className="text-muted-foreground flex items-center space-x-2 text-xs">
+                  <div className="flex items-center space-x-1">
+                    {card.trendUp ? (
+                      <ArrowUp className="h-3 w-3 text-green-500" />
+                    ) : (
+                      <ArrowDown className="h-3 w-3 text-red-500" />
+                    )}
+                    <span
+                      className={
+                        card.trendUp ? "text-green-500" : "text-red-500"
+                      }
+                    >
+                      {card.trend}
+                    </span>
+                  </div>
+                  <span>vs mês anterior</span>
                 </div>
-                <span>vs mês anterior</span>
-              </div>
+              )}
               <p className="text-muted-foreground mt-1 text-xs">
                 {card.description}
               </p>

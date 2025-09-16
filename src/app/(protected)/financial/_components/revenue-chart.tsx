@@ -5,11 +5,11 @@ import { ptBR } from "date-fns/locale";
 import {
   Bar,
   BarChart,
+  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
-  Legend,
 } from "recharts";
 
 interface ChartData {

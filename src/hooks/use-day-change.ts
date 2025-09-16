@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 /**
  * Hook que detecta quando o dia muda (à meia-noite) e executa uma função callback

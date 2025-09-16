@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/table";
 import { formatCurrencyInCents, formatDate } from "@/helpers/financial";
 
-import { ReportActions } from "./report-actions";
 import { DetailedReportViewer } from "./detailed-report-viewer";
+import { ReportActions } from "./report-actions";
 
 interface FinancialReport {
   id: string;

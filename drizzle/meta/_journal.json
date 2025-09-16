@@ -127,6 +127,20 @@
       "when": 1757965762914,
       "tag": "0017_loud_the_stranger",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1757997867861,
+      "tag": "0018_narrow_tempest",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1758000803192,
+      "tag": "0019_orange_warbird",
+      "breakpoints": true
     }
   ]
 }

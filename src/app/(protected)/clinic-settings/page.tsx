@@ -5,10 +5,10 @@ import { redirect } from "next/navigation";
 import {
   PageContainer,
   PageContent,
+  PageDescription,
   PageHeader,
   PageHeaderContent,
   PageTitle,
-  PageDescription,
 } from "@/components/ui/page-container";
 import { db } from "@/db";
 import { clinicsTable } from "@/db/schema";

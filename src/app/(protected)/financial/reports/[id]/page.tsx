@@ -1,26 +1,30 @@
 import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { notFound } from "next/navigation";
 
-import { getAuthSession } from "@/lib/auth-utils";
 import { db } from "@/db";
 import {
   appointmentsTable,
   financialReportsTable,
   patientsTable,
+  payablesTable,
   transactionsTable,
 } from "@/db/schema";
+import { getAuthSession } from "@/lib/auth-utils";
+
+import { BackButton } from "../_components/back-button";
 import { DailyReportDetailed } from "../_components/daily-report-detailed";
 import { FinancialSummary } from "../_components/financial-summary";
-import { BackButton } from "../_components/back-button";
+import { PayablesSection } from "../_components/payables-section";
 
 interface ReportDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 const ReportDetailPage = async ({ params }: ReportDetailPageProps) => {
   const session = await getAuthSession();
+  const { id } = await params;
 
   // Buscar o relatório
   const [report] = await db
@@ -28,7 +32,7 @@ const ReportDetailPage = async ({ params }: ReportDetailPageProps) => {
     .from(financialReportsTable)
     .where(
       and(
-        eq(financialReportsTable.id, params.id),
+        eq(financialReportsTable.id, id),
         eq(financialReportsTable.clinicId, session.user.clinic.id),
       ),
     )
@@ -44,33 +48,51 @@ const ReportDetailPage = async ({ params }: ReportDetailPageProps) => {
   const endOfDay = new Date(report.periodEnd);
   endOfDay.setHours(23, 59, 59, 999);
 
-  const transactions = await db
-    .select({
-      id: transactionsTable.id,
-      type: transactionsTable.type,
-      description: transactionsTable.description,
-      amountInCents: transactionsTable.amountInCents,
-      paymentMethod: transactionsTable.paymentMethod,
-      status: transactionsTable.status,
-      expenseCategory: transactionsTable.expenseCategory,
-      createdAt: transactionsTable.createdAt,
-      appointmentId: appointmentsTable.id,
-      patientName: patientsTable.name,
-    })
-    .from(transactionsTable)
-    .leftJoin(
-      appointmentsTable,
-      eq(transactionsTable.appointmentId, appointmentsTable.id),
-    )
-    .leftJoin(patientsTable, eq(appointmentsTable.patientId, patientsTable.id))
-    .where(
-      and(
-        eq(transactionsTable.clinicId, session.user.clinic.id),
-        gte(transactionsTable.createdAt, startOfDay),
-        lte(transactionsTable.createdAt, endOfDay),
-      ),
-    )
-    .orderBy(desc(transactionsTable.createdAt));
+  const [transactions, payables] = await Promise.all([
+    db
+      .select({
+        id: transactionsTable.id,
+        type: transactionsTable.type,
+        description: transactionsTable.description,
+        amountInCents: transactionsTable.amountInCents,
+        paymentMethod: transactionsTable.paymentMethod,
+        status: transactionsTable.status,
+        expenseCategory: transactionsTable.expenseCategory,
+        createdAt: transactionsTable.createdAt,
+        appointmentId: appointmentsTable.id,
+        patientName: patientsTable.name,
+      })
+      .from(transactionsTable)
+      .leftJoin(
+        appointmentsTable,
+        eq(transactionsTable.appointmentId, appointmentsTable.id),
+      )
+      .leftJoin(
+        patientsTable,
+        eq(appointmentsTable.patientId, patientsTable.id),
+      )
+      .where(
+        and(
+          eq(transactionsTable.clinicId, session.user.clinic.id),
+          gte(transactionsTable.createdAt, startOfDay),
+          lte(transactionsTable.createdAt, endOfDay),
+        ),
+      )
+      .orderBy(desc(transactionsTable.createdAt)),
+
+    // Buscar contas a pagar do período
+    db
+      .select()
+      .from(payablesTable)
+      .where(
+        and(
+          eq(payablesTable.clinicId, session.user.clinic.id),
+          gte(payablesTable.dueDate, startOfDay),
+          lte(payablesTable.dueDate, endOfDay),
+        ),
+      )
+      .orderBy(desc(payablesTable.dueDate)),
+  ]);
 
   // Transformar dados para o formato esperado
   const transformedTransactions = transactions.map((transaction) => ({
@@ -159,6 +181,13 @@ const ReportDetailPage = async ({ params }: ReportDetailPageProps) => {
           {/* Componente de Resumo Financeiro */}
           <FinancialSummary
             transactions={transformedTransactions}
+            periodStart={report.periodStart}
+            periodEnd={report.periodEnd}
+          />
+
+          {/* Seção de Contas a Pagar */}
+          <PayablesSection
+            payables={payables}
             periodStart={report.periodStart}
             periodEnd={report.periodEnd}
           />

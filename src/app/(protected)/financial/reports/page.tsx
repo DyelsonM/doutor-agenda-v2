@@ -1,5 +1,11 @@
-import { and, count, desc, eq, gte, lte, or, sum } from "drizzle-orm";
-import { ArrowLeft, FileText, TrendingUp, TrendingDown } from "lucide-react";
+import { and, count, desc, eq, gte, lte, or, sql,sum } from "drizzle-orm";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  FileText,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -14,7 +20,11 @@ import {
   PageTitle,
 } from "@/components/ui/page-container";
 import { db } from "@/db";
-import { financialReportsTable, transactionsTable } from "@/db/schema";
+import {
+  financialReportsTable,
+  payablesTable,
+  transactionsTable,
+} from "@/db/schema";
 import { formatCurrencyInCents } from "@/helpers/financial";
 import { getAuthSession, getDoctorIdFromUser } from "@/lib/auth-utils";
 
@@ -50,48 +60,66 @@ const ReportsPage = async () => {
   const nextMonth = new Date(currentMonth);
   nextMonth.setMonth(nextMonth.getMonth() + 1);
 
-  const [monthlyRevenue, monthlyExpenses, totalReports] = await Promise.all([
-    db
-      .select({ total: sum(transactionsTable.amountInCents) })
-      .from(transactionsTable)
-      .where(
-        and(
-          transactionsFilter,
-          gte(transactionsTable.createdAt, currentMonth),
-          lte(transactionsTable.createdAt, nextMonth),
-          eq(transactionsTable.status, "completed"),
-          // Receitas são todos os tipos exceto "expense"
-          or(
-            eq(transactionsTable.type, "appointment_payment"),
-            eq(transactionsTable.type, "subscription_payment"),
-            eq(transactionsTable.type, "other"),
+  const [monthlyRevenue, monthlyExpenses, totalReports, payablesData] =
+    await Promise.all([
+      db
+        .select({ total: sum(transactionsTable.amountInCents) })
+        .from(transactionsTable)
+        .where(
+          and(
+            transactionsFilter,
+            gte(transactionsTable.createdAt, currentMonth),
+            lte(transactionsTable.createdAt, nextMonth),
+            eq(transactionsTable.status, "completed"),
+            // Receitas são todos os tipos exceto "expense"
+            or(
+              eq(transactionsTable.type, "appointment_payment"),
+              eq(transactionsTable.type, "subscription_payment"),
+              eq(transactionsTable.type, "other"),
+            ),
           ),
         ),
-      ),
 
-    db
-      .select({ total: sum(transactionsTable.amountInCents) })
-      .from(transactionsTable)
-      .where(
-        and(
-          transactionsFilter,
-          gte(transactionsTable.createdAt, currentMonth),
-          lte(transactionsTable.createdAt, nextMonth),
-          eq(transactionsTable.status, "completed"),
-          eq(transactionsTable.type, "expense"),
+      db
+        .select({ total: sum(transactionsTable.amountInCents) })
+        .from(transactionsTable)
+        .where(
+          and(
+            transactionsFilter,
+            gte(transactionsTable.createdAt, currentMonth),
+            lte(transactionsTable.createdAt, nextMonth),
+            eq(transactionsTable.status, "completed"),
+            eq(transactionsTable.type, "expense"),
+          ),
         ),
-      ),
 
-    db
-      .select({ count: count(financialReportsTable.id) })
-      .from(financialReportsTable)
-      .where(eq(financialReportsTable.clinicId, session.user.clinic.id)),
-  ]);
+      db
+        .select({ count: count(financialReportsTable.id) })
+        .from(financialReportsTable)
+        .where(eq(financialReportsTable.clinicId, session.user.clinic.id)),
+
+      // Dados de contas a pagar
+      db
+        .select({
+          total: sum(payablesTable.amountInCents),
+          pending: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' THEN ${payablesTable.amountInCents} ELSE 0 END)`,
+          overdue: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' AND ${payablesTable.dueDate} < NOW() THEN ${payablesTable.amountInCents} ELSE 0 END)`,
+          count: count(payablesTable.id),
+        })
+        .from(payablesTable)
+        .where(eq(payablesTable.clinicId, session.user.clinic.id)),
+    ]);
 
   const stats = {
     monthlyRevenue: monthlyRevenue[0]?.total || 0,
     monthlyExpenses: monthlyExpenses[0]?.total || 0,
     totalReports: totalReports[0]?.count || 0,
+    payables: {
+      total: payablesData[0]?.total || 0,
+      pending: payablesData[0]?.pending || 0,
+      overdue: payablesData[0]?.overdue || 0,
+      count: payablesData[0]?.count || 0,
+    },
   };
 
   return (
@@ -126,7 +154,7 @@ const ReportsPage = async () => {
       <PageContent>
         <div className="space-y-6">
           {/* Estatísticas rápidas */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -154,6 +182,24 @@ const ReportsPage = async () => {
                   {formatCurrencyInCents(stats.monthlyExpenses)}
                 </div>
                 <p className="text-muted-foreground text-xs">Últimos 30 dias</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Contas a Pagar
+                </CardTitle>
+                <AlertTriangle className="text-muted-foreground h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-600">
+                  {formatCurrencyInCents(stats.payables.pending)}
+                </div>
+                <p className="text-muted-foreground text-xs">
+                  {stats.payables.count} contas,{" "}
+                  {formatCurrencyInCents(stats.payables.overdue)} vencidas
+                </p>
               </CardContent>
             </Card>
 

@@ -3,10 +3,10 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { actionClient } from "@/lib/next-safe-action";
 import { db } from "@/db";
 import { documentTemplatesTable } from "@/db/schema";
 import { getAuthSession } from "@/lib/auth-utils";
+import { actionClient } from "@/lib/next-safe-action";
 
 import { upsertDocumentTemplateSchema } from "./schema";
 

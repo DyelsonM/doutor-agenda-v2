@@ -9,6 +9,7 @@ import { z } from "zod";
 import { upsertDocumentTemplateAction } from "@/actions/upsert-document-template";
 import { upsertDocumentTemplateSchema } from "@/actions/upsert-document-template/schema";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -26,7 +27,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 
 interface DocumentTemplate {
   id: string;
