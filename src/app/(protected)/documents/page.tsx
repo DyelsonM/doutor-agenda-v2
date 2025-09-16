@@ -3,7 +3,6 @@ import { FileText, Stethoscope, Users } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DataTable } from "@/components/ui/data-table";
 import {
   PageActions,
   PageContainer,
@@ -23,7 +22,7 @@ import {
 import { getAuthSession, getDoctorIdFromUser } from "@/lib/auth-utils";
 
 import { AddDocumentButton } from "./_components/add-document-button";
-import { documentsTableColumns } from "./_components/table-columns";
+import { DocumentsTableClient } from "./_components/documents-table-client";
 
 const DocumentsPage = async () => {
   const session = await getAuthSession();
@@ -164,7 +163,10 @@ const DocumentsPage = async () => {
               <CardTitle>Lista de Documentos</CardTitle>
             </CardHeader>
             <CardContent>
-              <DataTable data={documents} columns={documentsTableColumns} />
+              <DocumentsTableClient
+                documents={documents}
+                userRole={session.user.role}
+              />
             </CardContent>
           </Card>
         </div>

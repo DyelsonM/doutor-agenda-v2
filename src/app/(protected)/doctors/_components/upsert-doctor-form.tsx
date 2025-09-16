@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/select";
 import { doctorsTable } from "@/db/schema";
 
-import { medicalSpecialties } from "../_constants";
+import { medicalSpecialtiesByCategory } from "../_constants";
 
 const formSchema = z
   .object({
@@ -172,10 +172,18 @@ const UpsertDoctorForm = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {medicalSpecialties.map((specialty) => (
-                      <SelectItem key={specialty.value} value={specialty.value}>
-                        {specialty.label}
-                      </SelectItem>
+                    {medicalSpecialtiesByCategory.map((category) => (
+                      <SelectGroup key={category.categoryKey}>
+                        <SelectLabel>{category.categoryName}</SelectLabel>
+                        {category.specialties.map((specialty) => (
+                          <SelectItem
+                            key={specialty.code}
+                            value={specialty.code}
+                          >
+                            {specialty.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     ))}
                   </SelectContent>
                 </Select>

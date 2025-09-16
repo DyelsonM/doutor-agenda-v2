@@ -1,58 +1,20 @@
-export enum MedicalSpecialty {
-  ALERGOLOGIA = "Alergologia",
-  ANESTESIOLOGIA = "Anestesiologia",
-  ANGIOLOGIA = "Angiologia",
-  CANCEROLOGIA = "Cancerologia",
-  CARDIOLOGIA = "Cardiologia",
-  CIRURGIA_CARDIOVASCULAR = "Cirurgia Cardiovascular",
-  CIRURGIA_CABECA_PESCOCO = "Cirurgia de Cabeça e Pescoço",
-  CIRURGIA_DIGESTIVA = "Cirurgia do Aparelho Digestivo",
-  CIRURGIA_GERAL = "Cirurgia Geral",
-  CIRURGIA_PEDIATRICA = "Cirurgia Pediátrica",
-  CIRURGIA_PLASTICA = "Cirurgia Plástica",
-  CIRURGIA_TORACICA = "Cirurgia Torácica",
-  CIRURGIA_VASCULAR = "Cirurgia Vascular",
-  CLINICA_MEDICA = "Clínica Médica",
-  DERMATOLOGIA = "Dermatologia",
-  ENDOCRINOLOGIA = "Endocrinologia e Metabologia",
-  ENDOSCOPIA = "Endoscopia",
-  GASTROENTEROLOGIA = "Gastroenterologia",
-  GERIATRIA = "Geriatria",
-  GINECOLOGIA_OBSTETRICIA = "Ginecologia e Obstetrícia",
-  HEMATOLOGIA = "Hematologia e Hemoterapia",
-  HEPATOLOGIA = "Hepatologia",
-  HOMEOPATIA = "Homeopatia",
-  INFECTOLOGIA = "Infectologia",
-  MASTOLOGIA = "Mastologia",
-  MEDICINA_DE_EMERGENCIA = "Medicina de Emergência",
-  MEDICINA_DO_ESPORTO = "Medicina do Esporte",
-  MEDICINA_DO_TRABALHO = "Medicina do Trabalho",
-  MEDICINA_DE_FAMILIA = "Medicina de Família e Comunidade",
-  MEDICINA_FISICA_REABILITACAO = "Medicina Física e Reabilitação",
-  MEDICINA_INTENSIVA = "Medicina Intensiva",
-  MEDICINA_LEGAL = "Medicina Legal e Perícia Médica",
-  NEFROLOGIA = "Nefrologia",
-  NEUROCIRURGIA = "Neurocirurgia",
-  NEUROLOGIA = "Neurologia",
-  NUTROLOGIA = "Nutrologia",
-  OFTALMOLOGIA = "Oftalmologia",
-  ONCOLOGIA_CLINICA = "Oncologia Clínica",
-  ORTOPEDIA_TRAUMATOLOGIA = "Ortopedia e Traumatologia",
-  OTORRINOLARINGOLOGIA = "Otorrinolaringologia",
-  PATOLOGIA = "Patologia",
-  PATOLOGIA_CLINICA = "Patologia Clínica/Medicina Laboratorial",
-  PEDIATRIA = "Pediatria",
-  PNEUMOLOGIA = "Pneumologia",
-  PSIQUIATRIA = "Psiquiatria",
-  RADIOLOGIA = "Radiologia e Diagnóstico por Imagem",
-  RADIOTERAPIA = "Radioterapia",
-  REUMATOLOGIA = "Reumatologia",
-  UROLOGIA = "Urologia",
-}
+import {
+  ALL_DOCTOR_SPECIALTIES,
+  DOCTOR_SPECIALTIES_BY_CATEGORY,
+  getDoctorSpecialtyByCode,
+} from "@/constants/medical-specialties";
 
-export const medicalSpecialties = Object.entries(MedicalSpecialty).map(
-  ([key, value]) => ({
-    value: MedicalSpecialty[key as keyof typeof MedicalSpecialty],
-    label: value,
-  }),
-);
+// Exportar especialidades de médicos para formulários
+export const medicalSpecialties = ALL_DOCTOR_SPECIALTIES.map((specialty) => ({
+  value: specialty.code,
+  label: specialty.name,
+}));
+
+// Exportar especialidades organizadas por categoria
+export const medicalSpecialtiesByCategory = DOCTOR_SPECIALTIES_BY_CATEGORY;
+
+// Helper para buscar label da especialidade por código
+export function getSpecialtyLabel(code: string): string {
+  const specialty = getDoctorSpecialtyByCode(code);
+  return specialty?.name || code;
+}

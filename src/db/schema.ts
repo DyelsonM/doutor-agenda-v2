@@ -222,6 +222,7 @@ export const appointmentsTable = pgTable("appointments", {
   id: uuid("id").defaultRandom().primaryKey(),
   date: timestamp("date").notNull(),
   appointmentPriceInCents: integer("appointment_price_in_cents").notNull(),
+  modality: text("modality"), // Modalidade do serviço (opcional para compatibilidade)
   clinicId: uuid("clinic_id")
     .notNull()
     .references(() => clinicsTable.id, { onDelete: "cascade" }),

@@ -8,7 +8,9 @@ import PatientsTableActions from "./table-actions";
 
 type Patient = typeof patientsTable.$inferSelect;
 
-export const patientsTableColumns: ColumnDef<Patient>[] = [
+export const getPatientsTableColumns = (
+  userRole: "admin" | "doctor",
+): ColumnDef<Patient>[] => [
   {
     id: "name",
     accessorKey: "name",
@@ -76,7 +78,7 @@ export const patientsTableColumns: ColumnDef<Patient>[] = [
     id: "actions",
     cell: (params) => {
       const patient = params.row.original;
-      return <PatientsTableActions patient={patient} />;
+      return <PatientsTableActions patient={patient} userRole={userRole} />;
     },
   },
 ];

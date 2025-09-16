@@ -8,6 +8,7 @@ import {
   patientsTable,
   doctorsTable,
   payablesTable,
+  usersTable,
 } from "@/db/schema";
 
 interface CreateAppointmentNotificationProps {
@@ -125,4 +126,82 @@ export async function checkUpcomingPayables({
   }
 
   return upcomingPayables.length;
+}
+
+// Função helper para buscar todos os médicos de uma clínica
+async function getClinicDoctorUsers(clinicId: string) {
+  const doctorUsers = await db
+    .select({
+      userId: usersTable.id,
+      doctorName: doctorsTable.name,
+    })
+    .from(doctorsTable)
+    .leftJoin(usersTable, eq(doctorsTable.userId, usersTable.id))
+    .where(
+      and(eq(doctorsTable.clinicId, clinicId), eq(usersTable.role, "doctor")),
+    );
+
+  return doctorUsers.filter((user) => user.userId !== null);
+}
+
+// Função para notificar médicos sobre novos agendamentos
+export async function notifyDoctorsAboutAppointment({
+  appointmentId,
+  clinicId,
+  excludeUserId,
+}: {
+  appointmentId: string;
+  clinicId: string;
+  excludeUserId?: string;
+}) {
+  // Buscar dados do agendamento
+  const appointment = await db
+    .select({
+      id: appointmentsTable.id,
+      date: appointmentsTable.date,
+      doctorId: appointmentsTable.doctorId,
+      patient: {
+        name: patientsTable.name,
+      },
+      doctor: {
+        name: doctorsTable.name,
+      },
+    })
+    .from(appointmentsTable)
+    .leftJoin(patientsTable, eq(appointmentsTable.patientId, patientsTable.id))
+    .leftJoin(doctorsTable, eq(appointmentsTable.doctorId, doctorsTable.id))
+    .where(eq(appointmentsTable.id, appointmentId))
+    .limit(1);
+
+  if (!appointment[0]) {
+    throw new Error("Appointment not found");
+  }
+
+  const appointmentData = appointment[0];
+  const formattedDate = dayjs(appointmentData.date).format("DD/MM/YYYY");
+  const formattedTime = dayjs(appointmentData.date).format("HH:mm");
+
+  // Buscar todos os médicos da clínica
+  const doctorUsers = await getClinicDoctorUsers(clinicId);
+
+  // Notificar cada médico
+  for (const doctorUser of doctorUsers) {
+    if (doctorUser.userId === excludeUserId) continue; // Não notificar quem criou
+
+    await db.insert(notificationsTable).values({
+      userId: doctorUser.userId,
+      clinicId,
+      type: "appointment_reminder",
+      title: "Novo Agendamento na Clínica",
+      message: `Agendamento criado para ${appointmentData.patient?.name} com Dr. ${appointmentData.doctor?.name} em ${formattedDate} às ${formattedTime}`,
+      data: JSON.stringify({
+        appointmentId,
+        patientName: appointmentData.patient?.name,
+        doctorName: appointmentData.doctor?.name,
+        date: appointmentData.date,
+        isForDoctor: appointmentData.doctorId,
+      }),
+      status: "unread",
+    });
+  }
 }

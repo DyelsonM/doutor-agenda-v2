@@ -1,6 +1,6 @@
-import { and,eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
 
-import { DataTable } from "@/components/ui/data-table";
 import {
   PageActions,
   PageContainer,
@@ -15,7 +15,7 @@ import { appointmentsTable, doctorsTable, patientsTable } from "@/db/schema";
 import { getAuthSession, getDoctorIdFromUser } from "@/lib/auth-utils";
 
 import AddAppointmentButton from "./_components/add-appointment-button";
-import { appointmentsTableColumns } from "./_components/table-columns";
+import { AppointmentsTableClient } from "./_components/appointments-table-client";
 
 const AppointmentsPage = async () => {
   const session = await getAuthSession();
@@ -33,19 +33,22 @@ const AppointmentsPage = async () => {
     // Médico vê apenas seus agendamentos
     const doctorId = await getDoctorIdFromUser(session.user.id);
     if (!doctorId) {
-      // Se médico não está vinculado, redirecionar
-      redirect("/unauthorized");
+      // Se médico não está vinculado ainda, mostrar apenas estrutura vazia
+      // Isso permite que o sistema funcione enquanto o admin vincula o usuário
+      appointmentsFilter = eq(appointmentsTable.id, "non-existent-id");
+      patientsFilter = eq(patientsTable.clinicId, session.user.clinic.id);
+      doctorsFilter = eq(doctorsTable.clinicId, session.user.clinic.id);
+    } else {
+      appointmentsFilter = and(
+        eq(appointmentsTable.clinicId, session.user.clinic.id),
+        eq(appointmentsTable.doctorId, doctorId),
+      );
+      patientsFilter = eq(patientsTable.clinicId, session.user.clinic.id);
+      doctorsFilter = and(
+        eq(doctorsTable.clinicId, session.user.clinic.id),
+        eq(doctorsTable.id, doctorId),
+      );
     }
-
-    appointmentsFilter = and(
-      eq(appointmentsTable.clinicId, session.user.clinic.id),
-      eq(appointmentsTable.doctorId, doctorId),
-    );
-    patientsFilter = eq(patientsTable.clinicId, session.user.clinic.id);
-    doctorsFilter = and(
-      eq(doctorsTable.clinicId, session.user.clinic.id),
-      eq(doctorsTable.id, doctorId),
-    );
   }
 
   const [patients, doctors, appointments] = await Promise.all([
@@ -64,21 +67,44 @@ const AppointmentsPage = async () => {
     }),
   ]);
 
+  // Verificar se médico está vinculado
+  const isDoctorLinked =
+    session.user.role === "admin" ||
+    (session.user.role === "doctor" &&
+      (await getDoctorIdFromUser(session.user.id)));
+
   return (
     <PageContainer>
       <PageHeader>
         <PageHeaderContent>
           <PageTitle>Agendamentos</PageTitle>
           <PageDescription>
-            Gerencie os agendamentos da sua clínica
+            {!isDoctorLinked && session.user.role === "doctor"
+              ? "Aguardando vinculação do seu perfil pelo administrador"
+              : "Gerencie os agendamentos da sua clínica"}
           </PageDescription>
         </PageHeaderContent>
         <PageActions>
-          <AddAppointmentButton patients={patients} doctors={doctors} />
+          {isDoctorLinked && (
+            <AddAppointmentButton patients={patients} doctors={doctors} />
+          )}
         </PageActions>
       </PageHeader>
       <PageContent>
-        <DataTable data={appointments} columns={appointmentsTableColumns} />
+        {!isDoctorLinked && session.user.role === "doctor" ? (
+          <div className="py-10 text-center">
+            <h3 className="mb-2 text-lg font-semibold">Perfil não vinculado</h3>
+            <p className="text-muted-foreground">
+              Entre em contato com o administrador da clínica para vincular seu
+              perfil e acessar os agendamentos.
+            </p>
+          </div>
+        ) : (
+          <AppointmentsTableClient
+            appointments={appointments}
+            userRole={session.user.role}
+          />
+        )}
       </PageContent>
     </PageContainer>
   );

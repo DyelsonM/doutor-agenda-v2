@@ -16,4 +16,7 @@ export const addAppointmentSchema = z.object({
   appointmentPriceInCents: z.number().min(1, {
     message: "Valor da consulta é obrigatório.",
   }),
+  modality: z.string().min(1, {
+    message: "Modalidade é obrigatória.",
+  }),
 });

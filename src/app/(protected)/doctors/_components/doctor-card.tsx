@@ -38,6 +38,7 @@ import { doctorsTable } from "@/db/schema";
 import { formatCurrencyInCents } from "@/helpers/currency";
 
 import { getAvailability } from "../_helpers/availability";
+import { getSpecialtyLabel } from "../_constants";
 import { CreateDoctorUserDialog } from "./create-doctor-user-dialog";
 import { ManageDoctorCredentials } from "./manage-doctor-credentials";
 import UpsertDoctorForm from "./upsert-doctor-form";
@@ -77,7 +78,9 @@ const DoctorCard = ({ doctor }: DoctorCardProps) => {
           </Avatar>
           <div>
             <h3 className="text-sm font-medium">{doctor.name}</h3>
-            <p className="text-muted-foreground text-sm">{doctor.specialty}</p>
+            <p className="text-muted-foreground text-sm">
+              {getSpecialtyLabel(doctor.specialty)}
+            </p>
           </div>
         </div>
       </CardHeader>

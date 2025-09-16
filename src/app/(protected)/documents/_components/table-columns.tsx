@@ -70,7 +70,9 @@ const documentTypeColors: Record<Document["type"], string> = {
   other: "bg-gray-100 text-gray-800",
 };
 
-export const documentsTableColumns: ColumnDef<Document>[] = [
+export const getDocumentsTableColumns = (
+  userRole: "admin" | "doctor",
+): ColumnDef<Document>[] => [
   {
     accessorKey: "title",
     header: "Título",
@@ -174,40 +176,44 @@ export const documentsTableColumns: ColumnDef<Document>[] = [
                 </DropdownMenuItem>
 
                 {/* Trigger fica dentro do menu, mas previne o "select" que fecharia o menu antes */}
-                <AlertDialogTrigger asChild>
-                  <DropdownMenuItem
-                    onSelect={(e) => e.preventDefault()}
-                    className="text-red-600 focus:text-red-600"
-                    disabled={isExecuting}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Excluir
-                  </DropdownMenuItem>
-                </AlertDialogTrigger>
+                {userRole === "admin" && (
+                  <AlertDialogTrigger asChild>
+                    <DropdownMenuItem
+                      onSelect={(e) => e.preventDefault()}
+                      className="text-red-600 focus:text-red-600"
+                      disabled={isExecuting}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Excluir
+                    </DropdownMenuItem>
+                  </AlertDialogTrigger>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 
             {/* O conteúdo do diálogo fica fora do menu, assim ele permanece aberto */}
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Excluir documento?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Essa ação não pode ser desfeita. O documento será removido do
-                  sistema.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel disabled={isExecuting}>
-                  Cancelar
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => deleteDocument({ id: document.id })}
-                  disabled={isExecuting}
-                >
-                  {isExecuting ? "Excluindo..." : "Confirmar"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
+            {userRole === "admin" && (
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir documento?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Essa ação não pode ser desfeita. O documento será removido
+                    do sistema.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={isExecuting}>
+                    Cancelar
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => deleteDocument({ id: document.id })}
+                    disabled={isExecuting}
+                  >
+                    {isExecuting ? "Excluindo..." : "Confirmar"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            )}
           </AlertDialog>
         </div>
       );

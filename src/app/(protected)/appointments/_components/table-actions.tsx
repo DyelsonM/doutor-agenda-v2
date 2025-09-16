@@ -44,10 +44,12 @@ type AppointmentWithRelations = typeof appointmentsTable.$inferSelect & {
 
 interface AppointmentsTableActionsProps {
   appointment: AppointmentWithRelations;
+  userRole: "admin" | "doctor";
 }
 
 const AppointmentsTableActions = ({
   appointment,
+  userRole,
 }: AppointmentsTableActionsProps) => {
   const deleteAppointmentAction = useAction(deleteAppointment, {
     onSuccess: () => {
@@ -73,31 +75,38 @@ const AppointmentsTableActions = ({
       <DropdownMenuContent>
         <DropdownMenuLabel>{appointment.patient.name}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-              <TrashIcon />
-              Excluir
-            </DropdownMenuItem>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                Tem certeza que deseja deletar esse agendamento?
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                Essa ação não pode ser revertida. Isso irá deletar o agendamento
-                permanentemente.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteAppointmentClick}>
-                Deletar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {userRole === "admin" && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                <TrashIcon />
+                Excluir
+              </DropdownMenuItem>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  Tem certeza que deseja deletar esse agendamento?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Essa ação não pode ser revertida. Isso irá deletar o agendamento
+                  permanentemente.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteAppointmentClick}>
+                  Deletar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
+        {userRole === "doctor" && (
+          <DropdownMenuItem disabled>
+            Sem ações disponíveis
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

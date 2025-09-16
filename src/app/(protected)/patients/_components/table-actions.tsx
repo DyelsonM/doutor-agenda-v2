@@ -31,9 +31,13 @@ import UpsertPatientForm from "./upsert-patient-form";
 
 interface PatientsTableActionsProps {
   patient: typeof patientsTable.$inferSelect;
+  userRole: "admin" | "doctor";
 }
 
-const PatientsTableActions = ({ patient }: PatientsTableActionsProps) => {
+const PatientsTableActions = ({
+  patient,
+  userRole,
+}: PatientsTableActionsProps) => {
   const [upsertDialogIsOpen, setUpsertDialogIsOpen] = useState(false);
 
   const deletePatientAction = useAction(deletePatient, {
@@ -66,31 +70,33 @@ const PatientsTableActions = ({ patient }: PatientsTableActionsProps) => {
               <EditIcon />
               Editar
             </DropdownMenuItem>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  <TrashIcon />
-                  Excluir
-                </DropdownMenuItem>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    Tem certeza que deseja deletar esse paciente?
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Essa ação não pode ser revertida. Isso irá deletar o
-                    paciente e todas as consultas agendadas.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeletePatientClick}>
-                    Deletar
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            {userRole === "admin" && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <TrashIcon />
+                    Excluir
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Tem certeza que deseja deletar esse paciente?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Essa ação não pode ser revertida. Isso irá deletar o
+                      paciente e todas as consultas agendadas.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeletePatientClick}>
+                      Deletar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 

@@ -1,6 +1,5 @@
 import { eq } from "drizzle-orm";
 
-import { DataTable } from "@/components/ui/data-table";
 import {
   PageActions,
   PageContainer,
@@ -15,7 +14,7 @@ import { patientsTable } from "@/db/schema";
 import { getAuthSession } from "@/lib/auth-utils";
 
 import AddPatientButton from "./_components/add-patient-button";
-import { patientsTableColumns } from "./_components/table-columns";
+import { PatientsTableClient } from "./_components/patients-table-client";
 
 const PatientsPage = async () => {
   const session = await getAuthSession();
@@ -41,7 +40,7 @@ const PatientsPage = async () => {
         </PageActions>
       </PageHeader>
       <PageContent>
-        <DataTable data={patients} columns={patientsTableColumns} />
+        <PatientsTableClient patients={patients} userRole={session.user.role} />
       </PageContent>
     </PageContainer>
   );

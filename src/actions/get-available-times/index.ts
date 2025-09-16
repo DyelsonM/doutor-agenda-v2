@@ -80,10 +80,17 @@ export const getAvailableTimes = actionClient
         date.format("HH:mm:ss") <= doctorAvailableTo.format("HH:mm:ss")
       );
     });
+    // Se for o mesmo dia, filtrar horários que já passaram
+    const isToday = dayjs(parsedInput.date).isSame(dayjs(), "day");
+    const currentTime = dayjs().format("HH:mm:ss");
+
     return doctorTimeSlots.map((time) => {
+      const isTimePassed = isToday && time < currentTime;
+      const isBooked = appointmentsOnSelectedDate.includes(time);
+
       return {
         value: time,
-        available: !appointmentsOnSelectedDate.includes(time),
+        available: !isBooked && !isTimePassed,
         label: time.substring(0, 5),
       };
     });

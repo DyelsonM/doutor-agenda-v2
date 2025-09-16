@@ -3,7 +3,6 @@ import { Calendar } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DataTable } from "@/components/ui/data-table";
 import {
   PageActions,
   PageContainer,
@@ -16,10 +15,10 @@ import {
 import { getDashboard } from "@/data/get-dashboard";
 import { getAuthSession, requireAdmin } from "@/lib/auth-utils";
 
-import { appointmentsTableColumns } from "../appointments/_components/table-columns";
 import AppointmentsOnlyChart from "./_components/appointments-only-chart";
 import { DatePicker } from "./_components/date-picker";
 import StatsCards from "./_components/stats-cards";
+import { TodayAppointmentsTable } from "./_components/today-appointments-table";
 import TopDoctors from "./_components/top-doctors";
 import TopSpecialties from "./_components/top-specialties";
 
@@ -100,10 +99,7 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
             </div>
           </CardHeader>
           <CardContent>
-            <DataTable
-              columns={appointmentsTableColumns}
-              data={todayAppointments}
-            />
+            <TodayAppointmentsTable appointments={todayAppointments} />
           </CardContent>
         </Card>
       </PageContent>

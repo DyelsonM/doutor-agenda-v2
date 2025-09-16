@@ -8,7 +8,10 @@ import { db } from "@/db";
 import { appointmentsTable } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { actionClient } from "@/lib/next-safe-action";
-import { createAppointmentNotification } from "@/helpers/notifications";
+import {
+  createAppointmentNotification,
+  notifyDoctorsAboutAppointment,
+} from "@/helpers/notifications";
 
 import { getAvailableTimes } from "../get-available-times";
 import { addAppointmentSchema } from "./schema";
@@ -53,21 +56,31 @@ export const addAppointment = actionClient
         patientId: parsedInput.patientId,
         doctorId: parsedInput.doctorId,
         appointmentPriceInCents: parsedInput.appointmentPriceInCents,
+        modality: parsedInput.modality,
         clinicId: session?.user.clinic?.id,
         date: appointmentDateTime,
       })
       .returning({ id: appointmentsTable.id });
 
-    // Criar notificação para o agendamento criado
+    // Criar notificações para o agendamento criado
     if (newAppointment.id) {
       try {
+        // Notificar o criador do agendamento (admin)
         await createAppointmentNotification({
           appointmentId: newAppointment.id,
           userId: session.user.id,
           clinicId: session.user.clinic.id,
         });
+
+        // Notificar todos os médicos da clínica (exceto quem criou se for médico)
+        await notifyDoctorsAboutAppointment({
+          appointmentId: newAppointment.id,
+          clinicId: session.user.clinic.id,
+          excludeUserId:
+            session.user.role === "doctor" ? session.user.id : undefined,
+        });
       } catch (error) {
-        console.error("Error creating appointment notification:", error);
+        console.error("Error creating appointment notifications:", error);
         // Não falha a criação do agendamento se a notificação falhar
       }
     }

@@ -41,12 +41,17 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { doctorsTable, patientsTable } from "@/db/schema";
 import { cn } from "@/lib/utils";
+
+import { getSpecialtyLabel } from "../../doctors/_constants";
+import { appointmentModalitiesByCategory } from "../_constants/modalities";
 
 const formSchema = z.object({
   patientId: z.string().min(1, {
@@ -57,6 +62,9 @@ const formSchema = z.object({
   }),
   appointmentPrice: z.number().min(1, {
     message: "Valor da consulta é obrigatório.",
+  }),
+  modality: z.string().min(1, {
+    message: "Modalidade é obrigatória.",
   }),
   date: z.date({
     message: "Data é obrigatória.",
@@ -86,6 +94,7 @@ const AddAppointmentForm = ({
       patientId: "",
       doctorId: "",
       appointmentPrice: 0,
+      modality: "",
       date: undefined,
       time: "",
     },
@@ -220,8 +229,41 @@ const AddAppointmentForm = ({
                   <SelectContent>
                     {doctors.map((doctor) => (
                       <SelectItem key={doctor.id} value={doctor.id}>
-                        {doctor.name} - {doctor.specialty}
+                        {doctor.name} - {getSpecialtyLabel(doctor.specialty)}
                       </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="modality"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Modalidade do Atendimento</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione uma modalidade" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {appointmentModalitiesByCategory.map((category) => (
+                      <SelectGroup key={category.categoryKey}>
+                        <SelectLabel>{category.categoryName}</SelectLabel>
+                        {category.modalities.map((modality) => (
+                          <SelectItem key={modality.code} value={modality.code}>
+                            {modality.name}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     ))}
                   </SelectContent>
                 </Select>
@@ -286,9 +328,13 @@ const AddAppointmentForm = ({
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) =>
-                        date < new Date() || !isDateAvailable(date)
-                      }
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const compareDate = new Date(date);
+                        compareDate.setHours(0, 0, 0, 0);
+                        return compareDate < today || !isDateAvailable(date);
+                      }}
                       initialFocus
                     />
                   </PopoverContent>
