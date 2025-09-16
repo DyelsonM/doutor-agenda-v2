@@ -32,6 +32,7 @@ export const usersTableRelations = relations(usersTable, ({ many, one }) => ({
     fields: [usersTable.id],
     references: [doctorsTable.userId],
   }),
+  notifications: many(notificationsTable),
 }));
 
 export const sessionsTable = pgTable("sessions", {
@@ -138,6 +139,7 @@ export const clinicsTableRelations = relations(clinicsTable, ({ many }) => ({
   transactions: many(transactionsTable),
   financialReports: many(financialReportsTable),
   payables: many(payablesTable),
+  notifications: many(notificationsTable),
 }));
 
 export const doctorsTable = pgTable("doctors", {
@@ -498,3 +500,58 @@ export const payablesTableRelations = relations(payablesTable, ({ one }) => ({
     references: [clinicsTable.id],
   }),
 }));
+
+// Enums para notificações - usando os tipos já existentes
+export const notificationStatusEnum = pgEnum("notification_status", [
+  "unread",
+  "read",
+  "archived",
+]);
+
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "appointment_reminder",
+  "appointment_cancelled",
+  "appointment_completed",
+  "payment_received",
+  "payment_overdue",
+  "payable_due",
+  "payable_overdue",
+  "system_update",
+  "backup_completed",
+  "backup_failed",
+  "subscription_expiring",
+  "subscription_expired",
+]);
+
+// Tabela de notificações - usando a estrutura existente
+export const notificationsTable = pgTable("notifications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  clinicId: uuid("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  type: notificationTypeEnum("type").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  status: notificationStatusEnum("status").notNull().default("unread"),
+  data: text("data"), // JSON string com dados extras
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const notificationsTableRelations = relations(
+  notificationsTable,
+  ({ one }) => ({
+    user: one(usersTable, {
+      fields: [notificationsTable.userId],
+      references: [usersTable.id],
+    }),
+    clinic: one(clinicsTable, {
+      fields: [notificationsTable.clinicId],
+      references: [clinicsTable.id],
+    }),
+  }),
+);

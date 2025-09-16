@@ -27,6 +27,8 @@ interface FinancialStats {
   totalPayables: number;
   pendingPayables: number;
   overduePayables: number;
+  pendingPayablesCount: number;
+  overduePayablesCount: number;
   // Tendências calculadas em tempo real
   revenueTrend: number;
   expenseTrend: number;
@@ -82,10 +84,11 @@ export function FinancialSummaryCards({ stats }: FinancialSummaryCardsProps) {
       title: "Contas a Pagar",
       value: formatCurrencyInCents(stats.totalPayables),
       icon: AlertTriangle,
-      description: `${stats.pendingPayables} pendentes, ${stats.overduePayables} vencidas`,
+      description: `${stats.pendingPayablesCount} pendentes, ${stats.overduePayablesCount} vencidas`,
       trend: "",
       trendUp: true,
-      color: stats.overduePayables > 0 ? "text-red-600" : "text-orange-600",
+      color:
+        stats.overduePayablesCount > 0 ? "text-red-600" : "text-orange-600",
     },
   ];
 

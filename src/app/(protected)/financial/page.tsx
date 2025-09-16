@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, lte, sql,sum } from "drizzle-orm";
+import { and, count, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
 import {
   AlertTriangle,
   BarChart3,
@@ -20,7 +20,7 @@ import {
   PageTitle,
 } from "@/components/ui/page-container";
 import { db } from "@/db";
-import { payablesTable,transactionsTable } from "@/db/schema";
+import { payablesTable, transactionsTable } from "@/db/schema";
 import { formatCurrencyInCents } from "@/helpers/financial";
 import { getAuthSession, getDoctorIdFromUser } from "@/lib/auth-utils";
 
@@ -127,6 +127,8 @@ const FinancialPage = async () => {
         total: sum(payablesTable.amountInCents),
         pending: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' THEN ${payablesTable.amountInCents} ELSE 0 END)`,
         overdue: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' AND ${payablesTable.dueDate} < NOW() THEN ${payablesTable.amountInCents} ELSE 0 END)`,
+        pendingCount: sql<number>`COUNT(CASE WHEN ${payablesTable.status} = 'pending' THEN 1 END)`,
+        overdueCount: sql<number>`COUNT(CASE WHEN ${payablesTable.status} = 'pending' AND ${payablesTable.dueDate} < NOW() THEN 1 END)`,
       })
       .from(payablesTable)
       .where(eq(payablesTable.clinicId, session.user.clinic.id)),
@@ -301,6 +303,8 @@ const FinancialPage = async () => {
     totalPayables: payablesData[0]?.total || 0,
     pendingPayables: payablesData[0]?.pending || 0,
     overduePayables: payablesData[0]?.overdue || 0,
+    pendingPayablesCount: payablesData[0]?.pendingCount || 0,
+    overduePayablesCount: payablesData[0]?.overdueCount || 0,
     // Tendências calculadas em tempo real
     revenueTrend,
     expenseTrend,

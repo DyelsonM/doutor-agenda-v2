@@ -15,6 +15,7 @@ import { clinicsTable } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
 import UpdateClinicForm from "./_components/update-clinic-form";
+import { NotificationsTest } from "./_components/notifications-test";
 
 const ClinicSettingsPage = async () => {
   const session = await auth.api.getSession({
@@ -49,8 +50,9 @@ const ClinicSettingsPage = async () => {
         </PageHeaderContent>
       </PageHeader>
       <PageContent>
-        <div className="max-w-4xl">
+        <div className="max-w-4xl space-y-8">
           <UpdateClinicForm clinic={clinic} />
+          <NotificationsTest />
         </div>
       </PageContent>
     </PageContainer>

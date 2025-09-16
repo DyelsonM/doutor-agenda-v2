@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { appointmentsTable } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { actionClient } from "@/lib/next-safe-action";
+import { createAppointmentNotification } from "@/helpers/notifications";
 
 import { getAvailableTimes } from "../get-available-times";
 import { addAppointmentSchema } from "./schema";
@@ -46,13 +47,30 @@ export const addAppointment = actionClient
       .set("minute", parseInt(parsedInput.time.split(":")[1]))
       .toDate();
 
-    await db.insert(appointmentsTable).values({
-      patientId: parsedInput.patientId,
-      doctorId: parsedInput.doctorId,
-      appointmentPriceInCents: parsedInput.appointmentPriceInCents,
-      clinicId: session?.user.clinic?.id,
-      date: appointmentDateTime,
-    });
+    const [newAppointment] = await db
+      .insert(appointmentsTable)
+      .values({
+        patientId: parsedInput.patientId,
+        doctorId: parsedInput.doctorId,
+        appointmentPriceInCents: parsedInput.appointmentPriceInCents,
+        clinicId: session?.user.clinic?.id,
+        date: appointmentDateTime,
+      })
+      .returning({ id: appointmentsTable.id });
+
+    // Criar notificação para o agendamento criado
+    if (newAppointment.id) {
+      try {
+        await createAppointmentNotification({
+          appointmentId: newAppointment.id,
+          userId: session.user.id,
+          clinicId: session.user.clinic.id,
+        });
+      } catch (error) {
+        console.error("Error creating appointment notification:", error);
+        // Não falha a criação do agendamento se a notificação falhar
+      }
+    }
 
     revalidatePath("/appointments");
     revalidatePath("/dashboard");

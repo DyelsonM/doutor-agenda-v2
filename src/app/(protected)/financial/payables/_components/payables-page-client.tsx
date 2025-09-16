@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/page-container";
 
 import { AddPayableDialog } from "./add-payable-dialog";
-import { ExportPayablesButton } from "./export-payables-button";
 import { PayablesFilters } from "./payables-filters";
 import { payablesTableColumns } from "./payables-table-columns";
 
@@ -131,7 +130,6 @@ export default function PayablesPageClient() {
           </div>
         </PageHeaderContent>
         <PageActions>
-          <ExportPayablesButton filters={filters} />
           <Button onClick={() => setShowAddDialog(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Nova Conta

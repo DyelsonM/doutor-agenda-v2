@@ -23,6 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NotificationsDropdown } from "@/components/ui/notifications";
 import {
   Sidebar,
   SidebarContent,
@@ -142,7 +143,10 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="border-b p-4">
-        <Image src="/logo.svg" alt="Doutor Agenda" width={136} height={28} />
+        <div className="flex items-center justify-between">
+          <Image src="/logo.svg" alt="Doutor Agenda" width={136} height={28} />
+          <NotificationsDropdown />
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
