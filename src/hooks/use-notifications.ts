@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useAction } from "next-safe-action/hooks";
+import { useEffect, useState } from "react";
 
 import {
-  getNotifications,
-  markNotificationAsRead,
-  markAllNotificationsAsRead,
-  deleteNotification,
   clearAllNotifications,
+  deleteNotification,
+  getNotifications,
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
 } from "@/actions/notifications";
 
 export function useNotifications(options?: {
@@ -19,9 +19,12 @@ export function useNotifications(options?: {
   const { execute, result, isExecuting } = useAction(getNotifications);
   const [shouldRefetch, setShouldRefetch] = useState(false);
 
+  // Serialize options to avoid dependency issues
+  const optionsString = JSON.stringify(options || {});
+
   useEffect(() => {
     execute(options || {});
-  }, [shouldRefetch]); // Removendo execute e options das dependências para evitar loops
+  }, [shouldRefetch, optionsString]); // Use string version to avoid object reference issues
 
   // Auto-refresh a cada 30 segundos para notificações não lidas
   useEffect(() => {
@@ -32,7 +35,7 @@ export function useNotifications(options?: {
 
       return () => clearInterval(interval);
     }
-  }, [options?.status]);
+  }, [options?.status, optionsString]); // Use string version for consistency
 
   const refetch = () => {
     setShouldRefetch((prev) => !prev);

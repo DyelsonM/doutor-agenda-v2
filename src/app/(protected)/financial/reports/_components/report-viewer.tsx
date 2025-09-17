@@ -17,6 +17,28 @@ import {
 } from "@/components/ui/dialog";
 import { formatCurrencyInCents, formatDate } from "@/helpers/financial";
 
+interface RevenueByType {
+  type: string;
+  total: number;
+  count: number;
+}
+
+interface ExpensesByCategory {
+  category: string;
+  total: number;
+  count: number;
+}
+
+interface ReportData {
+  reportData?: {
+    summary?: Record<string, unknown>;
+    appointments?: Record<string, unknown>;
+    revenueByType?: RevenueByType[];
+    revenueByPaymentMethod?: unknown[];
+    expensesByCategory?: ExpensesByCategory[];
+  };
+}
+
 interface ReportViewerProps {
   reportId: string;
   reportTitle: string;
@@ -24,7 +46,7 @@ interface ReportViewerProps {
 
 export function ReportViewer({ reportId, reportTitle }: ReportViewerProps) {
   const [open, setOpen] = useState(false);
-  const [reportData, setReportData] = useState<any>(null);
+  const [reportData, setReportData] = useState<ReportData | null>(null);
 
   const { execute: getReport, isExecuting } = useAction(getReportByIdAction, {
     onSuccess: ({ data }) => {
@@ -48,10 +70,9 @@ export function ReportViewer({ reportId, reportTitle }: ReportViewerProps) {
     try {
       // Verificar se os dados estão disponíveis
       const summary = reportData.reportData?.summary || {};
-      const appointments = reportData.reportData?.appointments || {};
+      // const appointments = reportData.reportData?.appointments || {}; // Usado em futuras implementações
       const revenueByType = reportData.reportData?.revenueByType || [];
-      const revenueByPaymentMethod =
-        reportData.reportData?.revenueByPaymentMethod || [];
+      // const revenueByPaymentMethod = reportData.reportData?.revenueByPaymentMethod || []; // Usado em futuras implementações
       const expensesByCategory =
         reportData.reportData?.expensesByCategory || [];
 
@@ -68,7 +89,11 @@ export function ReportViewer({ reportId, reportTitle }: ReportViewerProps) {
         text: string,
         x: number,
         y: number,
-        options: any = {},
+        options: {
+          fontSize?: number;
+          color?: number;
+          lineHeight?: number;
+        } = {},
       ) => {
         doc.setFontSize(options.fontSize || 12);
         doc.setTextColor(options.color || 0);
@@ -176,7 +201,7 @@ export function ReportViewer({ reportId, reportTitle }: ReportViewerProps) {
         yPosition = addLine(yPosition);
 
         // Dados da tabela
-        revenueByType.forEach((item: any) => {
+        revenueByType.forEach((item: RevenueByType) => {
           yPosition = addText(item.type, margin, yPosition, { fontSize: 10 });
           doc.text(
             formatCurrencyInCents(item.total),
@@ -206,7 +231,7 @@ export function ReportViewer({ reportId, reportTitle }: ReportViewerProps) {
         yPosition = addLine(yPosition);
 
         // Dados da tabela
-        expensesByCategory.forEach((item: any) => {
+        expensesByCategory.forEach((item: ExpensesByCategory) => {
           yPosition = addText(item.category || "Outro", margin, yPosition, {
             fontSize: 10,
           });
@@ -368,7 +393,7 @@ export function ReportViewer({ reportId, reportTitle }: ReportViewerProps) {
                   </thead>
                   <tbody>
                     {(reportData.reportData?.revenueByType || []).map(
-                      (item: any, index: number) => (
+                      (item: RevenueByType, index: number) => (
                         <tr
                           key={index}
                           className={
@@ -414,7 +439,7 @@ export function ReportViewer({ reportId, reportTitle }: ReportViewerProps) {
                   </thead>
                   <tbody>
                     {(reportData.reportData?.expensesByCategory || []).map(
-                      (item: any, index: number) => (
+                      (item: ExpensesByCategory, index: number) => (
                         <tr
                           key={index}
                           className={

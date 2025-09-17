@@ -2,9 +2,9 @@
 
 import { headers } from "next/headers";
 
+import { checkUpcomingPayables } from "@/helpers/notifications";
 import { auth } from "@/lib/auth";
 import { actionClient } from "@/lib/next-safe-action";
-import { checkUpcomingPayables } from "@/helpers/notifications";
 
 export const checkPayablesDue = actionClient.action(async () => {
   const session = await auth.api.getSession({

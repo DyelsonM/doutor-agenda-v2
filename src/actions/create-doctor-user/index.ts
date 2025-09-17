@@ -2,7 +2,6 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import { db } from "@/db";
 import { doctorsTable, usersTable, usersToClinicsTable } from "@/db/schema";
@@ -120,13 +119,13 @@ export const createDoctorUserAction = actionClient
         success: true,
         message: "Usuário criado com sucesso!",
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro ao criar usuário para médico:", error);
 
       // Verificar se é erro de email duplicado
       if (
-        error?.message?.includes("email") ||
-        error?.message?.includes("duplicate")
+        (error instanceof Error && error.message?.includes("email")) ||
+        (error instanceof Error && error.message?.includes("duplicate"))
       ) {
         throw new Error("Este email já está em uso");
       }

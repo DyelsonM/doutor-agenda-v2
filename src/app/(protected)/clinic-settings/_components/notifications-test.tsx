@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Bell, CheckCircle } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { checkPayablesDue } from "@/actions/check-payables-due";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,10 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Bell, CheckCircle } from "lucide-react";
-import { toast } from "sonner";
-
-import { checkPayablesDue } from "@/actions/check-payables-due";
 
 export function NotificationsTest() {
   const { execute, isExecuting } = useAction(checkPayablesDue);

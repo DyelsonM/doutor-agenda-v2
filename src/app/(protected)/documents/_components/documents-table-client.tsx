@@ -2,7 +2,7 @@
 
 import { DataTable } from "@/components/ui/data-table";
 
-import { getDocumentsTableColumns, type Document } from "./table-columns";
+import { type Document,getDocumentsTableColumns } from "./table-columns";
 
 interface DocumentsTableClientProps {
   documents: Document[];

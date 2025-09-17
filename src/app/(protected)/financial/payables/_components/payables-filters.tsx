@@ -44,14 +44,16 @@ const statusOptions = [
   { value: "cancelled", label: "Cancelado" },
 ];
 
+type PayablesFilters = {
+  status?: "pending" | "paid" | "overdue" | "cancelled";
+  category?: string;
+  startDate?: Date;
+  endDate?: Date;
+};
+
 interface PayablesFiltersProps {
-  filters: {
-    status?: "pending" | "paid" | "overdue" | "cancelled";
-    category?: string;
-    startDate?: Date;
-    endDate?: Date;
-  };
-  onFiltersChange: (filters: any) => void;
+  filters: PayablesFilters;
+  onFiltersChange: (filters: PayablesFilters) => void;
 }
 
 export function PayablesFilters({
@@ -61,7 +63,8 @@ export function PayablesFilters({
   const handleStatusChange = (value: string) => {
     onFiltersChange({
       ...filters,
-      status: value === "all" ? undefined : (value as any),
+      status:
+        value === "all" ? undefined : (value as PayablesFilters["status"]),
     });
   };
 

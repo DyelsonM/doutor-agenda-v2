@@ -1,12 +1,12 @@
 import dayjs from "dayjs";
-import { eq, and, gte, lt, like } from "drizzle-orm";
+import { and, eq, gte, like,lt } from "drizzle-orm";
 
 import { db } from "@/db";
 import {
-  notificationsTable,
   appointmentsTable,
-  patientsTable,
   doctorsTable,
+  notificationsTable,
+  patientsTable,
   payablesTable,
   usersTable,
 } from "@/db/schema";

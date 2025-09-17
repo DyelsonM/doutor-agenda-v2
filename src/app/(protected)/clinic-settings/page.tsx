@@ -14,8 +14,8 @@ import { db } from "@/db";
 import { clinicsTable } from "@/db/schema";
 import { auth } from "@/lib/auth";
 
-import UpdateClinicForm from "./_components/update-clinic-form";
 import { NotificationsTest } from "./_components/notifications-test";
+import UpdateClinicForm from "./_components/update-clinic-form";
 
 const ClinicSettingsPage = async () => {
   const session = await auth.api.getSession({

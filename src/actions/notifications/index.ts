@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, and, desc, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 
 import { db } from "@/db";
@@ -9,11 +9,11 @@ import { auth } from "@/lib/auth";
 import { actionClient } from "@/lib/next-safe-action";
 
 import {
-  createNotificationSchema,
-  markNotificationAsReadSchema,
-  getNotificationsSchema,
-  deleteNotificationSchema,
   clearAllNotificationsSchema,
+  createNotificationSchema,
+  deleteNotificationSchema,
+  getNotificationsSchema,
+  markNotificationAsReadSchema,
 } from "./schema";
 
 export const createNotification = actionClient

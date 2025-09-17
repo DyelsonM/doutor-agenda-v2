@@ -1,12 +1,9 @@
 "use client";
 
-import { Bell, X, Check, CheckCheck, Trash2, MoreVertical } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { Bell, Check, CheckCheck, MoreVertical, Trash2, X } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,23 +15,26 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuLabel,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  useNotifications,
-  useMarkNotificationAsRead,
-  useMarkAllNotificationsAsRead,
-  useUnreadNotificationsCount,
-  useDeleteNotification,
   useClearAllNotifications,
+  useDeleteNotification,
+  useMarkAllNotificationsAsRead,
+  useMarkNotificationAsRead,
+  useNotifications,
+  useUnreadNotificationsCount,
 } from "@/hooks/use-notifications";
 
 dayjs.extend(relativeTime);

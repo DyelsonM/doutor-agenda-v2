@@ -37,8 +37,8 @@ import { Separator } from "@/components/ui/separator";
 import { doctorsTable } from "@/db/schema";
 import { formatCurrencyInCents } from "@/helpers/currency";
 
-import { getAvailability } from "../_helpers/availability";
 import { getSpecialtyLabel } from "../_constants";
+import { getAvailability } from "../_helpers/availability";
 import { CreateDoctorUserDialog } from "./create-doctor-user-dialog";
 import { ManageDoctorCredentials } from "./manage-doctor-credentials";
 import UpsertDoctorForm from "./upsert-doctor-form";

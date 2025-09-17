@@ -6,12 +6,12 @@ import { headers } from "next/headers";
 
 import { db } from "@/db";
 import { appointmentsTable } from "@/db/schema";
-import { auth } from "@/lib/auth";
-import { actionClient } from "@/lib/next-safe-action";
 import {
   createAppointmentNotification,
   notifyDoctorsAboutAppointment,
 } from "@/helpers/notifications";
+import { auth } from "@/lib/auth";
+import { actionClient } from "@/lib/next-safe-action";
 
 import { getAvailableTimes } from "../get-available-times";
 import { addAppointmentSchema } from "./schema";
