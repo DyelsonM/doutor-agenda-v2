@@ -1,12 +1,33 @@
-import { mkdir, writeFile } from "fs/promises";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import path from "path";
+import { v2 as cloudinary } from "cloudinary";
 
 import { auth } from "@/lib/auth";
 
+// Configurar Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 export async function POST(request: NextRequest) {
   try {
+    console.log("Iniciando upload para Cloudinary...");
+
+    // Verificar se as variáveis do Cloudinary estão configuradas
+    if (
+      !process.env.CLOUDINARY_CLOUD_NAME ||
+      !process.env.CLOUDINARY_API_KEY ||
+      !process.env.CLOUDINARY_API_SECRET
+    ) {
+      console.error("Variáveis do Cloudinary não configuradas");
+      return NextResponse.json(
+        { error: "Configuração do Cloudinary não encontrada" },
+        { status: 500 },
+      );
+    }
+
     // Verificar autenticação
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -22,6 +43,10 @@ export async function POST(request: NextRequest) {
     if (!file) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
+
+    console.log(
+      `Arquivo recebido: ${file.name}, tamanho: ${file.size} bytes, tipo: ${file.type}`,
+    );
 
     // Validar tipo de arquivo
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -41,34 +66,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Converter arquivo para buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Gerar nome único do arquivo
-    const timestamp = Date.now();
-    const extension = path.extname(file.name);
-    const filename = `logo-${timestamp}${extension}`;
+    console.log("Fazendo upload para Cloudinary...");
 
-    // Salvar arquivo na pasta public/uploads
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    const filepath = path.join(uploadDir, filename);
-
-    // Criar diretório se não existir
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (error) {
-      // Diretório já existe, continuar
-    }
-
-    await writeFile(filepath, buffer);
-
-    // Retornar URL pública
-    const publicUrl = `/uploads/${filename}`;
+    // Upload para Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          {
+            resource_type: "image",
+            folder: "doutor-agenda/logos",
+            public_id: `logo-${Date.now()}`,
+            transformation: [
+              { width: 500, height: 500, crop: "limit" },
+              { quality: "auto" },
+            ],
+          },
+          (error, result) => {
+            if (error) {
+              console.error("Erro no Cloudinary:", error);
+              reject(error);
+            } else {
+              console.log("Upload bem-sucedido:", result?.secure_url);
+              resolve(result);
+            }
+          },
+        )
+        .end(buffer);
+    });
 
     return NextResponse.json({
       success: true,
-      url: publicUrl,
-      filename: filename,
+      url: (result as any).secure_url,
+      publicId: (result as any).public_id,
     });
   } catch (error) {
     console.error("Upload error:", error);
