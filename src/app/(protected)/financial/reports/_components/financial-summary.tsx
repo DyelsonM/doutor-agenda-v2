@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+// Removido import não utilizado: ptBR
 import jsPDF from "jspdf";
 import { Download, FileText, TrendingDown, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
@@ -28,7 +28,7 @@ export function FinancialSummary({
   transactions,
   periodStart,
   periodEnd,
-  onDateChange,
+  onDateChange: _onDateChange, // Prefixo _ indica parâmetro intencionalmente não usado
   isLoading = false,
 }: FinancialSummaryProps) {
   // Usar todas as transações sem filtro para simplificar

@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { and, desc, eq, gte, lte } from "drizzle-orm";
+// Removidos imports não utilizados do drizzle-orm
 import jsPDF from "jspdf";
 import { Download, FileText, TrendingDown, TrendingUp } from "lucide-react";
 import { toast } from "sonner";

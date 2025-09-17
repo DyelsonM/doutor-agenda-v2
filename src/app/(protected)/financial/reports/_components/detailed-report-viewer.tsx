@@ -21,7 +21,7 @@ interface DetailedReportViewerProps {
 
 export function DetailedReportViewer({
   report,
-  reportTitle,
+  reportTitle: _reportTitle, // Prefixo _ indica parâmetro intencionalmente não usado
 }: DetailedReportViewerProps) {
   const router = useRouter();
 

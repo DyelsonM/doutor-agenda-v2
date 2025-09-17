@@ -196,7 +196,7 @@ export const getTransactionsAction = action
       throw new Error("Clínica não encontrada");
     }
 
-    let whereConditions = eq(
+    let whereConditions: any = eq(
       transactionsTable.clinicId,
       session.user.clinic.id,
     );
@@ -525,7 +525,7 @@ export const generateFinancialReportAction = action
 
     const averageAppointmentValue = appointmentsInPeriod[0]?.count
       ? Math.round(
-          (appointmentsInPeriod[0].totalValue || 0) /
+          (Number(appointmentsInPeriod[0].totalValue) || 0) /
             appointmentsInPeriod[0].count,
         )
       : 0;
@@ -533,19 +533,21 @@ export const generateFinancialReportAction = action
     // Criar relatório
     const reportData = {
       summary: {
-        totalRevenue: revenueSummary[0]?.totalRevenue || 0,
-        totalExpenses: expenseSummary[0]?.totalExpenses || 0,
+        totalRevenue: Number(revenueSummary[0]?.totalRevenue) || 0,
+        totalExpenses: Number(expenseSummary[0]?.totalExpenses) || 0,
         netProfit:
-          (revenueSummary[0]?.totalRevenue || 0) -
-          (expenseSummary[0]?.totalExpenses || 0),
-        revenueTransactionCount: revenueSummary[0]?.transactionCount || 0,
-        expenseTransactionCount: expenseSummary[0]?.transactionCount || 0,
+          (Number(revenueSummary[0]?.totalRevenue) || 0) -
+          (Number(expenseSummary[0]?.totalExpenses) || 0),
+        revenueTransactionCount:
+          Number(revenueSummary[0]?.transactionCount) || 0,
+        expenseTransactionCount:
+          Number(expenseSummary[0]?.transactionCount) || 0,
       },
       revenueByType,
       expensesByCategory,
       appointments: {
-        count: appointmentsInPeriod[0]?.count || 0,
-        totalValue: appointmentsInPeriod[0]?.totalValue || 0,
+        count: Number(appointmentsInPeriod[0]?.count) || 0,
+        totalValue: Number(appointmentsInPeriod[0]?.totalValue) || 0,
         averageValue: averageAppointmentValue,
       },
       payables: {
@@ -571,12 +573,12 @@ export const generateFinancialReportAction = action
         reportType: parsedInput.reportType,
         periodStart: parsedInput.periodStart,
         periodEnd: parsedInput.periodEnd,
-        totalRevenue: revenueSummary[0]?.totalRevenue || 0,
-        totalExpenses: expenseSummary[0]?.totalExpenses || 0,
+        totalRevenue: Number(revenueSummary[0]?.totalRevenue) || 0,
+        totalExpenses: Number(expenseSummary[0]?.totalExpenses) || 0,
         netProfit:
-          (revenueSummary[0]?.totalRevenue || 0) -
-          (expenseSummary[0]?.totalExpenses || 0),
-        appointmentCount: appointmentsInPeriod[0]?.count || 0,
+          (Number(revenueSummary[0]?.totalRevenue) || 0) -
+          (Number(expenseSummary[0]?.totalExpenses) || 0),
+        appointmentCount: Number(appointmentsInPeriod[0]?.count) || 0,
         averageAppointmentValue,
         reportData: JSON.stringify(reportData),
       })
@@ -693,7 +695,7 @@ export const getTransactionsSummaryAction = action
     }
 
     // Construir filtros
-    let whereConditions = eq(
+    let whereConditions: any = eq(
       transactionsTable.clinicId,
       session.user.clinic.id,
     );

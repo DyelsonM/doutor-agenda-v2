@@ -213,7 +213,8 @@ export const transactionsSummaryColumns: ColumnDef<TransactionSummary>[] = [
   {
     id: "actions",
     header: "",
-    cell: ({ row }) => {
+    cell: ({ row: _row }) => {
+      // Prefixo _ indica parâmetro intencionalmente não usado
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

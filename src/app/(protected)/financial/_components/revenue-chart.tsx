@@ -1,7 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+// Removidos imports não utilizados: format, ptBR
 import {
   Bar,
   BarChart,

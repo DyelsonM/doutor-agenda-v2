@@ -25,7 +25,7 @@ interface ExportDocumentButtonProps {
 
 export function ExportDocumentButton({
   documentId,
-  documentTitle,
+  documentTitle: _documentTitle, // Prefixo _ indica parâmetro intencionalmente não usado
 }: ExportDocumentButtonProps) {
   const { execute: exportDocument, isExecuting } = useAction(
     exportDocumentAction,

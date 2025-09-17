@@ -81,7 +81,7 @@ export const updateDoctorCredentialsAction = actionClient
         success: true,
         message: "Email e senha atualizados com sucesso!",
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("❌ Erro ao atualizar:", error);
       throw new Error("Erro interno do servidor ao atualizar credenciais");
     }

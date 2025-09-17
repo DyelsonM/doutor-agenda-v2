@@ -1,10 +1,8 @@
 "use server";
 
 import { exec } from "child_process";
-import fs from "fs/promises";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import path from "path";
 import { promisify } from "util";
 import { z } from "zod";
 

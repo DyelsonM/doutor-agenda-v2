@@ -47,7 +47,6 @@ const DashboardPage = async ({ searchParams }: DashboardPageProps) => {
     );
   }
   const {
-    totalRevenue,
     totalAppointments,
     totalPatients,
     totalDoctors,

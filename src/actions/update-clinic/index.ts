@@ -1,7 +1,6 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
 import { createSafeActionClient } from "next-safe-action";
 
 import { db } from "@/db";

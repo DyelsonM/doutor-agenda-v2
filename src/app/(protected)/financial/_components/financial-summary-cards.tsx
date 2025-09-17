@@ -4,16 +4,13 @@ import {
   AlertTriangle,
   ArrowDown,
   ArrowUp,
-  Calendar,
-  Clock,
   DollarSign,
   Minus,
   Plus,
-  Users,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrencyInCents, formatNumber } from "@/helpers/financial";
+import { formatCurrencyInCents } from "@/helpers/financial";
 
 interface FinancialStats {
   totalRevenue: number;

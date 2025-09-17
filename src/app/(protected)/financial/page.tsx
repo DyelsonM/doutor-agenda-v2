@@ -1,11 +1,5 @@
 import { and, count, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
-import {
-  AlertTriangle,
-  BarChart3,
-  DollarSign,
-  FileText,
-  TrendingUp,
-} from "lucide-react";
+import { AlertTriangle, DollarSign, FileText, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";

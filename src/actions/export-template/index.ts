@@ -31,7 +31,7 @@ export const exportTemplateAction = actionClient
     }
 
     // Verificar se o template pertence à clínica do usuário
-    if (template.clinicId !== session.user.clinic.id) {
+    if (template.clinicId !== session.user.clinic!.id) {
       throw new Error("Acesso negado");
     }
 
@@ -45,8 +45,8 @@ export const exportTemplateAction = actionClient
         updatedAt: template.updatedAt,
       },
       clinic: {
-        name: template.clinic.name,
-        logoUrl: template.clinic.logoUrl,
+        name: template.clinic!.name,
+        logoUrl: template.clinic!.logoUrl,
       },
     };
   });

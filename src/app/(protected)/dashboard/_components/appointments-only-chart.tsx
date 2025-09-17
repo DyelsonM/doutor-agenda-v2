@@ -79,7 +79,7 @@ const AppointmentsOnlyChart = ({
             <ChartTooltip
               content={
                 <ChartTooltipContent
-                  formatter={(value, name) => {
+                  formatter={(value) => {
                     return (
                       <>
                         <div className="h-3 w-3 rounded bg-[#0B68F7]" />
