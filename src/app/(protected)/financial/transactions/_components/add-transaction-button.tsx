@@ -78,7 +78,10 @@ export function AddTransactionButton() {
         toast.success(data?.message ?? "Transação criada com sucesso!");
         setOpen(false);
         form.reset();
-        router.refresh(); // Atualiza a página para mostrar a nova transação
+        // Usar router.refresh() com um pequeno delay para garantir que a revalidação aconteça
+        setTimeout(() => {
+          router.refresh();
+        }, 100);
       },
       onError: ({ error }) => {
         toast.error(error.serverError || "Erro ao criar transação");

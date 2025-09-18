@@ -1,0 +1,1 @@
+ALTER TYPE "public"."document_type" ADD VALUE 'referral_form' BEFORE 'other';

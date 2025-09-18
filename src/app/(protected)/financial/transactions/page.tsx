@@ -21,6 +21,10 @@ import { getAuthSession, getDoctorIdFromUser } from "@/lib/auth-utils";
 import { AddTransactionButton } from "./_components/add-transaction-button";
 import { transactionsTableColumns } from "./_components/transactions-table-columns";
 
+// Desabilitar cache para garantir dados sempre atualizados
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const TransactionsPage = async () => {
   const session = await getAuthSession();
 
@@ -40,35 +44,19 @@ const TransactionsPage = async () => {
     // TODO: Filtrar por consultas do médico específico
   }
 
-  // Buscar receitas e despesas separadamente
-  const [revenueTransactions, expenseTransactions] = await Promise.all([
-    // Receitas (entradas)
-    db.query.transactionsTable.findMany({
-      where: and(
-        transactionsFilter,
-        eq(transactionsTable.type, "appointment_payment"),
-      ),
-      with: {
-        appointment: {
-          with: {
-            patient: true,
-            doctor: true,
-          },
+  // Buscar todas as transações de uma vez (mais eficiente)
+  const allTransactions = await db.query.transactionsTable.findMany({
+    where: transactionsFilter,
+    with: {
+      appointment: {
+        with: {
+          patient: true,
+          doctor: true,
         },
       },
-      orderBy: [desc(transactionsTable.createdAt)],
-    }),
-
-    // Despesas (saídas)
-    db.query.transactionsTable.findMany({
-      where: and(transactionsFilter, eq(transactionsTable.type, "expense")),
-      orderBy: [desc(transactionsTable.createdAt)],
-    }),
-  ]);
-
-  const allTransactions = [...revenueTransactions, ...expenseTransactions].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  );
+    },
+    orderBy: [desc(transactionsTable.createdAt)],
+  });
 
   return (
     <PageContainer>

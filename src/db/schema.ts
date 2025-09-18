@@ -264,6 +264,7 @@ export const documentTypeEnum = pgEnum("document_type", [
   "medical_certificate",
   "exam_request",
   "medical_report",
+  "referral_form",
   "other",
 ]);
 

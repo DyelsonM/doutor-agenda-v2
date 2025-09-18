@@ -74,6 +74,8 @@ export const createTransactionAction = action
     // Revalidar páginas que mostram dados financeiros
     revalidatePath("/financial");
     revalidatePath("/financial/transactions");
+    revalidatePath("/financial/summary");
+    revalidatePath("/financial/reports");
 
     return {
       success: true,
