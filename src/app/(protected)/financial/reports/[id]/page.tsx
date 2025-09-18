@@ -158,7 +158,7 @@ const ReportDetailPage = async ({ params }: ReportDetailPageProps) => {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Consultas</p>
+                <p className="text-sm text-gray-600">Receita</p>
                 <p className="text-lg font-bold text-purple-600">
                   {report.appointmentCount}
                 </p>

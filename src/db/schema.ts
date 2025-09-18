@@ -270,10 +270,7 @@ export const documentTypeEnum = pgEnum("document_type", [
 
 export const transactionTypeEnum = pgEnum("transaction_type", [
   "appointment_payment",
-  "subscription_payment",
-  "refund",
   "expense",
-  "other",
 ]);
 
 export const expenseCategoryEnum = pgEnum("expense_category", [

@@ -17,6 +17,20 @@ import {
 } from "@/components/ui/dialog";
 import { formatCurrencyInCents, formatDate } from "@/helpers/financial";
 
+const expenseCategoryLabels = {
+  rent: "Aluguel",
+  utilities: "Utilidades",
+  equipment: "Equipamentos",
+  supplies: "Suprimentos",
+  marketing: "Marketing",
+  staff: "Pessoal",
+  insurance: "Seguros",
+  software: "Software",
+  laboratory: "Laboratório",
+  shipping: "Frete",
+  other: "Outros",
+};
+
 interface RevenueByType {
   type: string;
   total: number;
@@ -447,7 +461,11 @@ export function ReportViewer({ reportId, reportTitle }: ReportViewerProps) {
                           }
                         >
                           <td className="border border-gray-300 px-4 py-2">
-                            {item.category || "Outro"}
+                            {expenseCategoryLabels[
+                              item.category as keyof typeof expenseCategoryLabels
+                            ] ||
+                              item.category ||
+                              "Outro"}
                           </td>
                           <td className="border border-gray-300 px-4 py-2 text-right font-medium">
                             {formatCurrencyInCents(item.total)}

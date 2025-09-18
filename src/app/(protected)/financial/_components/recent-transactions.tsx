@@ -44,19 +44,13 @@ interface RecentTransactionsProps {
 }
 
 const transactionTypeLabels: Record<Transaction["type"], string> = {
-  appointment_payment: "Pagamento de Consulta",
-  subscription_payment: "Pagamento de Assinatura",
-  refund: "Reembolso",
+  appointment_payment: "Receita",
   expense: "Despesa",
-  other: "Outro",
 };
 
 const transactionTypeColors: Record<Transaction["type"], string> = {
   appointment_payment: "bg-green-100 text-green-800",
-  subscription_payment: "bg-blue-100 text-blue-800",
-  refund: "bg-orange-100 text-orange-800",
   expense: "bg-red-100 text-red-800",
-  other: "bg-gray-100 text-gray-800",
 };
 
 const paymentMethodLabels: Record<Transaction["paymentMethod"], string> = {

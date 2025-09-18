@@ -2,18 +2,9 @@ import { z } from "zod";
 
 export const createTransactionSchema = z.object({
   appointmentId: z.string().uuid("ID da consulta inválido").optional(),
-  type: z.enum(
-    [
-      "appointment_payment",
-      "subscription_payment",
-      "refund",
-      "expense",
-      "other",
-    ],
-    {
-      errorMap: () => ({ message: "Tipo de transação inválido" }),
-    },
-  ),
+  type: z.enum(["appointment_payment", "expense"], {
+    errorMap: () => ({ message: "Tipo de transação inválido" }),
+  }),
   amountInCents: z.number().min(1, "Valor deve ser maior que zero"),
   description: z.string().min(1, "Descrição é obrigatória"),
   paymentMethod: z.enum(["stripe", "cash", "pix", "bank_transfer", "other"], {

@@ -17,6 +17,20 @@ import {
   TransactionSummary,
 } from "./transactions-summary-columns";
 
+const expenseCategoryLabels = {
+  rent: "Aluguel",
+  utilities: "Utilidades",
+  equipment: "Equipamentos",
+  supplies: "Suprimentos",
+  marketing: "Marketing",
+  staff: "Pessoal",
+  insurance: "Seguros",
+  software: "Software",
+  laboratory: "Laboratório",
+  shipping: "Frete",
+  other: "Outros",
+};
+
 interface DailyReportDetailedProps {
   reportData: {
     periodStart: Date;
@@ -377,7 +391,7 @@ export function DailyReportDetailed({
                 <div key={type} className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">
-                      {type === "appointment_payment" ? "Consultas" : type}
+                      {type === "appointment_payment" ? "Receita" : type}
                     </p>
                     <p className="text-muted-foreground text-sm">
                       {data.count} transações
@@ -409,7 +423,11 @@ export function DailyReportDetailed({
                   className="flex items-center justify-between"
                 >
                   <div>
-                    <p className="font-medium">{category}</p>
+                    <p className="font-medium">
+                      {expenseCategoryLabels[
+                        category as keyof typeof expenseCategoryLabels
+                      ] || category}
+                    </p>
                     <p className="text-muted-foreground text-sm">
                       {data.count} transações
                     </p>

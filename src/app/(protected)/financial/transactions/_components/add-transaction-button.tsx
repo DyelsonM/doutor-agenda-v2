@@ -142,14 +142,9 @@ export function AddTransactionButton() {
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="appointment_payment">
-                        Pagamento de Consulta
+                        Receita
                       </SelectItem>
-                      <SelectItem value="subscription_payment">
-                        Pagamento de Assinatura
-                      </SelectItem>
-                      <SelectItem value="refund">Reembolso</SelectItem>
                       <SelectItem value="expense">Despesa</SelectItem>
-                      <SelectItem value="other">Outro</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

@@ -155,6 +155,13 @@
       "when": 1758209984178,
       "tag": "0021_cool_epoch",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1758211875582,
+      "tag": "0022_strong_boomer",
+      "breakpoints": true
     }
   ]
 }
