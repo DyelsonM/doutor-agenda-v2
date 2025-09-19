@@ -33,6 +33,8 @@ export function AppointmentsTableClient({
     <DataTable
       data={appointments}
       columns={getAppointmentsTableColumns(userRole)}
+      searchKey="patient.name"
+      searchPlaceholder="Pesquisar agendamentos por paciente..."
     />
   );
 }

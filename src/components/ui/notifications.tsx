@@ -196,7 +196,7 @@ export function NotificationsDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="max-h-96 w-80">
+      <DropdownMenuContent align="end" className="w-80">
         <div className="border-b p-4">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">Notificações</h3>
@@ -271,7 +271,7 @@ export function NotificationsDropdown() {
             </div>
           </div>
         </div>
-        <ScrollArea className="max-h-80">
+        <ScrollArea className="h-96">
           {isLoading ? (
             <div className="space-y-2 p-2">
               {Array.from({ length: 3 }).map((_, i) => (

@@ -17,6 +17,11 @@ export function PatientsTableClient({
   userRole,
 }: PatientsTableClientProps) {
   return (
-    <DataTable data={patients} columns={getPatientsTableColumns(userRole)} />
+    <DataTable
+      data={patients}
+      columns={getPatientsTableColumns(userRole)}
+      searchKey="name"
+      searchPlaceholder="Pesquisar pacientes por nome..."
+    />
   );
 }
