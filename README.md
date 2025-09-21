@@ -1,6 +1,6 @@
 ### Doutor Agenda
 
-Aplicação moderna de agendamento para clínicas, construída com Next.js 15 (App Router), TypeScript, Tailwind CSS 4, shadcn/ui, React 19, BetterAuth, Drizzle ORM e PostgreSQL. Inclui autenticação (e-mail/senha e Google), gestão de clínicas, médicos, pacientes e agendamentos, assinatura via Stripe e UI consistente com componentes reutilizáveis.
+Aplicação moderna de agendamento para clínicas, construída com Next.js 15 (App Router), TypeScript, Tailwind CSS 4, shadcn/ui, React 19, BetterAuth, Drizzle ORM e PostgreSQL. Inclui autenticação (e-mail/senha e Google), gestão de clínicas, médicos, pacientes e agendamentos, e UI consistente com componentes reutilizáveis.
 
 ### Sumário
 
@@ -16,8 +16,7 @@ Aplicação moderna de agendamento para clínicas, construída com Next.js 15 (A
 ### Visão geral
 
 - **Domínio**: clínicas possuem médicos e pacientes; pacientes fazem agendamentos com médicos. Disponibilidades de médicos são definidas por faixa de dias da semana e janelas de horário.
-- **Autenticação**: BetterAuth com e-mail/senha e Google OAuth. A sessão é enriquecida com informações do plano e clínica do usuário.
-- **Assinatura**: integração com Stripe Checkout para contratar o plano.
+- **Autenticação**: BetterAuth com e-mail/senha e Google OAuth. A sessão é enriquecida com informações da clínica do usuário.
 - **UI/UX**: Tailwind + shadcn/ui; formulários com React Hook Form e validação com Zod; feedback com Sonner.
 
 ### Stack e ferramentas

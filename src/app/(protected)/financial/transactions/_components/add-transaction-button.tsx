@@ -38,13 +38,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 const addTransactionSchema = z.object({
-  type: z.enum([
-    "appointment_payment",
-    "subscription_payment",
-    "refund",
-    "expense",
-    "other",
-  ]),
+  type: z.enum(["appointment_payment", "refund", "expense", "other"]),
   amount: z.number().min(0.01, "Valor deve ser maior que zero"),
   description: z.string().min(1, "Descrição é obrigatória"),
   paymentMethod: z.enum(["stripe", "cash", "pix", "bank_transfer", "other"]),

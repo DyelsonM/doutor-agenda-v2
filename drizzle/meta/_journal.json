@@ -162,6 +162,20 @@
       "when": 1758211875582,
       "tag": "0022_strong_boomer",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1758497434452,
+      "tag": "0023_spotty_clint_barton",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1758497661753,
+      "tag": "0024_gray_triton",
+      "breakpoints": true
     }
   ]
 }

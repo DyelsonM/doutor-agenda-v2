@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, lte, or, sql,sum } from "drizzle-orm";
+import { and, count, desc, eq, gte, lte, or, sql, sum } from "drizzle-orm";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -74,7 +74,6 @@ const ReportsPage = async () => {
             // Receitas são todos os tipos exceto "expense"
             or(
               eq(transactionsTable.type, "appointment_payment"),
-              eq(transactionsTable.type, "subscription_payment"),
               eq(transactionsTable.type, "other"),
             ),
           ),

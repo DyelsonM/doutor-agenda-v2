@@ -11,12 +11,7 @@ import { TransactionActions } from "./transaction-actions";
 
 export type Transaction = {
   id: string;
-  type:
-    | "appointment_payment"
-    | "subscription_payment"
-    | "refund"
-    | "expense"
-    | "other";
+  type: "appointment_payment" | "refund" | "expense" | "other";
   amountInCents: number;
   description: string;
   paymentMethod: "stripe" | "cash" | "pix" | "bank_transfer" | "other";

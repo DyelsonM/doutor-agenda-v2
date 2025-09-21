@@ -389,20 +389,6 @@ export const generateFinancialReportAction = action
         ),
       );
 
-    const subscriptionSummary = await db
-      .select({
-        totalRevenue: sum(transactionsTable.amountInCents),
-        transactionCount: count(transactionsTable.id),
-      })
-      .from(transactionsTable)
-      .where(
-        and(
-          whereConditions,
-          eq(transactionsTable.status, "completed"),
-          eq(transactionsTable.type, "subscription_payment"),
-        ),
-      );
-
     // DESPESAS (saída de dinheiro)
     const expenseSummary = await db
       .select({
@@ -567,20 +553,16 @@ export const generateFinancialReportAction = action
     const reportData = {
       summary: {
         totalRevenue: Number(revenueSummary[0]?.totalRevenue) || 0,
-        totalSubscriptions: Number(subscriptionSummary[0]?.totalRevenue) || 0,
         totalRefunds: Number(refundSummary[0]?.totalExpenses) || 0,
         totalExpenses: Number(expenseSummary[0]?.totalExpenses) || 0,
         totalOther: Number(otherSummary[0]?.totalOther) || 0,
         netProfit:
-          (Number(revenueSummary[0]?.totalRevenue) || 0) +
-          (Number(subscriptionSummary[0]?.totalRevenue) || 0) -
+          (Number(revenueSummary[0]?.totalRevenue) || 0) -
           (Number(refundSummary[0]?.totalExpenses) || 0) -
           (Number(expenseSummary[0]?.totalExpenses) || 0) +
           (Number(otherSummary[0]?.totalOther) || 0),
         revenueTransactionCount:
           Number(revenueSummary[0]?.transactionCount) || 0,
-        subscriptionTransactionCount:
-          Number(subscriptionSummary[0]?.transactionCount) || 0,
         refundTransactionCount: Number(refundSummary[0]?.transactionCount) || 0,
         expenseTransactionCount:
           Number(expenseSummary[0]?.transactionCount) || 0,
@@ -616,15 +598,12 @@ export const generateFinancialReportAction = action
         reportType: parsedInput.reportType,
         periodStart: parsedInput.periodStart,
         periodEnd: parsedInput.periodEnd,
-        totalRevenue:
-          (Number(revenueSummary[0]?.totalRevenue) || 0) +
-          (Number(subscriptionSummary[0]?.totalRevenue) || 0),
+        totalRevenue: Number(revenueSummary[0]?.totalRevenue) || 0,
         totalExpenses:
           (Number(expenseSummary[0]?.totalExpenses) || 0) +
           (Number(refundSummary[0]?.totalExpenses) || 0),
         netProfit:
-          (Number(revenueSummary[0]?.totalRevenue) || 0) +
-          (Number(subscriptionSummary[0]?.totalRevenue) || 0) -
+          (Number(revenueSummary[0]?.totalRevenue) || 0) -
           (Number(refundSummary[0]?.totalExpenses) || 0) -
           (Number(expenseSummary[0]?.totalExpenses) || 0) +
           (Number(otherSummary[0]?.totalOther) || 0),

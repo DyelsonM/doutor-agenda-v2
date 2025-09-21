@@ -4,7 +4,6 @@ import {
   CalendarDays,
   DollarSign,
   FileText,
-  Gem,
   LayoutDashboard,
   LogOut,
   Settings,
@@ -179,17 +178,6 @@ export function AppSidebar() {
                     <Link href="/clinic-settings">
                       <Settings />
                       <span>Configurações</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === "/subscription"}
-                  >
-                    <Link href="/subscription">
-                      <Gem />
-                      <span>Assinatura</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

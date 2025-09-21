@@ -11,7 +11,6 @@ export interface AuthSession {
     name: string;
     email: string;
     role: UserRole;
-    plan?: string | null;
     clinic?: {
       id: string;
       name: string;

@@ -18,9 +18,6 @@ export const usersTable = pgTable("users", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull(),
   image: text("image"),
-  stripeCustomerId: text("stripe_customer_id"),
-  stripeSubscriptionId: text("stripe_subscription_id"),
-  plan: text("plan"),
   role: userRoleEnum("role").notNull().default("admin"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
@@ -518,8 +515,6 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "system_update",
   "backup_completed",
   "backup_failed",
-  "subscription_expiring",
-  "subscription_expired",
 ]);
 
 // Tabela de notificações - usando a estrutura existente

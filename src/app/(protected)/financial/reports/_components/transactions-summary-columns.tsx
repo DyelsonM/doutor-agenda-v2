@@ -22,12 +22,7 @@ import { formatCurrencyInCents } from "@/helpers/financial";
 
 export type TransactionSummary = {
   id: string;
-  type:
-    | "appointment_payment"
-    | "subscription_payment"
-    | "refund"
-    | "expense"
-    | "other";
+  type: "appointment_payment" | "refund" | "expense" | "other";
   description: string;
   amountInCents: number;
   paymentMethod:
