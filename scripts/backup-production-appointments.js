@@ -14,8 +14,8 @@ const pool = new Pool({
   connectionString: connectionString,
 });
 
-async function backupAppointments() {
-  console.log("💾 Criando backup dos agendamentos antes da correção...\n");
+async function backupProductionAppointments() {
+  console.log("💾 Criando backup dos agendamentos de PRODUÇÃO...\n");
 
   try {
     // Buscar todos os agendamentos
@@ -52,7 +52,7 @@ async function backupAppointments() {
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const backupFile = path.join(
       backupDir,
-      `appointments-backup-${timestamp}.json`,
+      `production-appointments-backup-${timestamp}.json`,
     );
 
     // Salvar backup
@@ -65,10 +65,10 @@ async function backupAppointments() {
     // Criar também um backup em formato SQL
     const sqlBackupFile = path.join(
       backupDir,
-      `appointments-backup-${timestamp}.sql`,
+      `production-appointments-backup-${timestamp}.sql`,
     );
     let sqlContent =
-      "-- Backup dos agendamentos antes da correção de horários\n";
+      "-- Backup dos agendamentos de PRODUÇÃO antes da correção de horários\n";
     sqlContent += `-- Data: ${new Date().toISOString()}\n`;
     sqlContent += `-- Total de registros: ${appointments.rows.length}\n\n`;
 
@@ -78,6 +78,10 @@ async function backupAppointments() {
 
     fs.writeFileSync(sqlBackupFile, sqlContent);
     console.log(`✅ Backup SQL criado: ${sqlBackupFile}`);
+
+    console.log(
+      `\n⚠️  IMPORTANTE: Salve estes arquivos em local seguro antes de executar a correção!`,
+    );
   } catch (error) {
     console.error("❌ Erro ao criar backup:", error);
   } finally {
@@ -87,4 +91,4 @@ async function backupAppointments() {
 }
 
 // Executar o backup
-backupAppointments().catch(console.error);
+backupProductionAppointments().catch(console.error);

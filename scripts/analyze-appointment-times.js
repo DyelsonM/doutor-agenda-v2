@@ -1,5 +1,5 @@
-const { drizzle } = require("drizzle-orm/postgres-js");
-const postgres = require("postgres");
+require("dotenv").config();
+const { Pool } = require("pg");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc");
 const timezone = require("dayjs/plugin/timezone");
@@ -14,15 +14,16 @@ if (!connectionString) {
   process.exit(1);
 }
 
-const sql = postgres(connectionString);
-const db = drizzle(sql);
+const pool = new Pool({
+  connectionString: connectionString,
+});
 
 async function analyzeAppointmentTimes() {
   console.log("🔍 Analisando horários de agendamentos...\n");
 
   try {
     // Buscar todos os agendamentos com informações do paciente e médico
-    const appointments = await sql`
+    const appointments = await pool.query(`
       SELECT 
         a.id, 
         a.date, 
@@ -33,17 +34,17 @@ async function analyzeAppointmentTimes() {
       LEFT JOIN patients p ON a.patient_id = p.id
       LEFT JOIN doctors d ON a.doctor_id = d.id
       ORDER BY a.created_at DESC
-    `;
+    `);
 
     console.log(
-      `📊 Encontrados ${appointments.length} agendamentos no banco\n`,
+      `📊 Encontrados ${appointments.rows.length} agendamentos no banco\n`,
     );
 
     let needsFixCount = 0;
     let correctCount = 0;
     const appointmentsToFix = [];
 
-    for (const appointment of appointments) {
+    for (const appointment of appointments.rows) {
       const originalDate = new Date(appointment.date);
       const originalTime = originalDate.toTimeString().split(" ")[0]; // HH:MM:SS
       const hour = parseInt(originalTime.split(":")[0]);
@@ -97,7 +98,7 @@ async function analyzeAppointmentTimes() {
   } catch (error) {
     console.error("❌ Erro na análise:", error);
   } finally {
-    await sql.end();
+    await pool.end();
   }
 }
 

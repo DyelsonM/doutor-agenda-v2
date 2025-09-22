@@ -18,8 +18,9 @@ const pool = new Pool({
   connectionString: connectionString,
 });
 
-async function executeAppointmentTimeFix() {
-  console.log("🔧 Executando correção dos horários de agendamentos...\n");
+async function fixProductionAppointmentTimes() {
+  console.log("🔧 Corrigindo horários de agendamentos em PRODUÇÃO...\n");
+  console.log("⚠️  ATENÇÃO: Este script irá alterar dados em PRODUÇÃO!\n");
 
   try {
     // Buscar todos os agendamentos
@@ -48,22 +49,30 @@ async function executeAppointmentTimeFix() {
         const originalTime = originalDate.toTimeString().split(" ")[0];
         const hour = parseInt(originalTime.split(":")[0]);
 
+        console.log(
+          `\n--- Processando: ${appointment.patient_name} com ${appointment.doctor_name} ---`,
+        );
+        console.log(`Data original: ${appointment.date}`);
+        console.log(`Hora original: ${originalTime}`);
+        console.log(`Hora como número: ${hour}`);
+
         // Verificar se o horário está com diferença de 3 horas (problema UTC)
+        // Em produção, os horários podem estar sendo salvos como UTC mas interpretados como local
         if (hour >= 0 && hour <= 6) {
           const correctedDate = dayjs(originalDate).add(3, "hour").toDate();
           const correctedTime = correctedDate.toTimeString().split(" ")[0];
+
+          console.log(`🔧 CORRIGINDO: ${originalTime} → ${correctedTime}`);
 
           await pool.query(`UPDATE appointments SET date = $1 WHERE id = $2`, [
             correctedDate.toISOString(),
             appointment.id,
           ]);
 
-          console.log(
-            `✅ Corrigido: ${appointment.patient_name} com ${appointment.doctor_name}`,
-          );
-          console.log(`   ${originalTime} → ${correctedTime}`);
+          console.log(`✅ Corrigido com sucesso!`);
           fixedCount++;
         } else {
+          console.log(`⏭️  Horário ${originalTime} não precisa de correção`);
           skippedCount++;
         }
       } catch (error) {
@@ -85,6 +94,14 @@ async function executeAppointmentTimeFix() {
       console.log(
         `💡 Os horários agora devem aparecer corretamente na interface.`,
       );
+      console.log(
+        `🔄 Reinicie a aplicação para garantir que as mudanças sejam refletidas.`,
+      );
+    } else {
+      console.log(`\n🤔 Nenhum agendamento precisou de correção.`);
+      console.log(
+        `💡 O problema pode estar na renderização da interface, não nos dados.`,
+      );
     }
   } catch (error) {
     console.error("❌ Erro geral:", error);
@@ -95,4 +112,4 @@ async function executeAppointmentTimeFix() {
 }
 
 // Executar o script
-executeAppointmentTimeFix().catch(console.error);
+fixProductionAppointmentTimes().catch(console.error);
