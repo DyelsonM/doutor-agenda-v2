@@ -130,6 +130,24 @@ export function AppSidebar() {
   const menuItems =
     session.data?.user?.role === "doctor" ? doctorItems : adminItems;
 
+  // Função para gerar siglas da clínica
+  const getClinicInitials = (clinicName: string) => {
+    if (!clinicName) return "C";
+
+    const words = clinicName.trim().split(/\s+/);
+    if (words.length === 1) {
+      // Se for uma palavra só, pegar as primeiras 2 letras
+      return words[0].substring(0, 2).toUpperCase();
+    } else {
+      // Se for múltiplas palavras, pegar a primeira letra de cada palavra (máximo 2)
+      return words
+        .slice(0, 2)
+        .map((word) => word.charAt(0))
+        .join("")
+        .toUpperCase();
+    }
+  };
+
   const handleSignOut = async () => {
     await authClient.signOut({
       fetchOptions: {
@@ -193,7 +211,11 @@ export function AppSidebar() {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton size="lg">
                   <Avatar>
-                    <AvatarFallback>F</AvatarFallback>
+                    <AvatarFallback>
+                      {getClinicInitials(
+                        session.data?.user?.clinic?.name || "",
+                      )}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="text-sm">
