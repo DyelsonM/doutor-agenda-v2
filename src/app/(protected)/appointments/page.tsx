@@ -14,7 +14,7 @@ import { appointmentsTable, doctorsTable, patientsTable } from "@/db/schema";
 import { getAuthSession, getDoctorIdFromUser } from "@/lib/auth-utils";
 
 import AddAppointmentButton from "./_components/add-appointment-button";
-import { AppointmentsTableClient } from "./_components/appointments-table-client";
+import { AppointmentsView } from "./_components/appointments-view";
 
 const AppointmentsPage = async () => {
   const session = await getAuthSession();
@@ -99,8 +99,10 @@ const AppointmentsPage = async () => {
             </p>
           </div>
         ) : (
-          <AppointmentsTableClient
+          <AppointmentsView
             appointments={appointments}
+            doctors={doctors}
+            patients={patients}
             userRole={session.user.role}
           />
         )}
