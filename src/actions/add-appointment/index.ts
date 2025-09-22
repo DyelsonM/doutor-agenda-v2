@@ -77,8 +77,10 @@ export const addAppointment = actionClient
 
     // Criar data/hora do agendamento
     const appointmentDateTime = dayjs(parsedInput.date)
-      .set("hour", parseInt(parsedInput.time.split(":")[0]))
-      .set("minute", parseInt(parsedInput.time.split(":")[1]))
+      .hour(parseInt(parsedInput.time.split(":")[0]))
+      .minute(parseInt(parsedInput.time.split(":")[1]))
+      .second(0)
+      .millisecond(0)
       .toDate();
 
     const [newAppointment] = await db

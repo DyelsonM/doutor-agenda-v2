@@ -292,9 +292,9 @@ export function AppointmentsCalendar({
                       <div
                         key={appointment.id}
                         className="bg-primary/10 truncate rounded p-1 text-xs"
-                        title={`${dayjs(appointment.date).format("HH:mm")} - ${appointment.patient.name}`}
+                        title={`${dayjs(new Date(appointment.date)).format("HH:mm")} - ${appointment.patient.name}`}
                       >
-                        {dayjs(appointment.date).format("HH:mm")} -{" "}
+                        {dayjs(new Date(appointment.date)).format("HH:mm")} -{" "}
                         {appointment.patient.name}
                       </div>
                     ))}

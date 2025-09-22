@@ -50,7 +50,8 @@ export const getAppointmentsTableColumns = (
       header: "Data e Hora",
       cell: (params) => {
         const appointment = params.row.original;
-        return format(new Date(appointment.date), "dd/MM/yyyy 'às' HH:mm", {
+        const appointmentDate = new Date(appointment.date);
+        return format(appointmentDate, "dd/MM/yyyy 'às' HH:mm", {
           locale: ptBR,
         });
       },
