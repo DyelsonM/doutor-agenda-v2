@@ -1,8 +1,13 @@
 "use server";
 
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 import { db } from "@/db";
 import { appointmentsTable, doctorsTable } from "@/db/schema";
@@ -76,13 +81,16 @@ export const addAppointment = actionClient
       throw new Error("Time not available");
     }
 
-    // Criar data/hora do agendamento em UTC
+    // Criar data/hora do agendamento corretamente
+    // parsedInput.date vem como Date, mas precisamos interpretar como horário do Brasil
+    // Independentemente do timezone do servidor
     const appointmentDateTime = dayjs(parsedInput.date)
       .hour(parseInt(parsedInput.time.split(":")[0]))
       .minute(parseInt(parsedInput.time.split(":")[1]))
       .second(0)
       .millisecond(0)
-      .utc()
+      .tz("America/Sao_Paulo", true) // true = manter o horário local, apenas mudar timezone
+      .utc() // Converter para UTC para armazenar no banco
       .toDate();
 
     const [newAppointment] = await db

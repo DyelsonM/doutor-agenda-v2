@@ -57,7 +57,7 @@ export const getAppointmentsTableColumns = (
       cell: (params) => {
         const appointment = params.row.original;
         try {
-          // Converter de UTC para horário local do Brasil
+          // A data já está em UTC no banco, converter para horário local do Brasil
           const appointmentDate = dayjs(appointment.date)
             .utc()
             .tz("America/Sao_Paulo")
