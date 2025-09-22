@@ -100,11 +100,26 @@ export function AppointmentsCalendar({
 
   // Obter agendamentos para uma data específica
   const getAppointmentsForDate = (date: string) => {
-    return appointments.filter(
-      (appointment) =>
-        dayjs(appointment.date).format("YYYY-MM-DD") === date &&
-        (selectedDoctor === "all" || appointment.doctor.id === selectedDoctor),
-    );
+    return appointments.filter((appointment) => {
+      try {
+        const appointmentDate = dayjs(appointment.date);
+        const targetDate = dayjs(date);
+
+        // Verificar se a data do agendamento (em UTC) corresponde à data alvo
+        return (
+          appointmentDate.utc().format("YYYY-MM-DD") ===
+            targetDate.format("YYYY-MM-DD") &&
+          (selectedDoctor === "all" || appointment.doctor.id === selectedDoctor)
+        );
+      } catch (error) {
+        console.error(
+          "Erro ao processar data do agendamento:",
+          error,
+          appointment,
+        );
+        return false;
+      }
+    });
   };
 
   // Verificar se um médico está disponível em um dia específico
@@ -292,12 +307,10 @@ export function AppointmentsCalendar({
                       <div
                         key={appointment.id}
                         className="bg-primary/10 truncate rounded p-1 text-xs"
-                        title={`${dayjs(new Date(appointment.date)).utc().format("HH:mm")} - ${appointment.patient.name}`}
+                        title={`${dayjs(appointment.date).format("HH:mm")} - ${appointment.patient.name}`}
                       >
-                        {dayjs(new Date(appointment.date))
-                          .utc()
-                          .format("HH:mm")}{" "}
-                        - {appointment.patient.name}
+                        {dayjs(appointment.date).format("HH:mm")} -{" "}
+                        {appointment.patient.name}
                       </div>
                     ))}
                     {dayAppointments.length > 2 && (

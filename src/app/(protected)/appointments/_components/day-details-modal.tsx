@@ -83,12 +83,24 @@ export function DayDetailsModal({
 
   if (!selectedDate || !doctor) return null;
 
-  const dayAppointments = appointments.filter(
-    (appointment) =>
-      dayjs(appointment.date).format("YYYY-MM-DD") ===
-        selectedDate.format("YYYY-MM-DD") &&
-      appointment.doctor.id === doctor.id,
-  );
+  const dayAppointments = appointments.filter((appointment) => {
+    try {
+      const appointmentDate = dayjs(appointment.date);
+      const targetDate = dayjs(selectedDate);
+
+      return (
+        appointmentDate.utc().format("YYYY-MM-DD") ===
+          targetDate.format("YYYY-MM-DD") && appointment.doctor.id === doctor.id
+      );
+    } catch (error) {
+      console.error(
+        "Erro ao processar data do agendamento:",
+        error,
+        appointment,
+      );
+      return false;
+    }
+  });
 
   const isDoctorAvailable = () => {
     const dayOfWeek = selectedDate.day();
@@ -165,11 +177,21 @@ export function DayDetailsModal({
                 ) : (
                   <div className="grid grid-cols-4 gap-2">
                     {availableTimes.map((time) => {
-                      const isBooked = dayAppointments.some(
-                        (apt) =>
-                          dayjs(new Date(apt.date)).utc().format("HH:mm") ===
-                          time.split(":")[0] + ":" + time.split(":")[1],
-                      );
+                      const isBooked = dayAppointments.some((apt) => {
+                        try {
+                          return (
+                            dayjs(apt.date).format("HH:mm") ===
+                            time.split(":")[0] + ":" + time.split(":")[1]
+                          );
+                        } catch (error) {
+                          console.error(
+                            "Erro ao processar horário do agendamento:",
+                            error,
+                            apt,
+                          );
+                          return false;
+                        }
+                      });
 
                       return (
                         <Button
@@ -206,9 +228,7 @@ export function DayDetailsModal({
                     >
                       <div>
                         <div className="font-medium">
-                          {dayjs(new Date(appointment.date))
-                            .utc()
-                            .format("HH:mm")}
+                          {dayjs(appointment.date).format("HH:mm")}
                         </div>
                         <div className="text-muted-foreground text-sm">
                           {appointment.patient.name}
