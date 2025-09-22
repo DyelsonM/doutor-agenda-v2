@@ -19,8 +19,8 @@ dayjs.extend(timezone);
 export const getAvailableTimes = actionClient
   .schema(
     z.object({
-      doctorId: z.string(),
-      date: z.string().date(), // YYYY-MM-DD,
+      doctorId: z.string().min(1, "ID do médico é obrigatório"),
+      date: z.string().date("Data deve estar no formato YYYY-MM-DD"),
     }),
   )
   .action(async ({ parsedInput }) => {
@@ -39,10 +39,12 @@ export const getAvailableTimes = actionClient
     if (!doctor) {
       throw new Error("Médico não encontrado");
     }
+
     const selectedDayOfWeek = dayjs(parsedInput.date).day();
     const doctorIsAvailable =
       selectedDayOfWeek >= doctor.availableFromWeekDay &&
       selectedDayOfWeek <= doctor.availableToWeekDay;
+
     if (!doctorIsAvailable) {
       return [];
     }
@@ -51,9 +53,9 @@ export const getAvailableTimes = actionClient
     });
     const appointmentsOnSelectedDate = appointments
       .filter((appointment) => {
-        return dayjs(appointment.date).utc().isSame(parsedInput.date, "day");
+        return dayjs(appointment.date).isSame(parsedInput.date, "day");
       })
-      .map((appointment) => dayjs(appointment.date).utc().format("HH:mm:ss"));
+      .map((appointment) => dayjs(appointment.date).format("HH:mm:ss"));
     const timeSlots = generateTimeSlots();
 
     // Usar os horários do médico diretamente (já estão em horário local)

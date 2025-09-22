@@ -12,6 +12,7 @@ import {
 
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { getSpecialtyLabel } from "../../doctors/_constants";
 
 interface TopSpecialtiesProps {
   topSpecialties: {
@@ -76,7 +77,9 @@ export default function TopSpecialties({
                 </div>
                 <div className="flex w-full flex-col justify-center">
                   <div className="flex w-full justify-between">
-                    <h3 className="text-sm">{specialty.specialty}</h3>
+                    <h3 className="text-sm">
+                      {getSpecialtyLabel(specialty.specialty)}
+                    </h3>
                     <div className="text-right">
                       <span className="text-muted-foreground text-sm font-medium">
                         {specialty.appointments} agend.

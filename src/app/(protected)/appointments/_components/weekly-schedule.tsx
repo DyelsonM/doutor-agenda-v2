@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { getAvailableTimes } from "@/actions/get-available-times";
+import { getSpecialtyLabel } from "../../doctors/_constants";
 import { cn } from "@/lib/utils";
 
 dayjs.locale("pt-br");
@@ -74,34 +75,68 @@ export function WeeklySchedule({
     setLoading(true);
     const data: Record<string, Record<string, string[]>> = {};
 
-    // Carregar dados para os próximos 7 dias
-    for (let i = 0; i < 7; i++) {
-      const date = currentWeek.add(i, "day");
-      const dateStr = date.format("YYYY-MM-DD");
+    try {
+      // Carregar dados para os próximos 7 dias
+      for (let i = 0; i < 7; i++) {
+        const date = currentWeek.add(i, "day");
+        const dateStr = date.format("YYYY-MM-DD");
 
-      try {
-        const availableTimes = await getAvailableTimes({
-          doctorId: selectedDoctor,
-          date: dateStr,
-        });
-        data[dateStr] = { available: availableTimes };
-      } catch (error) {
-        console.error("Erro ao carregar horários:", error);
-        data[dateStr] = { available: [] };
+        try {
+          const availableTimes = await getAvailableTimes({
+            doctorId: selectedDoctor,
+            date: dateStr,
+          });
+          // Garantir que sempre temos um array e extrair apenas os horários disponíveis
+          const availableTimeStrings = Array.isArray(availableTimes)
+            ? availableTimes
+                .filter((item) => item.available)
+                .map((item) => item.value)
+            : [];
+          data[dateStr] = {
+            available: availableTimeStrings,
+          };
+        } catch (error) {
+          console.error(
+            "Erro ao carregar horários para data específica:",
+            dateStr,
+            error,
+          );
+          // Sempre garantir que temos um array vazio em caso de erro
+          data[dateStr] = { available: [] };
+        }
       }
+    } catch (error) {
+      console.error("Erro geral ao carregar dados semanais:", error);
+    } finally {
+      setWeeklyData(data);
+      setLoading(false);
     }
-
-    setWeeklyData(data);
-    setLoading(false);
   };
 
   // Obter agendamentos para uma data específica
   const getAppointmentsForDate = (date: string) => {
-    return appointments.filter(
-      (appointment) =>
-        dayjs(appointment.date).format("YYYY-MM-DD") === date &&
-        (selectedDoctor === "all" || appointment.doctor.id === selectedDoctor),
-    );
+    return appointments.filter((appointment) => {
+      try {
+        const appointmentDate = dayjs(appointment.date);
+        const targetDate = dayjs(date);
+
+        // Verificar se a data do agendamento corresponde à data alvo
+        const matchesDate =
+          appointmentDate.format("YYYY-MM-DD") ===
+          targetDate.format("YYYY-MM-DD");
+        const matchesDoctor =
+          selectedDoctor === "all" || appointment.doctor.id === selectedDoctor;
+
+        return matchesDate && matchesDoctor;
+      } catch (error) {
+        console.error(
+          "Erro ao processar data do agendamento:",
+          error,
+          appointment,
+        );
+        return false;
+      }
+    });
   };
 
   // Verificar se um médico está disponível em um dia específico
@@ -144,7 +179,7 @@ export function WeeklySchedule({
                 <SelectItem value="all">Todos os médicos</SelectItem>
                 {filteredDoctors.map((doctor) => (
                   <SelectItem key={doctor.id} value={doctor.id}>
-                    {doctor.name} - {doctor.specialty}
+                    {doctor.name} - {getSpecialtyLabel(doctor.specialty)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -231,7 +266,7 @@ export function WeeklySchedule({
                             <div>
                               <div className="font-medium">{doctor.name}</div>
                               <div className="text-muted-foreground text-sm">
-                                {doctor.specialty}
+                                {getSpecialtyLabel(doctor.specialty)}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -279,28 +314,51 @@ export function WeeklySchedule({
                         Carregando horários...
                       </div>
                     ) : (
-                      <div className="grid grid-cols-6 gap-2">
-                        {weeklyData[dateStr]?.available?.map((time) => {
-                          const isBooked = dayAppointments.some(
-                            (apt) =>
-                              dayjs(apt.date).format("HH:mm") ===
-                              time.split(":")[0] + ":" + time.split(":")[1],
-                          );
+                      <div className="space-y-2">
+                        {Array.isArray(weeklyData[dateStr]?.available) &&
+                        weeklyData[dateStr]?.available?.length > 0 ? (
+                          <div className="grid grid-cols-6 gap-2">
+                            {weeklyData[dateStr]?.available?.map((time) => {
+                              const timeFormatted =
+                                time.split(":")[0] + ":" + time.split(":")[1];
+                              const isBooked = dayAppointments.some((apt) => {
+                                try {
+                                  return (
+                                    dayjs(apt.date).format("HH:mm") ===
+                                    timeFormatted
+                                  );
+                                } catch (error) {
+                                  console.error(
+                                    "Erro ao formatar horário do agendamento:",
+                                    error,
+                                    apt,
+                                  );
+                                  return false;
+                                }
+                              });
 
-                          return (
-                            <Button
-                              key={time}
-                              variant={isBooked ? "outline" : "default"}
-                              size="sm"
-                              disabled={isBooked}
-                              className={cn(
-                                isBooked && "cursor-not-allowed opacity-50",
-                              )}
-                            >
-                              {time.split(":")[0]}:{time.split(":")[1]}
-                            </Button>
-                          );
-                        })}
+                              return (
+                                <Button
+                                  key={time}
+                                  variant={isBooked ? "outline" : "default"}
+                                  size="sm"
+                                  disabled={isBooked}
+                                  className={cn(
+                                    isBooked && "cursor-not-allowed opacity-50",
+                                  )}
+                                >
+                                  {time.split(":")[0]}:{time.split(":")[1]}
+                                </Button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="text-muted-foreground py-4 text-center">
+                            {selectedDoctor === "all"
+                              ? "Selecione um médico para ver os horários disponíveis"
+                              : "Nenhum horário disponível para este dia"}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

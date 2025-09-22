@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Clock, User, Calendar } from "lucide-react";
 import { getAvailableTimes } from "@/actions/get-available-times";
+import { getSpecialtyLabel } from "../../doctors/_constants";
 import { cn } from "@/lib/utils";
 
 dayjs.locale("pt-br");
@@ -133,7 +134,7 @@ export function DayDetailsModal({
               <div className="space-y-2">
                 <div>
                   <span className="font-medium">Especialidade:</span>{" "}
-                  {doctor.specialty}
+                  {getSpecialtyLabel(doctor.specialty)}
                 </div>
                 <div>
                   <span className="font-medium">Horário de funcionamento:</span>{" "}

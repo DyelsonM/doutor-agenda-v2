@@ -16,6 +16,7 @@ import {
 import { db } from "@/db";
 import { doctorsTable } from "@/db/schema";
 import { formatCurrencyInCents } from "@/helpers/currency";
+import { getSpecialtyLabel } from "../doctors/_constants";
 import { getAuthSession, getDoctorIdFromUser } from "@/lib/auth-utils";
 
 import { getAvailability } from "../doctors/_helpers/availability";
@@ -71,7 +72,9 @@ const ProfilePage = async () => {
                 </Avatar>
                 <div>
                   <h2 className="text-xl font-semibold">{doctor.name}</h2>
-                  <p className="text-muted-foreground">{doctor.specialty}</p>
+                  <p className="text-muted-foreground">
+                    {getSpecialtyLabel(doctor.specialty)}
+                  </p>
                   <p className="text-muted-foreground text-sm">
                     {session.user.email}
                   </p>

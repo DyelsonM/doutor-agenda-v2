@@ -18,6 +18,7 @@ import {
   Calendar as CalendarIcon,
 } from "lucide-react";
 import { getAvailableTimes } from "@/actions/get-available-times";
+import { getSpecialtyLabel } from "../../doctors/_constants";
 import { cn } from "@/lib/utils";
 import { DayDetailsModal } from "./day-details-modal";
 
@@ -76,23 +77,46 @@ export function AppointmentsCalendar({
       setLoading(true);
       const times: Record<string, string[]> = {};
 
-      // Carregar horários para os próximos 7 dias
-      for (let i = 0; i < 7; i++) {
-        const date = currentDate.add(i, "day");
-        try {
-          const availableTimesForDate = await getAvailableTimes({
-            doctorId: selectedDoctor,
-            date: date.format("YYYY-MM-DD"),
-          });
-          times[date.format("YYYY-MM-DD")] = availableTimesForDate;
-        } catch (error) {
-          console.error("Erro ao carregar horários:", error);
-          times[date.format("YYYY-MM-DD")] = [];
+      try {
+        // Carregar horários para os próximos 7 dias
+        for (let i = 0; i < 7; i++) {
+          const date = currentDate.add(i, "day");
+          try {
+            const availableTimesForDate = await getAvailableTimes({
+              doctorId: selectedDoctor,
+              date: date.format("YYYY-MM-DD"),
+            });
+            // Garantir que sempre temos um array e extrair apenas os horários disponíveis
+            const availableTimeStrings = Array.isArray(availableTimesForDate)
+              ? availableTimesForDate
+                  .filter((item) => item.available)
+                  .map((item) => item.value)
+              : [];
+            times[date.format("YYYY-MM-DD")] = availableTimeStrings;
+          } catch (error) {
+            console.error(
+              "Erro ao carregar horários para data específica:",
+              date.format("YYYY-MM-DD"),
+              error,
+            );
+            // Se o erro for de permissão, mostrar mensagem mais amigável
+            if (
+              error instanceof Error &&
+              error.message.includes("Acesso negado")
+            ) {
+              console.warn(
+                "Usuário não tem permissão para ver agendamentos deste médico",
+              );
+            }
+            times[date.format("YYYY-MM-DD")] = [];
+          }
         }
+      } catch (error) {
+        console.error("Erro geral ao carregar horários disponíveis:", error);
+      } finally {
+        setAvailableTimes(times);
+        setLoading(false);
       }
-
-      setAvailableTimes(times);
-      setLoading(false);
     };
 
     loadAvailableTimes();
@@ -105,12 +129,14 @@ export function AppointmentsCalendar({
         const appointmentDate = dayjs(appointment.date);
         const targetDate = dayjs(date);
 
-        // Verificar se a data do agendamento (em UTC) corresponde à data alvo
-        return (
-          appointmentDate.utc().format("YYYY-MM-DD") ===
-            targetDate.format("YYYY-MM-DD") &&
-          (selectedDoctor === "all" || appointment.doctor.id === selectedDoctor)
-        );
+        // Verificar se a data do agendamento corresponde à data alvo
+        const matchesDate =
+          appointmentDate.format("YYYY-MM-DD") ===
+          targetDate.format("YYYY-MM-DD");
+        const matchesDoctor =
+          selectedDoctor === "all" || appointment.doctor.id === selectedDoctor;
+
+        return matchesDate && matchesDoctor;
       } catch (error) {
         console.error(
           "Erro ao processar data do agendamento:",
@@ -182,7 +208,7 @@ export function AppointmentsCalendar({
                 <SelectItem value="all">Todos os médicos</SelectItem>
                 {filteredDoctors.map((doctor) => (
                   <SelectItem key={doctor.id} value={doctor.id}>
-                    {doctor.name} - {doctor.specialty}
+                    {doctor.name} - {getSpecialtyLabel(doctor.specialty)}
                   </SelectItem>
                 ))}
               </SelectContent>

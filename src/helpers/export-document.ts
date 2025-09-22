@@ -1,4 +1,5 @@
 import jsPDF from "jspdf";
+import { getSpecialtyLabel } from "../app/(protected)/doctors/_constants";
 
 // Função auxiliar para carregar imagem e converter para base64
 const loadImageAsBase64 = (url: string): Promise<string> => {
@@ -157,7 +158,11 @@ export const exportToPDF = async (data: ExportDocumentData): Promise<void> => {
   doc.setFont("helvetica", "normal");
   doc.text(`Nome: ${data.doctor.name}`, margin, yPosition);
   yPosition += 5;
-  doc.text(`Especialidade: ${data.doctor.specialty}`, margin, yPosition);
+  doc.text(
+    `Especialidade: ${getSpecialtyLabel(data.doctor.specialty)}`,
+    margin,
+    yPosition,
+  );
   yPosition += 10;
 
   // Informações da consulta (se disponível)
@@ -251,7 +256,7 @@ export const exportToText = (data: ExportDocumentData): void => {
 
   content += "INFORMAÇÕES DO MÉDICO\n";
   content += `Nome: ${data.doctor.name}\n`;
-  content += `Especialidade: ${data.doctor.specialty}\n\n`;
+  content += `Especialidade: ${getSpecialtyLabel(data.doctor.specialty)}\n\n`;
 
   if (data.appointment) {
     content += "INFORMAÇÕES DA CONSULTA\n";

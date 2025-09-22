@@ -2,6 +2,7 @@ import { Stethoscope } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { getSpecialtyLabel } from "../../doctors/_constants";
 
 interface TopDoctorsProps {
   doctors: {
@@ -41,7 +42,7 @@ export default function TopDoctors({ doctors }: TopDoctorsProps) {
                 <div>
                   <h3 className="text-sm">{doctor.name}</h3>
                   <p className="text-muted-foreground text-sm">
-                    {doctor.specialty}
+                    {getSpecialtyLabel(doctor.specialty)}
                   </p>
                 </div>
               </div>
