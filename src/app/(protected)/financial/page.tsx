@@ -118,11 +118,11 @@ const FinancialPage = async () => {
     // Dados de contas a pagar
     db
       .select({
-        total: sum(payablesTable.amountInCents),
-        pending: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' THEN ${payablesTable.amountInCents} ELSE 0 END)`,
-        overdue: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' AND ${payablesTable.dueDate} < NOW() THEN ${payablesTable.amountInCents} ELSE 0 END)`,
-        pendingCount: sql<number>`COUNT(CASE WHEN ${payablesTable.status} = 'pending' THEN 1 END)`,
-        overdueCount: sql<number>`COUNT(CASE WHEN ${payablesTable.status} = 'pending' AND ${payablesTable.dueDate} < NOW() THEN 1 END)`,
+        total: sql<number>`COALESCE(SUM(CASE WHEN ${payablesTable.status} = 'pending' THEN ${payablesTable.amountInCents} ELSE 0 END), 0)`,
+        pending: sql<number>`COALESCE(SUM(CASE WHEN ${payablesTable.status} = 'pending' THEN ${payablesTable.amountInCents} ELSE 0 END), 0)`,
+        overdue: sql<number>`COALESCE(SUM(CASE WHEN ${payablesTable.status} = 'pending' AND ${payablesTable.dueDate} < NOW() THEN ${payablesTable.amountInCents} ELSE 0 END), 0)`,
+        pendingCount: sql<number>`COALESCE(COUNT(CASE WHEN ${payablesTable.status} = 'pending' THEN 1 END), 0)`,
+        overdueCount: sql<number>`COALESCE(COUNT(CASE WHEN ${payablesTable.status} = 'pending' AND ${payablesTable.dueDate} < NOW() THEN 1 END), 0)`,
       })
       .from(payablesTable)
       .where(eq(payablesTable.clinicId, session.user.clinic.id)),
@@ -380,8 +380,8 @@ const FinancialPage = async () => {
                       {formatCurrencyInCents(financialStats.totalPayables)}
                     </div>
                     <p className="text-muted-foreground text-xs">
-                      {financialStats.pendingPayables} pendentes,{" "}
-                      {financialStats.overduePayables} vencidas
+                      {financialStats.pendingPayablesCount} pendentes,{" "}
+                      {financialStats.overduePayablesCount} vencidas
                     </p>
                   </CardContent>
                 </Card>

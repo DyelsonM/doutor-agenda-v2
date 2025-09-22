@@ -3,6 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Check, MoreHorizontal, Trash2 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -163,6 +164,7 @@ function PayableActions({
   payable: Payable;
   onRefresh: () => void;
 }) {
+  const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const { execute: markAsPaid, isPending: isMarkingAsPaid } = useAction(
@@ -171,6 +173,12 @@ function PayableActions({
       onSuccess: () => {
         toast.success("Conta marcada como paga!");
         onRefresh(); // Atualizar lista
+        // Forçar atualização da página financeira
+        router.refresh();
+        // Enviar mensagem para outras páginas
+        window.postMessage({ type: "FINANCIAL_UPDATE" }, "*");
+        // Usar localStorage como backup
+        localStorage.setItem("financial-update", Date.now().toString());
       },
       onError: ({ error }) => {
         toast.error(error.serverError || "Erro ao marcar como paga");

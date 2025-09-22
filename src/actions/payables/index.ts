@@ -58,6 +58,7 @@ export const createPayableAction = action
     // Revalidar páginas que mostram dados financeiros
     revalidatePath("/financial");
     revalidatePath("/financial/payables");
+    revalidatePath("/dashboard");
 
     return {
       success: true,
@@ -108,6 +109,7 @@ export const updatePayableAction = action
     // Revalidar páginas que mostram dados financeiros
     revalidatePath("/financial");
     revalidatePath("/financial/payables");
+    revalidatePath("/dashboard");
 
     return {
       success: true,
@@ -154,6 +156,7 @@ export const markPayableAsPaidAction = action
     // Revalidar páginas que mostram dados financeiros
     revalidatePath("/financial");
     revalidatePath("/financial/payables");
+    revalidatePath("/dashboard");
 
     return {
       success: true,
@@ -193,6 +196,7 @@ export const deletePayableAction = action
     // Revalidar páginas que mostram dados financeiros
     revalidatePath("/financial");
     revalidatePath("/financial/payables");
+    revalidatePath("/dashboard");
 
     return {
       success: true,
