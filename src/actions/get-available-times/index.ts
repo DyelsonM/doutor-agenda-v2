@@ -56,32 +56,15 @@ export const getAvailableTimes = actionClient
       .map((appointment) => dayjs(appointment.date).format("HH:mm:ss"));
     const timeSlots = generateTimeSlots();
 
-    // Converter horários do médico de UTC para local (se necessário)
-    // Se os horários estão em UTC, precisamos ajustar para o horário local
-    const doctorFromHour = Number(doctor.availableFromTime.split(":")[0]);
-    const doctorToHour = Number(doctor.availableToTime.split(":")[0]);
-
-    // Se o horário está muito tarde (provavelmente UTC), ajustar para local
-    let doctorFromTimeAdjusted = doctor.availableFromTime;
-    let doctorToTimeAdjusted = doctor.availableToTime;
-
-    if (doctorFromHour >= 14 || doctorToHour >= 23) {
-      // Ajustar 3 horas para trás (UTC para BRT)
-      const fromHour = (doctorFromHour - 3 + 24) % 24;
-      const toHour = (doctorToHour - 3 + 24) % 24;
-
-      doctorFromTimeAdjusted = `${fromHour.toString().padStart(2, "0")}:${doctor.availableFromTime.split(":")[1]}:${doctor.availableFromTime.split(":")[2]}`;
-      doctorToTimeAdjusted = `${toHour.toString().padStart(2, "0")}:${doctor.availableToTime.split(":")[1]}:${doctor.availableToTime.split(":")[2]}`;
-    }
-
+    // Usar os horários do médico diretamente (já estão em horário local)
     const doctorTimeSlots = timeSlots.filter((time) => {
       const timeHour = Number(time.split(":")[0]);
       const timeMinute = Number(time.split(":")[1]);
 
-      const doctorFromHour = Number(doctorFromTimeAdjusted.split(":")[0]);
-      const doctorFromMinute = Number(doctorFromTimeAdjusted.split(":")[1]);
-      const doctorToHour = Number(doctorToTimeAdjusted.split(":")[0]);
-      const doctorToMinute = Number(doctorToTimeAdjusted.split(":")[1]);
+      const doctorFromHour = Number(doctor.availableFromTime.split(":")[0]);
+      const doctorFromMinute = Number(doctor.availableFromTime.split(":")[1]);
+      const doctorToHour = Number(doctor.availableToTime.split(":")[0]);
+      const doctorToMinute = Number(doctor.availableToTime.split(":")[1]);
 
       // Converter para minutos para facilitar comparação
       const timeInMinutes = timeHour * 60 + timeMinute;
