@@ -39,6 +39,7 @@ export const addAppointment = actionClient
     }
 
     // Validação adicional: verificar se o horário está dentro da disponibilidade do médico
+    // Converter horário local para UTC para comparação
     const appointmentHour = parseInt(parsedInput.time.split(":")[0]);
     const appointmentMinute = parseInt(parsedInput.time.split(":")[1]);
     const appointmentTimeInMinutes = appointmentHour * 60 + appointmentMinute;
@@ -75,12 +76,13 @@ export const addAppointment = actionClient
       throw new Error("Time not available");
     }
 
-    // Criar data/hora do agendamento
+    // Criar data/hora do agendamento em UTC
     const appointmentDateTime = dayjs(parsedInput.date)
       .hour(parseInt(parsedInput.time.split(":")[0]))
       .minute(parseInt(parsedInput.time.split(":")[1]))
       .second(0)
       .millisecond(0)
+      .utc()
       .toDate();
 
     const [newAppointment] = await db

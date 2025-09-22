@@ -51,9 +51,9 @@ export const getAvailableTimes = actionClient
     });
     const appointmentsOnSelectedDate = appointments
       .filter((appointment) => {
-        return dayjs(appointment.date).isSame(parsedInput.date, "day");
+        return dayjs(appointment.date).utc().isSame(parsedInput.date, "day");
       })
-      .map((appointment) => dayjs(appointment.date).format("HH:mm:ss"));
+      .map((appointment) => dayjs(appointment.date).utc().format("HH:mm:ss"));
     const timeSlots = generateTimeSlots();
 
     // Usar os horários do médico diretamente (já estão em horário local)

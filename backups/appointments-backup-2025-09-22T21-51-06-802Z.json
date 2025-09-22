@@ -1,0 +1,41 @@
+[
+  {
+    "id": "a245180a-81bb-4524-8430-b49a144afe21",
+    "date": "2025-10-06T19:00:00.000Z",
+    "created_at": "2025-09-23T00:30:21.749Z",
+    "updated_at": "2025-09-23T00:30:21.749Z",
+    "patient_id": "55b02872-1a92-4f15-a954-8b7d08236cfe",
+    "doctor_id": "57ef97de-7733-4156-a5f1-81bcfd8653fa",
+    "appointment_price_in_cents": 9000,
+    "modality": "sessao_fonoaudiologia",
+    "clinic_id": "75f5eb91-71e9-45f5-bc88-9373aafc3425",
+    "patient_name": "BENJAMIN CAMPOS DA SILVA",
+    "doctor_name": "Leidiane Silva"
+  },
+  {
+    "id": "e1123b7b-630a-47f1-b161-849ce6530ef5",
+    "date": "2025-10-01T20:00:00.000Z",
+    "created_at": "2025-09-23T00:22:43.805Z",
+    "updated_at": "2025-09-23T00:22:43.805Z",
+    "patient_id": "55b02872-1a92-4f15-a954-8b7d08236cfe",
+    "doctor_id": "57ef97de-7733-4156-a5f1-81bcfd8653fa",
+    "appointment_price_in_cents": 9000,
+    "modality": "sessao_fonoaudiologia",
+    "clinic_id": "75f5eb91-71e9-45f5-bc88-9373aafc3425",
+    "patient_name": "BENJAMIN CAMPOS DA SILVA",
+    "doctor_name": "Leidiane Silva"
+  },
+  {
+    "id": "4fb98dbc-d582-48c6-abe6-62ca0a1ceb6e",
+    "date": "2025-09-22T22:00:00.000Z",
+    "created_at": "2025-09-22T21:59:10.334Z",
+    "updated_at": "2025-09-22T21:59:10.334Z",
+    "patient_id": "55b02872-1a92-4f15-a954-8b7d08236cfe",
+    "doctor_id": "57ef97de-7733-4156-a5f1-81bcfd8653fa",
+    "appointment_price_in_cents": 10000,
+    "modality": "sessao_fonoaudiologia",
+    "clinic_id": "75f5eb91-71e9-45f5-bc88-9373aafc3425",
+    "patient_name": "BENJAMIN CAMPOS DA SILVA",
+    "doctor_name": "Leidiane Silva"
+  }
+]

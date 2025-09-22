@@ -51,7 +51,12 @@ export const getAppointmentsTableColumns = (
       cell: (params) => {
         const appointment = params.row.original;
         const appointmentDate = new Date(appointment.date);
-        return format(appointmentDate, "dd/MM/yyyy 'às' HH:mm", {
+        // Converter de UTC para horário local para exibição
+        const localDate = new Date(
+          appointmentDate.getTime() +
+            appointmentDate.getTimezoneOffset() * 60000,
+        );
+        return format(localDate, "dd/MM/yyyy 'às' HH:mm", {
           locale: ptBR,
         });
       },

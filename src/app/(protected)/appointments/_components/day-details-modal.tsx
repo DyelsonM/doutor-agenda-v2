@@ -167,7 +167,7 @@ export function DayDetailsModal({
                     {availableTimes.map((time) => {
                       const isBooked = dayAppointments.some(
                         (apt) =>
-                          dayjs(new Date(apt.date)).format("HH:mm") ===
+                          dayjs(new Date(apt.date)).utc().format("HH:mm") ===
                           time.split(":")[0] + ":" + time.split(":")[1],
                       );
 
@@ -206,7 +206,9 @@ export function DayDetailsModal({
                     >
                       <div>
                         <div className="font-medium">
-                          {dayjs(new Date(appointment.date)).format("HH:mm")}
+                          {dayjs(new Date(appointment.date))
+                            .utc()
+                            .format("HH:mm")}
                         </div>
                         <div className="text-muted-foreground text-sm">
                           {appointment.patient.name}
