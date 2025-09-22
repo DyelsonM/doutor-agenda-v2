@@ -52,6 +52,15 @@ export const getPatientsTableColumns = (
     },
   },
   {
+    id: "responsibleName",
+    accessorKey: "responsibleName",
+    header: "Nome Responsável",
+    cell: (params) => {
+      const patient = params.row.original;
+      return patient.responsibleName || "-";
+    },
+  },
+  {
     id: "sex",
     accessorKey: "sex",
     header: "Sexo",

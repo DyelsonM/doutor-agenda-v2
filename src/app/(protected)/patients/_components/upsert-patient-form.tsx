@@ -39,13 +39,18 @@ const formSchema = z.object({
   name: z.string().trim().min(1, {
     message: "Nome é obrigatório.",
   }),
-  email: z.string().email({
-    message: "Email inválido.",
-  }),
+  email: z
+    .string()
+    .email({
+      message: "Email inválido.",
+    })
+    .optional()
+    .or(z.literal("")),
   phoneNumber: z.string().trim().min(1, {
     message: "Número de telefone é obrigatório.",
   }),
   responsiblePhoneNumber: z.string().optional().or(z.literal("")),
+  responsibleName: z.string().optional().or(z.literal("")),
   sex: z.enum(["male", "female"], {
     required_error: "Sexo é obrigatório.",
   }),
@@ -74,6 +79,7 @@ const UpsertPatientForm = ({
       email: patient?.email ?? "",
       phoneNumber: patient?.phoneNumber ?? "",
       responsiblePhoneNumber: patient?.responsiblePhoneNumber ?? "",
+      responsibleName: patient?.responsibleName ?? "",
       sex: patient?.sex ?? undefined,
       patientType: patient?.patientType ?? "particular",
       insuranceName: patient?.insuranceName ?? "",
@@ -138,7 +144,7 @@ const UpsertPatientForm = ({
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Email (opcional)</FormLabel>
                 <FormControl>
                   <Input
                     type="email"
@@ -188,6 +194,22 @@ const UpsertPatientForm = ({
                       field.onChange(value.value);
                     }}
                     customInput={Input}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="responsibleName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nome do responsável (opcional)</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Digite o nome do responsável"
+                    {...field}
                   />
                 </FormControl>
                 <FormMessage />

@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
 import { db } from "@/db";
-import { appointmentsTable } from "@/db/schema";
+import { appointmentsTable, doctorsTable } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import {
   createAppointmentNotification,
   notifyDoctorsAboutAppointment,
@@ -27,6 +28,36 @@ export const addAppointment = actionClient
     }
     if (!session?.user.clinic?.id) {
       throw new Error("Clinic not found");
+    }
+
+    // Buscar dados do médico para validação adicional
+    const doctor = await db.query.doctorsTable.findFirst({
+      where: eq(doctorsTable.id, parsedInput.doctorId),
+    });
+    if (!doctor) {
+      throw new Error("Médico não encontrado");
+    }
+
+    // Validação adicional: verificar se o horário está dentro da disponibilidade do médico
+    const appointmentHour = parseInt(parsedInput.time.split(":")[0]);
+    const appointmentMinute = parseInt(parsedInput.time.split(":")[1]);
+    const appointmentTimeInMinutes = appointmentHour * 60 + appointmentMinute;
+
+    const doctorFromHour = Number(doctor.availableFromTime.split(":")[0]);
+    const doctorFromMinute = Number(doctor.availableFromTime.split(":")[1]);
+    const doctorToHour = Number(doctor.availableToTime.split(":")[0]);
+    const doctorToMinute = Number(doctor.availableToTime.split(":")[1]);
+
+    const doctorFromInMinutes = doctorFromHour * 60 + doctorFromMinute;
+    const doctorToInMinutes = doctorToHour * 60 + doctorToMinute;
+
+    if (
+      appointmentTimeInMinutes < doctorFromInMinutes ||
+      appointmentTimeInMinutes > doctorToInMinutes
+    ) {
+      throw new Error(
+        `Horário fora da disponibilidade do médico (${doctor.availableFromTime} às ${doctor.availableToTime})`,
+      );
     }
 
     // Validar horário disponível

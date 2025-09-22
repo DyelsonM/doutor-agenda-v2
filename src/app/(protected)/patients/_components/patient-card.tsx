@@ -74,6 +74,7 @@ const PatientCard = ({ patient }: PatientCardProps) => {
           <Badge variant="outline">
             <Phone className="mr-1 h-3 w-3" />
             Responsável: {formatPhoneNumber(patient.responsiblePhoneNumber)}
+            {patient.responsibleName && ` (${patient.responsibleName})`}
           </Badge>
         )}
         <Badge variant="outline">

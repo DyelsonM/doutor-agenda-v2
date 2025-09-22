@@ -1,0 +1,1 @@
+-- Migration file was missing, creating empty file to maintain sequence

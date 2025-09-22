@@ -194,6 +194,7 @@ export const patientsTable = pgTable("patients", {
   email: text("email").notNull(),
   phoneNumber: text("phone_number").notNull(),
   responsiblePhoneNumber: text("responsible_phone_number"),
+  responsibleName: text("responsible_name"),
   patientType: patientTypeEnum("patient_type").notNull().default("particular"),
   insuranceName: text("insurance_name"), // Nome do convênio quando for convênio
   createdAt: timestamp("created_at").defaultNow().notNull(),

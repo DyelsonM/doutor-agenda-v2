@@ -19,7 +19,7 @@ export const DOCTOR_SPECIALTIES = {
     specialties: [
       { code: "fisioterapeuta", name: "Fisioterapeuta" },
       { code: "nutricionista", name: "Nutricionista" },
-      { code: "fonoaudiologo", name: "Fonoaudiólogo" },
+      { code: "fonoaudiologo", name: "Fonoaudiologia" },
       { code: "psicologo", name: "Psicólogo" },
       { code: "neuropsicólogo", name: "Neuropsicólogo" },
       { code: "terapeuta_ocupacional", name: "Terapeuta Ocupacional" },

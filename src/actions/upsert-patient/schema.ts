@@ -5,13 +5,18 @@ export const upsertPatientSchema = z.object({
   name: z.string().trim().min(1, {
     message: "Nome é obrigatório.",
   }),
-  email: z.string().email({
-    message: "Email inválido.",
-  }),
+  email: z
+    .string()
+    .email({
+      message: "Email inválido.",
+    })
+    .optional()
+    .or(z.literal("")),
   phoneNumber: z.string().trim().min(1, {
     message: "Número de telefone é obrigatório.",
   }),
   responsiblePhoneNumber: z.string().optional().or(z.literal("")),
+  responsibleName: z.string().optional().or(z.literal("")),
   sex: z.enum(["male", "female"], {
     required_error: "Sexo é obrigatório.",
   }),
