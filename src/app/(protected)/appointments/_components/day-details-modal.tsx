@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +18,8 @@ import { getAvailableTimes } from "@/actions/get-available-times";
 import { getSpecialtyLabel } from "../../doctors/_constants";
 import { cn } from "@/lib/utils";
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
 dayjs.locale("pt-br");
 
 interface Doctor {
@@ -86,11 +90,14 @@ export function DayDetailsModal({
 
   const dayAppointments = appointments.filter((appointment) => {
     try {
-      const appointmentDate = dayjs(appointment.date);
+      // Converter de UTC para horário local do Brasil para comparação
+      const appointmentDate = dayjs(appointment.date)
+        .utc()
+        .tz("America/Sao_Paulo");
       const targetDate = dayjs(selectedDate);
 
       return (
-        appointmentDate.utc().format("YYYY-MM-DD") ===
+        appointmentDate.format("YYYY-MM-DD") ===
           targetDate.format("YYYY-MM-DD") && appointment.doctor.id === doctor.id
       );
     } catch (error) {
@@ -181,7 +188,10 @@ export function DayDetailsModal({
                       const isBooked = dayAppointments.some((apt) => {
                         try {
                           return (
-                            dayjs(apt.date).format("HH:mm") ===
+                            dayjs(apt.date)
+                              .utc()
+                              .tz("America/Sao_Paulo")
+                              .format("HH:mm") ===
                             time.split(":")[0] + ":" + time.split(":")[1]
                           );
                         } catch (error) {
@@ -229,7 +239,10 @@ export function DayDetailsModal({
                     >
                       <div>
                         <div className="font-medium">
-                          {dayjs(appointment.date).format("HH:mm")}
+                          {dayjs(appointment.date)
+                            .utc()
+                            .tz("America/Sao_Paulo")
+                            .format("HH:mm")}
                         </div>
                         <div className="text-muted-foreground text-sm">
                           {appointment.patient.name}

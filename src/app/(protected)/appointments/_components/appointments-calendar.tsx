@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +24,8 @@ import { getSpecialtyLabel } from "../../doctors/_constants";
 import { cn } from "@/lib/utils";
 import { DayDetailsModal } from "./day-details-modal";
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
 dayjs.locale("pt-br");
 
 interface Doctor {
@@ -126,7 +130,10 @@ export function AppointmentsCalendar({
   const getAppointmentsForDate = (date: string) => {
     return appointments.filter((appointment) => {
       try {
-        const appointmentDate = dayjs(appointment.date);
+        // Converter de UTC para horário local do Brasil para comparação
+        const appointmentDate = dayjs(appointment.date)
+          .utc()
+          .tz("America/Sao_Paulo");
         const targetDate = dayjs(date);
 
         // Verificar se a data do agendamento corresponde à data alvo
@@ -333,10 +340,13 @@ export function AppointmentsCalendar({
                       <div
                         key={appointment.id}
                         className="bg-primary/10 truncate rounded p-1 text-xs"
-                        title={`${dayjs(appointment.date).format("HH:mm")} - ${appointment.patient.name}`}
+                        title={`${dayjs(appointment.date).utc().tz("America/Sao_Paulo").format("HH:mm")} - ${appointment.patient.name}`}
                       >
-                        {dayjs(appointment.date).format("HH:mm")} -{" "}
-                        {appointment.patient.name}
+                        {dayjs(appointment.date)
+                          .utc()
+                          .tz("America/Sao_Paulo")
+                          .format("HH:mm")}{" "}
+                        - {appointment.patient.name}
                       </div>
                     ))}
                     {dayAppointments.length > 2 && (

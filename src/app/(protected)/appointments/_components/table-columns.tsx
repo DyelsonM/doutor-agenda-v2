@@ -3,8 +3,14 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
 import { appointmentsTable } from "@/db/schema";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 import { getSpecialtyLabel } from "../../doctors/_constants";
 import { getModalityLabel } from "../_constants/modalities";
@@ -51,7 +57,11 @@ export const getAppointmentsTableColumns = (
       cell: (params) => {
         const appointment = params.row.original;
         try {
-          const appointmentDate = new Date(appointment.date);
+          // Converter de UTC para horário local do Brasil
+          const appointmentDate = dayjs(appointment.date)
+            .utc()
+            .tz("America/Sao_Paulo")
+            .toDate();
           return format(appointmentDate, "dd/MM/yyyy 'às' HH:mm", {
             locale: ptBR,
           });
