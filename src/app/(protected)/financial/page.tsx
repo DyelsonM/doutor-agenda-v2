@@ -18,6 +18,9 @@ import { payablesTable, transactionsTable } from "@/db/schema";
 import { formatCurrencyInCents } from "@/helpers/financial";
 import { getAuthSession, getDoctorIdFromUser } from "@/lib/auth-utils";
 
+import { ProtectedRoute } from "@/components/protected-route";
+import { PAGE_PASSWORDS } from "@/config/passwords";
+
 import { FinancialPageClient } from "./_components/financial-page-client";
 import { FinancialSummaryCards } from "./_components/financial-summary-cards";
 import { RecentTransactions } from "./_components/recent-transactions";
@@ -307,119 +310,125 @@ const FinancialPage = async () => {
   };
 
   return (
-    <FinancialPageClient>
-      <PageContainer>
-        <PageHeader>
-          <PageHeaderContent>
-            <div className="flex items-center gap-2">
-              <PageTitle>Financeiro</PageTitle>
-            </div>
-            <PageDescription>
-              Gerencie as finanças da sua clínica e acompanhe o desempenho
-              financeiro
-            </PageDescription>
-          </PageHeaderContent>
-          <PageActions>
-            <Link href="/financial/transactions">
-              <Button variant="outline">
-                <DollarSign className="mr-2 h-4 w-4" />
-                Ver Transações
-              </Button>
-            </Link>
-            <Link href="/financial/payables">
-              <Button variant="outline">
-                <AlertTriangle className="mr-2 h-4 w-4" />
-                Contas a Pagar
-              </Button>
-            </Link>
-            <Link href="/financial/reports">
-              <Button variant="outline">
-                <FileText className="mr-2 h-4 w-4" />
-                Relatórios
-              </Button>
-            </Link>
-          </PageActions>
-        </PageHeader>
-
-        <PageContent>
-          <div className="space-y-6">
-            {/* Cards de resumo */}
-            <FinancialSummaryCards stats={financialStats} />
-
-            {/* Navegação rápida */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <ProtectedRoute
+      password={PAGE_PASSWORDS.FINANCIAL}
+      title="Área Financeira Protegida"
+      description="Esta área contém informações financeiras sensíveis. Digite a senha para continuar."
+    >
+      <FinancialPageClient>
+        <PageContainer>
+          <PageHeader>
+            <PageHeaderContent>
+              <div className="flex items-center gap-2">
+                <PageTitle>Financeiro</PageTitle>
+              </div>
+              <PageDescription>
+                Gerencie as finanças da sua clínica e acompanhe o desempenho
+                financeiro
+              </PageDescription>
+            </PageHeaderContent>
+            <PageActions>
               <Link href="/financial/transactions">
-                <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Transações
-                    </CardTitle>
-                    <DollarSign className="text-muted-foreground h-4 w-4" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {formatCurrencyInCents(financialStats.totalRevenue)}
-                    </div>
-                    <p className="text-muted-foreground text-xs">
-                      Total de receita
-                    </p>
-                  </CardContent>
-                </Card>
+                <Button variant="outline">
+                  <DollarSign className="mr-2 h-4 w-4" />
+                  Ver Transações
+                </Button>
               </Link>
-
               <Link href="/financial/payables">
-                <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      Contas a Pagar
-                    </CardTitle>
-                    <AlertTriangle className="text-muted-foreground h-4 w-4" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
-                      {formatCurrencyInCents(financialStats.totalPayables)}
-                    </div>
-                    <p className="text-muted-foreground text-xs">
-                      {financialStats.pendingPayablesCount} pendentes,{" "}
-                      {financialStats.overduePayablesCount} vencidas
-                    </p>
-                  </CardContent>
-                </Card>
+                <Button variant="outline">
+                  <AlertTriangle className="mr-2 h-4 w-4" />
+                  Contas a Pagar
+                </Button>
               </Link>
+              <Link href="/financial/reports">
+                <Button variant="outline">
+                  <FileText className="mr-2 h-4 w-4" />
+                  Relatórios
+                </Button>
+              </Link>
+            </PageActions>
+          </PageHeader>
+
+          <PageContent>
+            <div className="space-y-6">
+              {/* Cards de resumo */}
+              <FinancialSummaryCards stats={financialStats} />
+
+              {/* Navegação rápida */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <Link href="/financial/transactions">
+                  <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        Transações
+                      </CardTitle>
+                      <DollarSign className="text-muted-foreground h-4 w-4" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {formatCurrencyInCents(financialStats.totalRevenue)}
+                      </div>
+                      <p className="text-muted-foreground text-xs">
+                        Total de receita
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+
+                <Link href="/financial/payables">
+                  <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        Contas a Pagar
+                      </CardTitle>
+                      <AlertTriangle className="text-muted-foreground h-4 w-4" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {formatCurrencyInCents(financialStats.totalPayables)}
+                      </div>
+                      <p className="text-muted-foreground text-xs">
+                        {financialStats.pendingPayablesCount} pendentes,{" "}
+                        {financialStats.overduePayablesCount} vencidas
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </div>
+
+              {/* Gráfico de receitas e despesas */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Receitas vs Despesas (7 Dias)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <RevenueChart
+                    revenueData={revenueChartData}
+                    expenseData={expenseChartData}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Transações recentes */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5" />
+                    Transações Recentes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <RecentTransactions transactions={recentTransactions} />
+                </CardContent>
+              </Card>
             </div>
-
-            {/* Gráfico de receitas e despesas */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Receitas vs Despesas (7 Dias)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <RevenueChart
-                  revenueData={revenueChartData}
-                  expenseData={expenseChartData}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Transações recentes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Transações Recentes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <RecentTransactions transactions={recentTransactions} />
-              </CardContent>
-            </Card>
-          </div>
-        </PageContent>
-      </PageContainer>
-    </FinancialPageClient>
+          </PageContent>
+        </PageContainer>
+      </FinancialPageClient>
+    </ProtectedRoute>
   );
 };
 
