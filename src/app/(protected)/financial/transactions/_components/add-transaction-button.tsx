@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -115,6 +116,9 @@ export function AddTransactionButton() {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Nova Transação</DialogTitle>
+          <DialogDescription>
+            Adicione uma nova transação financeira ao sistema.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>

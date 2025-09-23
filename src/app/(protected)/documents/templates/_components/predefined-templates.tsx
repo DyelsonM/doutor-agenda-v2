@@ -14,6 +14,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -150,6 +151,9 @@ export function PredefinedTemplates({
             <DialogTitle>
               Criar Documento - {selectedTemplate?.title}
             </DialogTitle>
+            <DialogDescription>
+              Use este template para criar um novo documento médico.
+            </DialogDescription>
           </DialogHeader>
           {selectedTemplate && (
             <UpsertDocumentForm
@@ -173,6 +177,9 @@ export function PredefinedTemplates({
             <DialogTitle>
               Criar Template - {selectedTemplate?.title}
             </DialogTitle>
+            <DialogDescription>
+              Crie um novo template personalizado para documentos médicos.
+            </DialogDescription>
           </DialogHeader>
           {selectedTemplate && (
             <UpsertTemplateForm

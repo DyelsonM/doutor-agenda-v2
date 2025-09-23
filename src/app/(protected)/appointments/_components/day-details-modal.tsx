@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -77,7 +78,11 @@ export function DayDetailsModal({
         doctorId: doctor.id,
         date: selectedDate.format("YYYY-MM-DD"),
       });
-      setAvailableTimes(times);
+      // Garantir que sempre temos um array e extrair apenas os horários disponíveis
+      const availableTimeStrings = Array.isArray(times)
+        ? times.filter((item) => item.available).map((item) => item.value)
+        : [];
+      setAvailableTimes(availableTimeStrings);
     } catch (error) {
       console.error("Erro ao carregar horários:", error);
       setAvailableTimes([]);
@@ -126,6 +131,10 @@ export function DayDetailsModal({
             <Calendar className="h-5 w-5" />
             {selectedDate.format("dddd, DD [de] MMMM [de] YYYY")}
           </DialogTitle>
+          <DialogDescription>
+            Detalhes dos agendamentos e horários disponíveis para {doctor.name}{" "}
+            neste dia.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -115,6 +116,10 @@ export function GenerateReportButton() {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Gerar Relatório Financeiro</DialogTitle>
+          <DialogDescription>
+            Configure os parâmetros para gerar um relatório financeiro
+            personalizado.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
