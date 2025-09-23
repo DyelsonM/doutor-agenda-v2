@@ -137,20 +137,28 @@ const EditAppointmentForm = ({
     enabled: !!selectedDate && !!selectedDoctorId,
   });
 
-  // Atualizar o preço quando o médico for selecionado
+  // Atualizar o preço quando o médico for selecionado (apenas se o preço atual for 0 ou se o médico mudou)
   useEffect(() => {
     if (selectedDoctorId) {
       const selectedDoctor = doctors.find(
         (doctor) => doctor.id === selectedDoctorId,
       );
       if (selectedDoctor) {
-        form.setValue(
-          "appointmentPrice",
-          selectedDoctor.appointmentPriceInCents / 100,
-        );
+        const currentPrice = form.getValues("appointmentPrice");
+        const originalDoctorId = appointment.doctor.id;
+
+        // Só atualiza o preço automaticamente se:
+        // 1. O preço atual for 0, OU
+        // 2. O médico foi alterado (diferente do original)
+        if (currentPrice === 0 || selectedDoctorId !== originalDoctorId) {
+          form.setValue(
+            "appointmentPrice",
+            selectedDoctor.appointmentPriceInCents / 100,
+          );
+        }
       }
     }
-  }, [selectedDoctorId, doctors, form]);
+  }, [selectedDoctorId, doctors, form, appointment.doctor.id]);
 
   useEffect(() => {
     if (isOpen) {
@@ -329,7 +337,6 @@ const EditAppointmentForm = ({
                   thousandSeparator="."
                   prefix="R$ "
                   allowNegative={false}
-                  disabled={!selectedDoctorId}
                   customInput={Input}
                 />
                 <FormMessage />
