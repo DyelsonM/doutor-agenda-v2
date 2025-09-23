@@ -219,11 +219,14 @@ const EditAppointmentForm = ({
   };
 
   const isDateAvailable = (date: Date) => {
-    if (!selectedDoctorId) return false;
+    // Se não há médico selecionado, permitir qualquer data
+    if (!selectedDoctorId) return true;
+
     const selectedDoctor = doctors.find(
       (doctor) => doctor.id === selectedDoctorId,
     );
-    if (!selectedDoctor) return false;
+    if (!selectedDoctor) return true;
+
     const dayOfWeek = date.getDay();
     return (
       dayOfWeek >= selectedDoctor?.availableFromWeekDay &&
@@ -367,7 +370,6 @@ const EditAppointmentForm = ({
                     <FormControl>
                       <Button
                         variant={"outline"}
-                        disabled={!isDateTimeEnabled}
                         className={cn(
                           "w-full justify-start text-left font-normal",
                           !field.value && "text-muted-foreground",
@@ -408,7 +410,7 @@ const EditAppointmentForm = ({
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
-                  disabled={!isDateTimeEnabled || !selectedDate}
+                  disabled={!selectedDate}
                 >
                   <FormControl>
                     <SelectTrigger className="w-full">
