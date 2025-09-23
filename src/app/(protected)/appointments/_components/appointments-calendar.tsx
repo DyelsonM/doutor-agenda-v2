@@ -62,7 +62,7 @@ export function AppointmentsCalendar({
   userRole,
 }: AppointmentsCalendarProps) {
   const [currentDate, setCurrentDate] = useState(dayjs());
-  const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
+  const [selectedDoctor, setSelectedDoctor] = useState<string>("");
   const [availableTimes, setAvailableTimes] = useState<
     Record<string, string[]>
   >({});
@@ -73,10 +73,17 @@ export function AppointmentsCalendar({
   // Filtrar médicos baseado no role do usuário
   const filteredDoctors = userRole === "admin" ? doctors : doctors;
 
+  // Selecionar automaticamente o primeiro médico se nenhum estiver selecionado
+  useEffect(() => {
+    if (!selectedDoctor && filteredDoctors.length > 0) {
+      setSelectedDoctor(filteredDoctors[0].id);
+    }
+  }, [selectedDoctor, filteredDoctors]);
+
   // Carregar horários disponíveis para o médico selecionado
   useEffect(() => {
     const loadAvailableTimes = async () => {
-      if (selectedDoctor === "all") return;
+      if (!selectedDoctor) return;
 
       setLoading(true);
       const times: Record<string, string[]> = {};
@@ -140,8 +147,7 @@ export function AppointmentsCalendar({
         const matchesDate =
           appointmentDate.format("YYYY-MM-DD") ===
           targetDate.format("YYYY-MM-DD");
-        const matchesDoctor =
-          selectedDoctor === "all" || appointment.doctor.id === selectedDoctor;
+        const matchesDoctor = appointment.doctor.id === selectedDoctor;
 
         return matchesDate && matchesDoctor;
       } catch (error) {
@@ -188,7 +194,7 @@ export function AppointmentsCalendar({
   const calendarDays = generateCalendarDays();
 
   const handleDayClick = (day: dayjs.Dayjs) => {
-    if (selectedDoctor !== "all") {
+    if (selectedDoctor) {
       setSelectedDay(day);
       setIsModalOpen(true);
     }
@@ -212,7 +218,6 @@ export function AppointmentsCalendar({
                 <SelectValue placeholder="Selecionar médico" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os médicos</SelectItem>
                 {filteredDoctors.map((doctor) => (
                   <SelectItem key={doctor.id} value={doctor.id}>
                     {doctor.name} - {getSpecialtyLabel(doctor.specialty)}
@@ -280,13 +285,13 @@ export function AppointmentsCalendar({
                   !isCurrentMonth && "text-muted-foreground bg-muted/20",
                   isToday && "bg-primary/10 border-primary",
                   isPast && "opacity-50",
-                  selectedDoctor !== "all" && "hover:shadow-md",
+                  selectedDoctor && "hover:shadow-md",
                 )}
               >
                 <div className="mb-1 font-medium">{day.format("D")}</div>
 
                 {/* Indicador de disponibilidade */}
-                {selectedDoctor !== "all" && (
+                {selectedDoctor && (
                   <div className="space-y-1">
                     {loading ? (
                       <div className="text-muted-foreground text-xs">
@@ -307,29 +312,6 @@ export function AppointmentsCalendar({
                         )}
                       </>
                     )}
-                  </div>
-                )}
-
-                {/* Mostrar médicos disponíveis quando "todos" está selecionado */}
-                {selectedDoctor === "all" && (
-                  <div className="space-y-1">
-                    {availableDoctors.map((doctor) => {
-                      const doctorAppointments = dayAppointments.filter(
-                        (apt) => apt.doctor.id === doctor.id,
-                      );
-                      return (
-                        <div key={doctor.id} className="text-xs">
-                          <div className="truncate font-medium">
-                            {doctor.name}
-                          </div>
-                          {doctorAppointments.length > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              {doctorAppointments.length}
-                            </Badge>
-                          )}
-                        </div>
-                      );
-                    })}
                   </div>
                 )}
 
