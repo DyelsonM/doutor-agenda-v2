@@ -329,11 +329,8 @@ const AddAppointmentForm = ({
                       selected={field.value}
                       onSelect={field.onChange}
                       disabled={(date) => {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        const compareDate = new Date(date);
-                        compareDate.setHours(0, 0, 0, 0);
-                        return compareDate < today || !isDateAvailable(date);
+                        // Removida a validação de datas passadas - permitir agendamentos em qualquer data
+                        return !isDateAvailable(date);
                       }}
                       initialFocus
                     />

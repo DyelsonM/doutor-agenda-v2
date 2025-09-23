@@ -78,17 +78,13 @@ export const getAvailableTimes = actionClient
         timeInMinutes <= doctorToInMinutes
       );
     });
-    // Se for o mesmo dia, filtrar horários que já passaram
-    const isToday = dayjs(parsedInput.date).isSame(dayjs(), "day");
-    const currentTime = dayjs().format("HH:mm:ss");
-
+    // Permitir agendamentos em todos os horários, mesmo os que já passaram
     return doctorTimeSlots.map((time) => {
-      const isTimePassed = isToday && time < currentTime;
       const isBooked = appointmentsOnSelectedDate.includes(time);
 
       return {
         value: time,
-        available: !isBooked && !isTimePassed,
+        available: !isBooked, // Removida a validação de horários passados
         label: time.substring(0, 5),
       };
     });
