@@ -15,6 +15,7 @@ export const upsertPatientSchema = z.object({
   phoneNumber: z.string().trim().min(1, {
     message: "Número de telefone é obrigatório.",
   }),
+  cpf: z.string().optional().or(z.literal("")),
   responsiblePhoneNumber: z.string().optional().or(z.literal("")),
   responsibleName: z.string().optional().or(z.literal("")),
   sex: z.enum(["male", "female"], {

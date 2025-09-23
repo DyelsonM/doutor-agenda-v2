@@ -37,6 +37,21 @@ export const getPatientsTableColumns = (
     },
   },
   {
+    id: "cpf",
+    accessorKey: "cpf",
+    header: "CPF",
+    cell: (params) => {
+      const patient = params.row.original;
+      const cpf = patient.cpf;
+      if (!cpf) return "-";
+      const formatted = cpf.replace(
+        /(\d{3})(\d{3})(\d{3})(\d{2})/,
+        "$1.$2.$3-$4",
+      );
+      return formatted;
+    },
+  },
+  {
     id: "responsiblePhoneNumber",
     accessorKey: "responsiblePhoneNumber",
     header: "Tel. Responsável",

@@ -49,6 +49,7 @@ const formSchema = z.object({
   phoneNumber: z.string().trim().min(1, {
     message: "Número de telefone é obrigatório.",
   }),
+  cpf: z.string().optional().or(z.literal("")),
   responsiblePhoneNumber: z.string().optional().or(z.literal("")),
   responsibleName: z.string().optional().or(z.literal("")),
   sex: z.enum(["male", "female"], {
@@ -78,6 +79,7 @@ const UpsertPatientForm = ({
       name: patient?.name ?? "",
       email: patient?.email ?? "",
       phoneNumber: patient?.phoneNumber ?? "",
+      cpf: patient?.cpf ?? "",
       responsiblePhoneNumber: patient?.responsiblePhoneNumber ?? "",
       responsibleName: patient?.responsibleName ?? "",
       sex: patient?.sex ?? undefined,
@@ -167,6 +169,28 @@ const UpsertPatientForm = ({
                     format="(##) #####-####"
                     mask="_"
                     placeholder="(11) 99999-9999"
+                    value={field.value}
+                    onValueChange={(value) => {
+                      field.onChange(value.value);
+                    }}
+                    customInput={Input}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="cpf"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>CPF (opcional)</FormLabel>
+                <FormControl>
+                  <PatternFormat
+                    format="###.###.###-##"
+                    mask="_"
+                    placeholder="000.000.000-00"
                     value={field.value}
                     onValueChange={(value) => {
                       field.onChange(value.value);

@@ -183,6 +183,13 @@
       "when": 1758572415982,
       "tag": "0025_bent_landau",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1758669406157,
+      "tag": "0026_exotic_prowler",
+      "breakpoints": true
     }
   ]
 }

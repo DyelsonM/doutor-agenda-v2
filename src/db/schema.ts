@@ -193,6 +193,7 @@ export const patientsTable = pgTable("patients", {
   name: text("name").notNull(),
   email: text("email").notNull(),
   phoneNumber: text("phone_number").notNull(),
+  cpf: text("cpf"), // CPF do paciente (opcional)
   responsiblePhoneNumber: text("responsible_phone_number"),
   responsibleName: text("responsible_name"),
   patientType: patientTypeEnum("patient_type").notNull().default("particular"),
