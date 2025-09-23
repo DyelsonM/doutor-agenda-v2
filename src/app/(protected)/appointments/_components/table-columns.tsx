@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 
-import { appointmentsTable } from "@/db/schema";
+import { appointmentsTable, doctorsTable, patientsTable } from "@/db/schema";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -34,6 +34,8 @@ type AppointmentWithRelations = typeof appointmentsTable.$inferSelect & {
 // Função para uso em Client Components
 export const getAppointmentsTableColumns = (
   userRole: "admin" | "doctor",
+  patients: (typeof patientsTable.$inferSelect)[],
+  doctors: (typeof doctorsTable.$inferSelect)[],
 ): ColumnDef<AppointmentWithRelations>[] => {
   const baseColumns: ColumnDef<AppointmentWithRelations>[] = [
     {
@@ -123,6 +125,8 @@ export const getAppointmentsTableColumns = (
         <AppointmentsTableActions
           appointment={appointment}
           userRole={userRole}
+          patients={patients}
+          doctors={doctors}
         />
       );
     },

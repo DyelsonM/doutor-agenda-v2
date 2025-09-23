@@ -1,7 +1,7 @@
 "use client";
 
 import { DataTable } from "@/components/ui/data-table";
-import { appointmentsTable } from "@/db/schema";
+import { appointmentsTable, doctorsTable, patientsTable } from "@/db/schema";
 
 import { getAppointmentsTableColumns } from "./table-columns";
 
@@ -23,16 +23,20 @@ type AppointmentWithRelations = typeof appointmentsTable.$inferSelect & {
 interface AppointmentsTableClientProps {
   appointments: AppointmentWithRelations[];
   userRole: "admin" | "doctor";
+  patients: (typeof patientsTable.$inferSelect)[];
+  doctors: (typeof doctorsTable.$inferSelect)[];
 }
 
 export function AppointmentsTableClient({
   appointments,
   userRole,
+  patients,
+  doctors,
 }: AppointmentsTableClientProps) {
   return (
     <DataTable
       data={appointments}
-      columns={getAppointmentsTableColumns(userRole)}
+      columns={getAppointmentsTableColumns(userRole, patients, doctors)}
       searchKey="patient.name"
       searchPlaceholder="Pesquisar agendamentos por paciente..."
     />

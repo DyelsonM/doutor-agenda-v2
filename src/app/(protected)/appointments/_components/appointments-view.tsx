@@ -35,6 +35,8 @@ export function AppointmentsView({
         <AppointmentsTableClient
           appointments={appointments}
           userRole={userRole}
+          patients={patients}
+          doctors={doctors}
         />
       </TabsContent>
 

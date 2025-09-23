@@ -30,7 +30,7 @@ export function TodayAppointmentsTable({
   return (
     <DataTable
       data={appointments}
-      columns={getAppointmentsTableColumns("admin")}
+      columns={getAppointmentsTableColumns("admin", [], [])}
     />
   );
 }

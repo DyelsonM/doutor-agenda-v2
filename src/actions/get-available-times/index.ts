@@ -21,6 +21,7 @@ export const getAvailableTimes = actionClient
     z.object({
       doctorId: z.string().min(1, "ID do médico é obrigatório"),
       date: z.string().date("Data deve estar no formato YYYY-MM-DD"),
+      excludeAppointmentId: z.string().uuid().optional(),
     }),
   )
   .action(async ({ parsedInput }) => {
@@ -53,6 +54,13 @@ export const getAvailableTimes = actionClient
     });
     const appointmentsOnSelectedDate = appointments
       .filter((appointment) => {
+        // Excluir o agendamento atual se estivermos editando
+        if (
+          parsedInput.excludeAppointmentId &&
+          appointment.id === parsedInput.excludeAppointmentId
+        ) {
+          return false;
+        }
         return dayjs(appointment.date).isSame(parsedInput.date, "day");
       })
       .map((appointment) => dayjs(appointment.date).format("HH:mm:ss"));
