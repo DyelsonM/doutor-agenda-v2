@@ -21,97 +21,108 @@ import { updateAppointmentSchema } from "./schema";
 export const updateAppointment = actionClient
   .schema(updateAppointmentSchema)
   .action(async ({ parsedInput }) => {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-    if (!session?.user) {
-      throw new Error("Unauthorized");
-    }
-    if (!session?.user.clinic?.id) {
-      throw new Error("Clinic not found");
-    }
+    try {
+      console.log("Update appointment input:", parsedInput);
 
-    // Verificar se o agendamento existe e pertence à clínica
-    const existingAppointment = await db.query.appointmentsTable.findFirst({
-      where: eq(appointmentsTable.id, parsedInput.id),
-    });
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
+      if (!session?.user) {
+        throw new Error("Unauthorized");
+      }
+      if (!session?.user.clinic?.id) {
+        throw new Error("Clinic not found");
+      }
 
-    if (!existingAppointment) {
-      throw new Error("Agendamento não encontrado");
-    }
+      // Verificar se o agendamento existe e pertence à clínica
+      const existingAppointment = await db.query.appointmentsTable.findFirst({
+        where: eq(appointmentsTable.id, parsedInput.id),
+      });
 
-    if (existingAppointment.clinicId !== session.user.clinic.id) {
-      throw new Error("Agendamento não pertence à sua clínica");
-    }
+      if (!existingAppointment) {
+        throw new Error("Agendamento não encontrado");
+      }
 
-    // Buscar dados do médico para validação adicional
-    const doctor = await db.query.doctorsTable.findFirst({
-      where: eq(doctorsTable.id, parsedInput.doctorId),
-    });
-    if (!doctor) {
-      throw new Error("Médico não encontrado");
-    }
+      if (existingAppointment.clinicId !== session.user.clinic.id) {
+        throw new Error("Agendamento não pertence à sua clínica");
+      }
 
-    // Validação adicional: verificar se o horário está dentro da disponibilidade do médico
-    const appointmentHour = parseInt(parsedInput.time.split(":")[0]);
-    const appointmentMinute = parseInt(parsedInput.time.split(":")[1]);
-    const appointmentTimeInMinutes = appointmentHour * 60 + appointmentMinute;
+      // Buscar dados do médico para validação adicional
+      const doctor = await db.query.doctorsTable.findFirst({
+        where: eq(doctorsTable.id, parsedInput.doctorId),
+      });
+      if (!doctor) {
+        throw new Error("Médico não encontrado");
+      }
 
-    const doctorFromHour = Number(doctor.availableFromTime.split(":")[0]);
-    const doctorFromMinute = Number(doctor.availableFromTime.split(":")[1]);
-    const doctorToHour = Number(doctor.availableToTime.split(":")[0]);
-    const doctorToMinute = Number(doctor.availableToTime.split(":")[1]);
+      // Validação adicional: verificar se o horário está dentro da disponibilidade do médico
+      const timeParts = parsedInput.time.split(":");
+      const appointmentHour = parseInt(timeParts[0]);
+      const appointmentMinute = parseInt(timeParts[1]);
+      const appointmentTimeInMinutes = appointmentHour * 60 + appointmentMinute;
 
-    const doctorFromInMinutes = doctorFromHour * 60 + doctorFromMinute;
-    const doctorToInMinutes = doctorToHour * 60 + doctorToMinute;
+      const doctorFromHour = Number(doctor.availableFromTime.split(":")[0]);
+      const doctorFromMinute = Number(doctor.availableFromTime.split(":")[1]);
+      const doctorToHour = Number(doctor.availableToTime.split(":")[0]);
+      const doctorToMinute = Number(doctor.availableToTime.split(":")[1]);
 
-    if (
-      appointmentTimeInMinutes < doctorFromInMinutes ||
-      appointmentTimeInMinutes > doctorToInMinutes
-    ) {
-      throw new Error(
-        `Horário fora da disponibilidade do médico (${doctor.availableFromTime} às ${doctor.availableToTime})`,
-      );
-    }
+      const doctorFromInMinutes = doctorFromHour * 60 + doctorFromMinute;
+      const doctorToInMinutes = doctorToHour * 60 + doctorToMinute;
 
-    // Validar horário disponível (excluindo o próprio agendamento)
-    const availableTimes = await getAvailableTimes({
-      doctorId: parsedInput.doctorId,
-      date: dayjs(parsedInput.date).format("YYYY-MM-DD"),
-      excludeAppointmentId: parsedInput.id,
-    });
-    if (!availableTimes?.data) {
-      throw new Error("No available times");
-    }
-    const isTimeAvailable = availableTimes.data?.some(
-      (time) => time.value === parsedInput.time && time.available,
-    );
-    if (!isTimeAvailable) {
-      throw new Error("Time not available");
-    }
+      if (
+        appointmentTimeInMinutes < doctorFromInMinutes ||
+        appointmentTimeInMinutes > doctorToInMinutes
+      ) {
+        throw new Error(
+          `Horário fora da disponibilidade do médico (${doctor.availableFromTime} às ${doctor.availableToTime})`,
+        );
+      }
 
-    // Criar data/hora do agendamento corretamente
-    const appointmentDateTime = dayjs(parsedInput.date)
-      .hour(parseInt(parsedInput.time.split(":")[0]))
-      .minute(parseInt(parsedInput.time.split(":")[1]))
-      .second(0)
-      .millisecond(0)
-      .tz("America/Sao_Paulo", true) // true = manter o horário local, apenas mudar timezone
-      .utc() // Converter para UTC para armazenar no banco
-      .toDate();
-
-    await db
-      .update(appointmentsTable)
-      .set({
-        patientId: parsedInput.patientId,
+      // Validar horário disponível (excluindo o próprio agendamento)
+      const availableTimes = await getAvailableTimes({
         doctorId: parsedInput.doctorId,
-        appointmentPriceInCents: parsedInput.appointmentPriceInCents,
-        modality: parsedInput.modality,
-        date: appointmentDateTime,
-        updatedAt: new Date(),
-      })
-      .where(eq(appointmentsTable.id, parsedInput.id));
+        date: dayjs(parsedInput.date).format("YYYY-MM-DD"),
+        excludeAppointmentId: parsedInput.id,
+      });
+      if (!availableTimes?.data) {
+        throw new Error("No available times");
+      }
+      const isTimeAvailable = availableTimes.data?.some((time) => {
+        // Comparar apenas horas e minutos, ignorando segundos
+        const timeValue = time.value.substring(0, 5); // "HH:mm"
+        const inputTime = parsedInput.time.substring(0, 5); // "HH:mm"
+        return timeValue === inputTime && time.available;
+      });
+      if (!isTimeAvailable) {
+        throw new Error("Time not available");
+      }
 
-    revalidatePath("/appointments");
-    revalidatePath("/dashboard");
+      // Criar data/hora do agendamento corretamente
+      const appointmentDateTime = dayjs(parsedInput.date)
+        .hour(parseInt(timeParts[0]))
+        .minute(parseInt(timeParts[1]))
+        .second(0)
+        .millisecond(0)
+        .tz("America/Sao_Paulo", true) // true = manter o horário local, apenas mudar timezone
+        .utc() // Converter para UTC para armazenar no banco
+        .toDate();
+
+      await db
+        .update(appointmentsTable)
+        .set({
+          patientId: parsedInput.patientId,
+          doctorId: parsedInput.doctorId,
+          appointmentPriceInCents: parsedInput.appointmentPriceInCents,
+          modality: parsedInput.modality,
+          date: appointmentDateTime,
+          updatedAt: new Date(),
+        })
+        .where(eq(appointmentsTable.id, parsedInput.id));
+
+      revalidatePath("/appointments");
+      revalidatePath("/dashboard");
+    } catch (error) {
+      console.error("Error updating appointment:", error);
+      throw error;
+    }
   });

@@ -112,8 +112,11 @@ const EditAppointmentForm = ({
       doctorId: appointment.doctor.id,
       appointmentPrice: appointment.appointmentPriceInCents / 100,
       modality: appointment.modality || "",
-      date: dayjs(appointment.date).toDate(),
-      time: dayjs(appointment.date).format("HH:mm"),
+      date: dayjs(appointment.date).utc().tz("America/Sao_Paulo").toDate(),
+      time: dayjs(appointment.date)
+        .utc()
+        .tz("America/Sao_Paulo")
+        .format("HH:mm"),
     },
   });
 
@@ -167,8 +170,11 @@ const EditAppointmentForm = ({
         doctorId: appointment.doctor.id,
         appointmentPrice: appointment.appointmentPriceInCents / 100,
         modality: appointment.modality || "",
-        date: dayjs(appointment.date).toDate(),
-        time: dayjs(appointment.date).format("HH:mm"),
+        date: dayjs(appointment.date).utc().tz("America/Sao_Paulo").toDate(),
+        time: dayjs(appointment.date)
+          .utc()
+          .tz("America/Sao_Paulo")
+          .format("HH:mm"),
       });
     }
   }, [isOpen, form, appointment]);
@@ -176,7 +182,10 @@ const EditAppointmentForm = ({
   // Manter o horário original selecionado quando o modal abrir
   useEffect(() => {
     if (isOpen && availableTimes?.data) {
-      const originalTime = dayjs(appointment.date).format("HH:mm");
+      const originalTime = dayjs(appointment.date)
+        .utc()
+        .tz("America/Sao_Paulo")
+        .format("HH:mm");
       const timeExists = availableTimes.data.some(
         (time) => time.value === originalTime,
       );
@@ -199,6 +208,9 @@ const EditAppointmentForm = ({
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    console.log("Form values:", values);
+    console.log("Appointment ID:", appointment.id);
+
     updateAppointmentAction.execute({
       id: appointment.id,
       ...values,
