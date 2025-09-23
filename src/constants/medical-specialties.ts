@@ -77,7 +77,10 @@ export const APPOINTMENT_MODALITIES = {
   FISIOTERAPIA: {
     category: "Fisioterapia",
     modalities: [
-      { code: "fisio_clinica_domiciliar", name: "Fisio Clínica e Domiciliar" },
+      {
+        code: "fisio_clinica_domiciliar",
+        name: "Fisioterapia Clínica e Domiciliar",
+      },
       { code: "acupuntura", name: "Acupuntura" },
       { code: "rpg", name: "RPG" },
       { code: "pilates", name: "Pilates" },
