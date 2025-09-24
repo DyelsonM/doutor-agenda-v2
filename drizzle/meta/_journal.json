@@ -190,6 +190,34 @@
       "when": 1758669406157,
       "tag": "0026_exotic_prowler",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1758670913801,
+      "tag": "0027_demonic_captain_stacy",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1758673281498,
+      "tag": "0028_tearful_big_bertha",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1758676382055,
+      "tag": "0029_lazy_ozymandias",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1758679562284,
+      "tag": "0030_daffy_ozymandias",
+      "breakpoints": true
     }
   ]
 }
