@@ -33,6 +33,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
   PopoverContent,
@@ -73,6 +74,7 @@ const formSchema = z.object({
   time: z.string().min(1, {
     message: "Horário é obrigatório.",
   }),
+  isReturn: z.boolean().default(false),
 });
 
 interface AddAppointmentFormProps {
@@ -98,6 +100,7 @@ const AddAppointmentForm = ({
       modality: "",
       date: undefined,
       time: "",
+      isReturn: false,
     },
   });
 
@@ -138,6 +141,7 @@ const AddAppointmentForm = ({
         appointmentPrice: 0,
         date: undefined,
         time: "",
+        isReturn: false,
       });
     }
   }, [isOpen, form]);
@@ -269,6 +273,24 @@ const AddAppointmentForm = ({
                   </SelectContent>
                 </Select>
                 <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="isReturn"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-y-0 space-x-3">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>É uma volta do paciente</FormLabel>
+                </div>
               </FormItem>
             )}
           />

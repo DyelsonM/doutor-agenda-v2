@@ -36,6 +36,7 @@ interface Doctor {
 interface Appointment {
   id: string;
   date: string;
+  isReturn: boolean;
   patient: {
     name: string;
   };
@@ -255,6 +256,11 @@ export function DayDetailsModal({
                         </div>
                         <div className="text-muted-foreground text-sm">
                           {appointment.patient.name}
+                          {Boolean(appointment.isReturn) && (
+                            <span className="text-primary ml-2 font-medium">
+                              (Retorno)
+                            </span>
+                          )}
                         </div>
                       </div>
                       <Badge variant="secondary">Confirmado</Badge>

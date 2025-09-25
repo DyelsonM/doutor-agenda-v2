@@ -137,6 +137,7 @@ export const clinicsTableRelations = relations(clinicsTable, ({ many }) => ({
   financialReports: many(financialReportsTable),
   payables: many(payablesTable),
   notifications: many(notificationsTable),
+  goldClients: many(goldClientsTable),
 }));
 
 export const doctorsTable = pgTable("doctors", {
@@ -222,6 +223,7 @@ export const appointmentsTable = pgTable("appointments", {
   date: timestamp("date").notNull(),
   appointmentPriceInCents: integer("appointment_price_in_cents").notNull(),
   modality: text("modality"), // Modalidade do serviço (opcional para compatibilidade)
+  isReturn: boolean("is_return").default(false).notNull(), // Indica se é uma volta do paciente
   clinicId: uuid("clinic_id")
     .notNull()
     .references(() => clinicsTable.id, { onDelete: "cascade" }),
@@ -534,6 +536,60 @@ export const notificationsTableRelations = relations(
     clinic: one(clinicsTable, {
       fields: [notificationsTable.clinicId],
       references: [clinicsTable.id],
+    }),
+  }),
+);
+
+// Tabelas para Cliente Ouro
+export const goldClientsTable = pgTable("gold_clients", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clinicId: uuid("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  // Dados do titular
+  holderName: text("holder_name").notNull(),
+  holderCpf: text("holder_cpf").notNull(),
+  holderPhone: text("holder_phone").notNull(),
+  holderBirthDate: timestamp("holder_birth_date").notNull(),
+  holderAddress: text("holder_address").notNull(),
+  holderZipCode: text("holder_zip_code").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const goldClientDependentsTable = pgTable("gold_client_dependents", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  goldClientId: uuid("gold_client_id")
+    .notNull()
+    .references(() => goldClientsTable.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  phone: text("phone").notNull(),
+  birthDate: timestamp("birth_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const goldClientsTableRelations = relations(
+  goldClientsTable,
+  ({ one, many }) => ({
+    clinic: one(clinicsTable, {
+      fields: [goldClientsTable.clinicId],
+      references: [clinicsTable.id],
+    }),
+    dependents: many(goldClientDependentsTable),
+  }),
+);
+
+export const goldClientDependentsTableRelations = relations(
+  goldClientDependentsTable,
+  ({ one }) => ({
+    goldClient: one(goldClientsTable, {
+      fields: [goldClientDependentsTable.goldClientId],
+      references: [goldClientsTable.id],
     }),
   }),
 );

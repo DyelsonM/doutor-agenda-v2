@@ -10,6 +10,7 @@ import {
   Stethoscope,
   User,
   UsersRound,
+  Crown,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -57,6 +58,11 @@ const adminItems = [
     title: "Pacientes",
     url: "/patients",
     icon: UsersRound,
+  },
+  {
+    title: "Cliente Ouro",
+    url: "/gold-clients",
+    icon: Crown,
   },
   {
     title: "Documentos",

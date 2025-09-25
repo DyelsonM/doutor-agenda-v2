@@ -22,4 +22,5 @@ export const updateAppointmentSchema = z.object({
   modality: z.string().min(1, {
     message: "Modalidade é obrigatória.",
   }),
+  isReturn: z.boolean().default(false),
 });

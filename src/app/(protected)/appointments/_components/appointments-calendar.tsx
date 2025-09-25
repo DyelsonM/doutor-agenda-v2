@@ -41,6 +41,7 @@ interface Doctor {
 interface Appointment {
   id: string;
   date: string;
+  isReturn: boolean;
   patient: {
     name: string;
   };
@@ -322,13 +323,18 @@ export function AppointmentsCalendar({
                       <div
                         key={appointment.id}
                         className="bg-primary/10 truncate rounded p-1 text-xs"
-                        title={`${dayjs(appointment.date).utc().tz("America/Sao_Paulo").format("HH:mm")} - ${appointment.patient.name}`}
+                        title={`${dayjs(appointment.date).utc().tz("America/Sao_Paulo").format("HH:mm")} - ${appointment.patient.name} ${Boolean(appointment.isReturn) ? "(Retorno)" : ""}`}
                       >
                         {dayjs(appointment.date)
                           .utc()
                           .tz("America/Sao_Paulo")
                           .format("HH:mm")}{" "}
                         - {appointment.patient.name}
+                        {Boolean(appointment.isReturn) && (
+                          <span className="text-primary ml-1 font-medium">
+                            (R)
+                          </span>
+                        )}
                       </div>
                     ))}
                     {dayAppointments.length > 2 && (

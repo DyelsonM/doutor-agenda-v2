@@ -100,6 +100,7 @@ export const addAppointment = actionClient
         doctorId: parsedInput.doctorId,
         appointmentPriceInCents: parsedInput.appointmentPriceInCents,
         modality: parsedInput.modality,
+        isReturn: parsedInput.isReturn,
         clinicId: session?.user.clinic?.id,
         date: appointmentDateTime,
       })

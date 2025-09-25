@@ -97,6 +97,21 @@ export const getAppointmentsTableColumns = (
           : "-";
       },
     },
+    {
+      id: "isReturn",
+      accessorKey: "isReturn",
+      header: "Tipo",
+      cell: (params) => {
+        const appointment = params.row.original;
+        // Garantir que o valor seja boolean, considerando null/undefined como false
+        const isReturn = Boolean(appointment.isReturn);
+        return isReturn ? (
+          <span className="font-medium text-blue-600">Retorno</span>
+        ) : (
+          ""
+        );
+      },
+    },
   ];
 
   // Adicionar coluna de preço apenas para administradores

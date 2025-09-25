@@ -114,6 +114,7 @@ export const updateAppointment = actionClient
           doctorId: parsedInput.doctorId,
           appointmentPriceInCents: parsedInput.appointmentPriceInCents,
           modality: parsedInput.modality,
+          isReturn: parsedInput.isReturn,
           date: appointmentDateTime,
           updatedAt: new Date(),
         })
