@@ -138,6 +138,7 @@ export const clinicsTableRelations = relations(clinicsTable, ({ many }) => ({
   payables: many(payablesTable),
   notifications: many(notificationsTable),
   goldClients: many(goldClientsTable),
+  medicalSpecialties: many(medicalSpecialtiesTable),
 }));
 
 export const doctorsTable = pgTable("doctors", {
@@ -591,6 +592,34 @@ export const goldClientDependentsTableRelations = relations(
       fields: [goldClientDependentsTable.goldClientId],
       references: [goldClientsTable.id],
     }),
+  }),
+);
+
+// Tabela de especialidades médicas
+export const medicalSpecialtiesTable = pgTable("medical_specialties", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clinicId: uuid("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  code: text("code").notNull(), // Código único da especialidade (ex: "cardiologista")
+  name: text("name").notNull(), // Nome da especialidade (ex: "Cardiologista")
+  category: text("category").notNull(), // Categoria (ex: "Medicina", "Terapeutas")
+  description: text("description"), // Descrição opcional
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const medicalSpecialtiesTableRelations = relations(
+  medicalSpecialtiesTable,
+  ({ one, many }) => ({
+    clinic: one(clinicsTable, {
+      fields: [medicalSpecialtiesTable.clinicId],
+      references: [clinicsTable.id],
+    }),
+    doctors: many(doctorsTable),
   }),
 );
 

@@ -65,6 +65,11 @@ const adminItems = [
     icon: Crown,
   },
   {
+    title: "Especialidades",
+    url: "/medical-specialties",
+    icon: Stethoscope,
+  },
+  {
     title: "Documentos",
     url: "/documents",
     icon: FileText,

@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -7,6 +8,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { upsertDoctor } from "@/actions/upsert-doctor";
+import { getMedicalSpecialtiesByCategory } from "@/actions/get-medical-specialties-by-category";
 import { Button } from "@/components/ui/button";
 import {
   DialogContent,
@@ -35,7 +37,7 @@ import {
 } from "@/components/ui/select";
 import { doctorsTable } from "@/db/schema";
 
-import { medicalSpecialtiesByCategory } from "../_constants";
+// Removido: import { medicalSpecialtiesByCategory } from "../_constants";
 
 const formSchema = z
   .object({
@@ -79,6 +81,12 @@ const UpsertDoctorForm = ({
   onSuccess,
   isOpen,
 }: UpsertDoctorFormProps) => {
+  // Buscar especialidades dinâmicas
+  const { data: medicalSpecialtiesByCategory } = useQuery({
+    queryKey: ["medical-specialties-by-category"],
+    queryFn: () => getMedicalSpecialtiesByCategory(),
+  });
+
   const form = useForm<z.infer<typeof formSchema>>({
     shouldUnregister: true,
     resolver: zodResolver(formSchema),
@@ -172,7 +180,7 @@ const UpsertDoctorForm = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {medicalSpecialtiesByCategory.map((category) => (
+                    {medicalSpecialtiesByCategory?.data?.map((category) => (
                       <SelectGroup key={category.categoryKey}>
                         <SelectLabel>{category.categoryName}</SelectLabel>
                         {category.specialties.map((specialty) => (
@@ -184,7 +192,12 @@ const UpsertDoctorForm = ({
                           </SelectItem>
                         ))}
                       </SelectGroup>
-                    ))}
+                    )) || (
+                      <div className="text-muted-foreground p-2 text-sm">
+                        Nenhuma especialidade cadastrada. Adicione
+                        especialidades em "Especialidades".
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />
