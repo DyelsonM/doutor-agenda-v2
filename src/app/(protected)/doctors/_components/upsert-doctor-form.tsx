@@ -92,7 +92,7 @@ const UpsertDoctorForm = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: doctor?.name ?? "",
-      specialty: doctor?.specialty ?? "",
+      specialty: doctor?.specialty || undefined,
       appointmentPrice: doctor?.appointmentPriceInCents
         ? doctor.appointmentPriceInCents / 100
         : 0,
@@ -107,7 +107,7 @@ const UpsertDoctorForm = ({
     if (isOpen) {
       form.reset({
         name: doctor?.name ?? "",
-        specialty: doctor?.specialty ?? "",
+        specialty: doctor?.specialty || undefined,
         appointmentPrice: doctor?.appointmentPriceInCents
           ? doctor.appointmentPriceInCents / 100
           : 0,
@@ -170,10 +170,7 @@ const UpsertDoctorForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Especialidade</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecione uma especialidade" />
