@@ -11,6 +11,7 @@ import {
   User,
   UsersRound,
   Crown,
+  Handshake,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -55,6 +56,11 @@ const adminItems = [
     icon: Stethoscope,
   },
   {
+    title: "Especialidades",
+    url: "/medical-specialties",
+    icon: Stethoscope,
+  },
+  {
     title: "Pacientes",
     url: "/patients",
     icon: UsersRound,
@@ -65,9 +71,9 @@ const adminItems = [
     icon: Crown,
   },
   {
-    title: "Especialidades",
-    url: "/medical-specialties",
-    icon: Stethoscope,
+    title: "Parceiros",
+    url: "/partners",
+    icon: Handshake,
   },
   {
     title: "Documentos",

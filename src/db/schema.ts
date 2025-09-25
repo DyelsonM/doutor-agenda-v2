@@ -139,6 +139,7 @@ export const clinicsTableRelations = relations(clinicsTable, ({ many }) => ({
   notifications: many(notificationsTable),
   goldClients: many(goldClientsTable),
   medicalSpecialties: many(medicalSpecialtiesTable),
+  partners: many(partnersTable),
 }));
 
 export const doctorsTable = pgTable("doctors", {
@@ -614,12 +615,92 @@ export const medicalSpecialtiesTable = pgTable("medical_specialties", {
 
 export const medicalSpecialtiesTableRelations = relations(
   medicalSpecialtiesTable,
-  ({ one, many }) => ({
+  ({ one }) => ({
     clinic: one(clinicsTable, {
       fields: [medicalSpecialtiesTable.clinicId],
       references: [clinicsTable.id],
     }),
-    doctors: many(doctorsTable),
+  }),
+);
+
+// Enums para parceiros
+export const paymentFrequencyEnum = pgEnum("payment_frequency", [
+  "weekly",
+  "biweekly",
+  "monthly",
+  "quarterly",
+]);
+
+export const pixTypeEnum = pgEnum("pix_type", [
+  "cpf",
+  "cnpj",
+  "email",
+  "phone",
+  "random_key",
+]);
+
+// Tabela de parceiros
+export const partnersTable = pgTable("partners", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clinicId: uuid("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  // Dados da empresa
+  companyName: text("company_name").notNull(), // Razão Social
+  tradeName: text("trade_name"), // Nome Fantasia
+  cnpj: text("cnpj").notNull(),
+  address: text("address").notNull(),
+  // Dados do responsável
+  responsibleName: text("responsible_name").notNull(),
+  responsiblePhone: text("responsible_phone").notNull(),
+  // Telefones de recepção para agendamento (3 espaços)
+  receptionPhone1: text("reception_phone_1"),
+  receptionPhone2: text("reception_phone_2"),
+  receptionPhone3: text("reception_phone_3"),
+  // Configurações de pagamento
+  paymentFrequency: paymentFrequencyEnum("payment_frequency").notNull(),
+  pixKey: text("pix_key").notNull(),
+  pixType: pixTypeEnum("pix_type").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+// Tabela de exames dos parceiros
+export const partnerExamsTable = pgTable("partner_exams", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  partnerId: uuid("partner_id")
+    .notNull()
+    .references(() => partnersTable.id, { onDelete: "cascade" }),
+  code: text("code").notNull(), // Código ou sigla do exame
+  name: text("name").notNull(), // Nome do exame
+  popularPriceInCents: integer("popular_price_in_cents"), // Valor CL Popular
+  particularPriceInCents: integer("particular_price_in_cents"), // Valor Particular
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const partnerExamsTableRelations = relations(
+  partnerExamsTable,
+  ({ one }) => ({
+    partner: one(partnersTable, {
+      fields: [partnerExamsTable.partnerId],
+      references: [partnersTable.id],
+    }),
+  }),
+);
+
+export const partnersTableRelations = relations(
+  partnersTable,
+  ({ one, many }) => ({
+    clinic: one(clinicsTable, {
+      fields: [partnersTable.clinicId],
+      references: [clinicsTable.id],
+    }),
+    exams: many(partnerExamsTable),
   }),
 );
 

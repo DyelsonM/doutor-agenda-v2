@@ -246,6 +246,20 @@
       "when": 1758830289812,
       "tag": "0034_real_epoch",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1758835868344,
+      "tag": "0035_acoustic_lightspeed",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1758836973168,
+      "tag": "0036_wealthy_mentallo",
+      "breakpoints": true
     }
   ]
 }
