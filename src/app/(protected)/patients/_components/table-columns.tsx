@@ -92,7 +92,7 @@ export const getPatientsTableColumns = (
       const patient = params.row.original;
       const typeLabels = {
         particular: "Particular",
-        cliente_oro: "Cliente Oro",
+        "cliente ouro": "Cliente Ouro",
         convenio: patient.insuranceName || "Convênio",
       };
       return typeLabels[patient.patientType] || "Particular";

@@ -181,7 +181,7 @@ export const doctorsTableRelations = relations(
 export const patientSexEnum = pgEnum("patient_sex", ["male", "female"]);
 export const patientTypeEnum = pgEnum("patient_type", [
   "particular",
-  "cliente_oro",
+  "cliente ouro",
   "convenio",
 ]);
 

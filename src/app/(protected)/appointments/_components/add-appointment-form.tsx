@@ -47,6 +47,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TimeSelect, TimeSelectItem } from "@/components/ui/time-select";
 import { doctorsTable, patientsTable } from "@/db/schema";
 import { cn } from "@/lib/utils";
 
@@ -347,28 +348,24 @@ const AddAppointmentForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Horário</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  disabled={!isDateTimeEnabled || !selectedDate}
-                >
-                  <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecione um horário" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
+                <FormControl>
+                  <TimeSelect
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    placeholder="Selecione um horário"
+                    disabled={!isDateTimeEnabled || !selectedDate}
+                  >
                     {availableTimes?.data?.map((time) => (
-                      <SelectItem
+                      <TimeSelectItem
                         key={time.value}
                         value={time.value}
                         disabled={!time.available}
                       >
                         {time.label} {!time.available && "(Indisponível)"}
-                      </SelectItem>
+                      </TimeSelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </TimeSelect>
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

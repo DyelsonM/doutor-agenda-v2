@@ -55,7 +55,7 @@ const formSchema = z.object({
   sex: z.enum(["male", "female"], {
     required_error: "Sexo é obrigatório.",
   }),
-  patientType: z.enum(["particular", "cliente_oro", "convenio"], {
+  patientType: z.enum(["particular", "cliente ouro", "convenio"], {
     required_error: "Tipo de paciente é obrigatório.",
   }),
   insuranceName: z.string().optional().or(z.literal("")),
@@ -281,7 +281,7 @@ const UpsertPatientForm = ({
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="particular">Particular</SelectItem>
-                    <SelectItem value="cliente_oro">Cliente Oro</SelectItem>
+                    <SelectItem value="cliente ouro">Cliente Ouro</SelectItem>
                     <SelectItem value="convenio">Convênio</SelectItem>
                   </SelectContent>
                 </Select>

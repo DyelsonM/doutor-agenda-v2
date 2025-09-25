@@ -21,7 +21,7 @@ export const upsertPatientSchema = z.object({
   sex: z.enum(["male", "female"], {
     required_error: "Sexo é obrigatório.",
   }),
-  patientType: z.enum(["particular", "cliente_oro", "convenio"], {
+  patientType: z.enum(["particular", "cliente ouro", "convenio"], {
     required_error: "Tipo de paciente é obrigatório.",
   }),
   insuranceName: z.string().optional().or(z.literal("")),
