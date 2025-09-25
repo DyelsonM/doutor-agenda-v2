@@ -55,9 +55,12 @@ const formSchema = z.object({
   sex: z.enum(["male", "female"], {
     required_error: "Sexo é obrigatório.",
   }),
-  patientType: z.enum(["particular", "cliente ouro", "convenio"], {
-    required_error: "Tipo de paciente é obrigatório.",
-  }),
+  patientType: z.enum(
+    ["particular", "cliente ouro", "convenio", "odontologico"],
+    {
+      required_error: "Tipo de paciente é obrigatório.",
+    },
+  ),
   insuranceName: z.string().optional().or(z.literal("")),
 });
 
@@ -90,7 +93,17 @@ const UpsertPatientForm = ({
 
   useEffect(() => {
     if (isOpen) {
-      form.reset(patient);
+      form.reset({
+        name: patient?.name ?? "",
+        email: patient?.email ?? "",
+        phoneNumber: patient?.phoneNumber ?? "",
+        cpf: patient?.cpf ?? "",
+        responsiblePhoneNumber: patient?.responsiblePhoneNumber ?? "",
+        responsibleName: patient?.responsibleName ?? "",
+        sex: patient?.sex ?? undefined,
+        patientType: patient?.patientType ?? "particular",
+        insuranceName: patient?.insuranceName ?? "",
+      });
     }
   }, [isOpen, form, patient]);
 
@@ -283,6 +296,7 @@ const UpsertPatientForm = ({
                     <SelectItem value="particular">Particular</SelectItem>
                     <SelectItem value="cliente ouro">Cliente Ouro</SelectItem>
                     <SelectItem value="convenio">Convênio</SelectItem>
+                    <SelectItem value="odontologico">Odontológico</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

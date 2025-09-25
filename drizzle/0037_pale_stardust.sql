@@ -1,0 +1,1 @@
+ALTER TYPE "public"."patient_type" ADD VALUE 'odontologico';

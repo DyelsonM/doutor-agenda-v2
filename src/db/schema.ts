@@ -186,6 +186,7 @@ export const patientTypeEnum = pgEnum("patient_type", [
   "particular",
   "cliente ouro",
   "convenio",
+  "odontologico",
 ]);
 
 export const patientsTable = pgTable("patients", {

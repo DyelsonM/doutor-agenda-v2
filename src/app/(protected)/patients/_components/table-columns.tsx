@@ -94,6 +94,7 @@ export const getPatientsTableColumns = (
         particular: "Particular",
         "cliente ouro": "Cliente Ouro",
         convenio: patient.insuranceName || "Convênio",
+        odontologico: "Odontológico",
       };
       return typeLabels[patient.patientType] || "Particular";
     },

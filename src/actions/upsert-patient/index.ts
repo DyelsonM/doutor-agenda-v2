@@ -23,7 +23,7 @@ export const upsertPatient = actionClient
       throw new Error("Clinic not found");
     }
 
-    await db
+    const [patient] = await db
       .insert(patientsTable)
       .values({
         ...parsedInput,
@@ -35,6 +35,9 @@ export const upsertPatient = actionClient
         set: {
           ...parsedInput,
         },
-      });
+      })
+      .returning();
+
     revalidatePath("/patients");
+    return patient;
   });

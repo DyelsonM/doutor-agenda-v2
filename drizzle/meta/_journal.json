@@ -260,6 +260,13 @@
       "when": 1758836973168,
       "tag": "0036_wealthy_mentallo",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1758839845405,
+      "tag": "0037_pale_stardust",
+      "breakpoints": true
     }
   ]
 }
