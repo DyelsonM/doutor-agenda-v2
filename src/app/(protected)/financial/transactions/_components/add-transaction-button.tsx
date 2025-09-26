@@ -51,6 +51,7 @@ const addTransactionSchema = z.object({
       "supplies",
       "marketing",
       "staff",
+      "colaborador",
       "insurance",
       "software",
       "laboratory",
@@ -244,6 +245,7 @@ export function AddTransactionButton() {
                       <SelectItem value="supplies">Suprimentos</SelectItem>
                       <SelectItem value="marketing">Marketing</SelectItem>
                       <SelectItem value="staff">Funcionários</SelectItem>
+                      <SelectItem value="colaborador">Colaborador</SelectItem>
                       <SelectItem value="insurance">Seguro</SelectItem>
                       <SelectItem value="software">Software</SelectItem>
                       <SelectItem value="laboratory">Laboratório</SelectItem>

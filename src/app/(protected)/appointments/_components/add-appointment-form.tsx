@@ -53,7 +53,7 @@ import { doctorsTable, patientsTable } from "@/db/schema";
 import { cn } from "@/lib/utils";
 
 import { getSpecialtyLabel } from "../../doctors/_constants";
-import { appointmentModalitiesByCategory } from "../_constants/modalities";
+import { getAppointmentModalitiesByCategory } from "@/actions/get-appointment-modalities-by-category";
 
 const formSchema = z.object({
   patientId: z.string().min(1, {
@@ -116,6 +116,11 @@ const AddAppointmentForm = ({
         doctorId: selectedDoctorId,
       }),
     enabled: !!selectedDate && !!selectedDoctorId,
+  });
+
+  const { data: appointmentModalitiesByCategory } = useQuery({
+    queryKey: ["appointment-modalities-by-category"],
+    queryFn: getAppointmentModalitiesByCategory,
   });
 
   // Atualizar o preço quando o médico for selecionado
@@ -260,7 +265,7 @@ const AddAppointmentForm = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {appointmentModalitiesByCategory.map((category) => (
+                    {appointmentModalitiesByCategory?.map((category) => (
                       <SelectGroup key={category.categoryKey}>
                         <SelectLabel>{category.categoryName}</SelectLabel>
                         {category.modalities.map((modality) => (

@@ -284,6 +284,7 @@ export const expenseCategoryEnum = pgEnum("expense_category", [
   "supplies",
   "marketing",
   "staff",
+  "colaborador",
   "insurance",
   "software",
   "laboratory",
@@ -451,6 +452,7 @@ export const payableCategoryEnum = pgEnum("payable_category", [
   "supplies",
   "marketing",
   "staff",
+  "colaborador",
   "insurance",
   "software",
   "laboratory",
@@ -593,6 +595,33 @@ export const goldClientDependentsTableRelations = relations(
     goldClient: one(goldClientsTable, {
       fields: [goldClientDependentsTable.goldClientId],
       references: [goldClientsTable.id],
+    }),
+  }),
+);
+
+// Tabela de modalidades de agendamento
+export const appointmentModalitiesTable = pgTable("appointment_modalities", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clinicId: uuid("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  code: text("code").notNull(), // Código único da modalidade (ex: "consulta_clinico_geral")
+  name: text("name").notNull(), // Nome da modalidade (ex: "Consulta Clínico Geral")
+  category: text("category").notNull(), // Categoria (ex: "Consultas Especializadas", "Fisioterapia")
+  description: text("description"), // Descrição opcional
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const appointmentModalitiesTableRelations = relations(
+  appointmentModalitiesTable,
+  ({ one }) => ({
+    clinic: one(clinicsTable, {
+      fields: [appointmentModalitiesTable.clinicId],
+      references: [clinicsTable.id],
     }),
   }),
 );

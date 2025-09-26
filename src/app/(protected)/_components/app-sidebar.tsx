@@ -61,6 +61,11 @@ const adminItems = [
     icon: Stethoscope,
   },
   {
+    title: "Modalidades",
+    url: "/appointment-modalities",
+    icon: CalendarDays,
+  },
+  {
     title: "Pacientes",
     url: "/patients",
     icon: UsersRound,

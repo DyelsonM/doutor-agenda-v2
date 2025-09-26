@@ -27,6 +27,7 @@ const categoryOptions = [
   { value: "supplies", label: "Suprimentos" },
   { value: "marketing", label: "Marketing" },
   { value: "staff", label: "Funcionários" },
+  { value: "colaborador", label: "Colaborador" },
   { value: "insurance", label: "Seguros" },
   { value: "software", label: "Software" },
   { value: "laboratory", label: "Laboratório" },

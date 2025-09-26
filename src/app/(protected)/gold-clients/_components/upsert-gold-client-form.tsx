@@ -29,38 +29,20 @@ import { goldClientsTable, goldClientDependentsTable } from "@/db/schema";
 
 const dependentSchema = z.object({
   id: z.string().uuid().optional(),
-  name: z.string().trim().min(1, {
-    message: "Nome do dependente é obrigatório.",
-  }),
-  phone: z.string().trim().min(1, {
-    message: "Telefone do dependente é obrigatório.",
-  }),
-  birthDate: z.date({
-    required_error: "Data de nascimento do dependente é obrigatória.",
-  }),
+  name: z.string().trim().optional().or(z.literal("")),
+  phone: z.string().trim().optional().or(z.literal("")),
+  birthDate: z.date().optional(),
 });
 
 const formSchema = z.object({
-  holderName: z.string().trim().min(1, {
-    message: "Nome completo do titular é obrigatório.",
-  }),
-  holderCpf: z.string().trim().min(1, {
-    message: "CPF do titular é obrigatório.",
-  }),
-  holderPhone: z.string().trim().min(1, {
-    message: "Telefone do titular é obrigatório.",
-  }),
-  holderBirthDate: z.date({
-    required_error: "Data de nascimento do titular é obrigatória.",
-  }),
-  holderAddress: z.string().trim().min(1, {
-    message: "Endereço completo do titular é obrigatório.",
-  }),
-  holderZipCode: z.string().trim().min(1, {
-    message: "CEP do titular é obrigatório.",
-  }),
-  dependents: z.array(dependentSchema).max(5, {
-    message: "Máximo de 5 dependentes permitidos.",
+  holderName: z.string().trim().optional().or(z.literal("")),
+  holderCpf: z.string().trim().optional().or(z.literal("")),
+  holderPhone: z.string().trim().optional().or(z.literal("")),
+  holderBirthDate: z.date().optional(),
+  holderAddress: z.string().trim().optional().or(z.literal("")),
+  holderZipCode: z.string().trim().optional().or(z.literal("")),
+  dependents: z.array(dependentSchema).max(10, {
+    message: "Máximo de 10 dependentes permitidos.",
   }),
 });
 
@@ -147,7 +129,7 @@ const UpsertGoldClientForm = ({
   };
 
   const addDependent = () => {
-    if (dependentsCount < 5) {
+    if (dependentsCount < 10) {
       append({
         name: "",
         phone: "",
@@ -185,7 +167,7 @@ const UpsertGoldClientForm = ({
               name="holderName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nome Completo</FormLabel>
+                  <FormLabel>Nome Completo (opcional)</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Digite o nome completo do titular"
@@ -203,7 +185,7 @@ const UpsertGoldClientForm = ({
                 name="holderCpf"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>CPF</FormLabel>
+                    <FormLabel>CPF (opcional)</FormLabel>
                     <FormControl>
                       <PatternFormat
                         format="###.###.###-##"
@@ -226,7 +208,7 @@ const UpsertGoldClientForm = ({
                 name="holderPhone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Telefone</FormLabel>
+                    <FormLabel>Telefone (opcional)</FormLabel>
                     <FormControl>
                       <PatternFormat
                         format="(##) #####-####"
@@ -250,7 +232,7 @@ const UpsertGoldClientForm = ({
               name="holderBirthDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Data de Nascimento</FormLabel>
+                  <FormLabel>Data de Nascimento (opcional)</FormLabel>
                   <FormControl>
                     <Input
                       type="date"
@@ -276,7 +258,7 @@ const UpsertGoldClientForm = ({
               name="holderAddress"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Endereço Completo</FormLabel>
+                  <FormLabel>Endereço Completo (opcional)</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Digite o endereço completo"
@@ -293,7 +275,7 @@ const UpsertGoldClientForm = ({
               name="holderZipCode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>CEP</FormLabel>
+                  <FormLabel>CEP (opcional)</FormLabel>
                   <FormControl>
                     <PatternFormat
                       format="#####-###"
@@ -322,9 +304,9 @@ const UpsertGoldClientForm = ({
                 type="button"
                 variant="outline"
                 onClick={addDependent}
-                disabled={dependentsCount >= 5}
+                disabled={dependentsCount >= 10}
               >
-                Adicionar Dependente ({dependentsCount}/5)
+                Adicionar Dependente ({dependentsCount}/10)
               </Button>
             </div>
 
@@ -348,7 +330,7 @@ const UpsertGoldClientForm = ({
                     name={`dependents.${index}.name`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nome Completo</FormLabel>
+                        <FormLabel>Nome Completo (opcional)</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Digite o nome completo"
@@ -365,7 +347,7 @@ const UpsertGoldClientForm = ({
                     name={`dependents.${index}.phone`}
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Telefone</FormLabel>
+                        <FormLabel>Telefone (opcional)</FormLabel>
                         <FormControl>
                           <PatternFormat
                             format="(##) #####-####"
@@ -389,7 +371,7 @@ const UpsertGoldClientForm = ({
                   name={`dependents.${index}.birthDate`}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Data de Nascimento</FormLabel>
+                      <FormLabel>Data de Nascimento (opcional)</FormLabel>
                       <FormControl>
                         <Input
                           type="date"
