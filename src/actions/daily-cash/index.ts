@@ -37,6 +37,7 @@ const cashOperationSchema = z.object({
   description: z.string().min(1, "Descrição é obrigatória"),
   paymentMethod: z.enum(["stripe", "cash", "pix", "bank_transfer", "other"]),
   transactionId: z.string().uuid().optional(),
+  metadata: z.string().optional(),
 });
 
 // Schema para buscar caixa do dia
@@ -212,6 +213,7 @@ export const addCashOperationAction = actionClient
         description,
         paymentMethod,
         transactionId,
+        metadata,
       } = data.parsedInput;
 
       const session = await getAuthSession();
@@ -240,6 +242,7 @@ export const addCashOperationAction = actionClient
           description: description,
           paymentMethod: paymentMethod,
           transactionId: transactionId,
+          metadata: metadata,
         })
         .returning();
 

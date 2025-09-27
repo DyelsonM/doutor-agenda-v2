@@ -50,6 +50,8 @@ const cashOperationSchema = z.object({
   amount: z.number().min(0.01, "Valor deve ser maior que zero"),
   description: z.string().min(1, "Descrição é obrigatória"),
   paymentMethod: z.enum(["stripe", "cash", "pix", "bank_transfer", "other"]),
+  customerName: z.string().optional(),
+  customerCpf: z.string().optional(),
 });
 
 type CashOperationForm = z.infer<typeof cashOperationSchema>;
@@ -110,6 +112,8 @@ export default function CashOperationsPage() {
       amount: 0,
       description: "",
       paymentMethod: "cash",
+      customerName: "",
+      customerCpf: "",
     },
   });
 
@@ -153,12 +157,19 @@ export default function CashOperationsPage() {
 
     const amountInCents = Math.round(data.amount * 100);
 
+    // Preparar metadata com informações do cliente
+    const metadata = {
+      customerName: data.customerName || null,
+      customerCpf: data.customerCpf || null,
+    };
+
     addOperation({
       dailyCashId: cashData.id,
       type: data.type,
       amountInCents,
       description: data.description,
       paymentMethod: data.paymentMethod,
+      metadata: JSON.stringify(metadata),
     });
   };
 
@@ -429,6 +440,56 @@ export default function CashOperationsPage() {
                     />
                   </div>
 
+                  {/* Informações do Cliente */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">
+                      Informações do Cliente
+                    </h3>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name="customerName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nome do Cliente</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="Nome completo do cliente"
+                                disabled={isExecuting}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="customerCpf"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>CPF do Cliente</FormLabel>
+                            <FormControl>
+                              <NumericFormat
+                                value={field.value}
+                                onValueChange={(value) => {
+                                  field.onChange(value.value);
+                                }}
+                                format="###.###.###-##"
+                                mask="_"
+                                customInput={Input}
+                                placeholder="000.000.000-00"
+                                disabled={isExecuting}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
                   <FormField
                     control={form.control}
                     name="description"
@@ -520,6 +581,35 @@ export default function CashOperationsPage() {
                             - {getOperationTypeLabel(operation.type)} -{" "}
                             {getPaymentMethodLabel(operation.paymentMethod)}
                           </p>
+                          {/* Exibição das informações do cliente */}
+                          {operation.metadata &&
+                            (() => {
+                              try {
+                                const metadata = JSON.parse(operation.metadata);
+                                if (
+                                  metadata.customerName ||
+                                  metadata.customerCpf
+                                ) {
+                                  return (
+                                    <div className="mt-2 space-y-1">
+                                      {metadata.customerName && (
+                                        <p className="text-sm font-medium text-blue-600">
+                                          👤 {metadata.customerName}
+                                        </p>
+                                      )}
+                                      {metadata.customerCpf && (
+                                        <p className="text-sm text-blue-600">
+                                          📋 CPF: {metadata.customerCpf}
+                                        </p>
+                                      )}
+                                    </div>
+                                  );
+                                }
+                              } catch (e) {
+                                // Ignorar erro de parsing
+                              }
+                              return null;
+                            })()}
                         </div>
                       </div>
                       <div className="text-right">
