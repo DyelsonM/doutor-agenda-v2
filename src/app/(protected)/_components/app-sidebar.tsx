@@ -1,18 +1,20 @@
 "use client";
 
 import {
+  Calculator,
   CalendarDays,
+  Cog,
+  Crown,
   DollarSign,
   FileText,
+  FolderOpen,
+  Handshake,
   LayoutDashboard,
   LogOut,
   Settings,
   Stethoscope,
   User,
   UsersRound,
-  Crown,
-  Handshake,
-  Calculator,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -40,112 +42,162 @@ import {
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 
-const adminItems = [
+// Estrutura de categorias para administradores
+const adminCategories = [
   {
     title: "Dashboard",
-    url: "/dashboard",
     icon: LayoutDashboard,
-  },
-  {
-    title: "Agendamentos",
-    url: "/appointments",
-    icon: CalendarDays,
+    items: [
+      {
+        title: "Dashboard",
+        url: "/dashboard",
+        icon: LayoutDashboard,
+      },
+    ],
   },
   {
     title: "Médicos",
-    url: "/doctors",
     icon: Stethoscope,
-  },
-  {
-    title: "Especialidades",
-    url: "/medical-specialties",
-    icon: Stethoscope,
-  },
-  {
-    title: "Modalidades",
-    url: "/appointment-modalities",
-    icon: CalendarDays,
+    items: [
+      {
+        title: "Médicos",
+        url: "/doctors",
+        icon: Stethoscope,
+      },
+      {
+        title: "Especialidades",
+        url: "/medical-specialties",
+        icon: Stethoscope,
+      },
+      {
+        title: "Modalidades",
+        url: "/appointment-modalities",
+        icon: CalendarDays,
+      },
+    ],
   },
   {
     title: "Pacientes",
-    url: "/patients",
     icon: UsersRound,
-  },
-  {
-    title: "Cliente Ouro",
-    url: "/gold-clients",
-    icon: Crown,
-  },
-  {
-    title: "Parceiros",
-    url: "/partners",
-    icon: Handshake,
-  },
-  {
-    title: "Documentos",
-    url: "/documents",
-    icon: FileText,
     items: [
       {
-        title: "Documentos",
-        url: "/documents",
+        title: "Pacientes",
+        url: "/patients",
+        icon: UsersRound,
       },
       {
-        title: "Templates",
-        url: "/documents/templates",
+        title: "Cliente Ouro",
+        url: "/gold-clients",
+        icon: Crown,
+      },
+      {
+        title: "Parceiros",
+        url: "/partners",
+        icon: Handshake,
+      },
+    ],
+  },
+  {
+    title: "Agendamentos",
+    icon: CalendarDays,
+    items: [
+      {
+        title: "Agendamentos",
+        url: "/appointments",
+        icon: CalendarDays,
       },
     ],
   },
   {
     title: "Financeiro",
-    url: "/financial",
     icon: DollarSign,
     items: [
       {
-        title: "Resumo",
+        title: "Financeiro",
         url: "/financial",
+        icon: DollarSign,
       },
       {
-        title: "Transações",
-        url: "/financial/transactions",
-      },
-      {
-        title: "Contas a Pagar",
-        url: "/financial/payables",
-      },
-      {
-        title: "Relatórios",
-        url: "/financial/reports",
+        title: "Caixa Diário",
+        url: "/daily-cash",
+        icon: Calculator,
       },
     ],
   },
   {
-    title: "Caixa Diário",
-    url: "/daily-cash",
-    icon: Calculator,
+    title: "Documentos",
+    icon: FolderOpen,
+    items: [
+      {
+        title: "Documentos",
+        url: "/documents",
+        icon: FileText,
+      },
+      {
+        title: "Templates",
+        url: "/documents/templates",
+        icon: FileText,
+      },
+    ],
+  },
+  {
+    title: "Configurações",
+    icon: Cog,
+    items: [
+      {
+        title: "Configurações",
+        url: "/clinic-settings",
+        icon: Settings,
+      },
+    ],
   },
 ];
 
-const doctorItems = [
+// Estrutura de categorias para médicos
+const doctorCategories = [
   {
-    title: "Meus Agendamentos",
-    url: "/appointments",
+    title: "Agendamentos",
     icon: CalendarDays,
+    items: [
+      {
+        title: "Meus Agendamentos",
+        url: "/appointments",
+        icon: CalendarDays,
+      },
+    ],
   },
   {
-    title: "Meus Pacientes",
-    url: "/patients",
+    title: "Pacientes",
     icon: UsersRound,
+    items: [
+      {
+        title: "Meus Pacientes",
+        url: "/patients",
+        icon: UsersRound,
+      },
+    ],
   },
   {
-    title: "Meus Documentos",
-    url: "/documents",
-    icon: FileText,
+    title: "Documentos",
+    icon: FolderOpen,
+    items: [
+      {
+        title: "Meus Documentos",
+        url: "/documents",
+        icon: FileText,
+      },
+    ],
   },
   {
-    title: "Meu Perfil",
-    url: "/profile",
+    title: "Perfil",
     icon: User,
+    items: [
+      {
+        title: "Meu Perfil",
+        url: "/profile",
+        icon: User,
+      },
+    ],
   },
 ];
 
@@ -154,9 +206,9 @@ export function AppSidebar() {
   const session = authClient.useSession();
   const pathname = usePathname();
 
-  // Determinar quais itens mostrar baseado no role do usuário
-  const menuItems =
-    session.data?.user?.role === "doctor" ? doctorItems : adminItems;
+  // Determinar quais categorias mostrar baseado no role do usuário
+  const categories =
+    session.data?.user?.role === "doctor" ? doctorCategories : adminCategories;
 
   // Função para gerar siglas da clínica
   const getClinicInitials = (clinicName: string) => {
@@ -193,44 +245,32 @@ export function AppSidebar() {
           <NotificationsDropdown />
         </div>
       </SidebarHeader>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={pathname === item.url}>
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        {session.data?.user?.role === "admin" && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Outros</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === "/clinic-settings"}
-                  >
-                    <Link href="/clinic-settings">
-                      <Settings />
-                      <span>Configurações</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+      <SidebarContent className="space-y-0">
+        {categories.map((category) => (
+          <SidebarGroup key={category.title} className="mb-0 space-y-0 pb-0">
+            <SidebarGroupLabel className="text-muted-foreground mb-0 px-2 py-0 text-sm font-medium">
+              {category.title}
+            </SidebarGroupLabel>
+            <SidebarGroupContent className="mb-0 pb-0">
+              <SidebarMenu className="space-y-0">
+                {category.items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === item.url}
+                      className="h-6 px-2"
+                    >
+                      <Link href={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span className="text-sm">{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        )}
+        ))}
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
