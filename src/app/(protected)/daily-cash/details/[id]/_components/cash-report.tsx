@@ -16,6 +16,7 @@ interface CashReportProps {
   cashData: {
     id: string;
     date: Date | string;
+    identifier?: string | null;
     openingTime: Date | string;
     closingTime?: Date | string | null;
     status: string;
@@ -341,7 +342,14 @@ export function CashReport({ cashData }: CashReportProps) {
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Relatório de Caixa -{" "}
+            Relatório de Caixa
+            {cashData.identifier && (
+              <span className="text-muted-foreground">
+                {" "}
+                - {cashData.identifier}
+              </span>
+            )}
+            {" - "}
             {cashData.date
               ? format(new Date(cashData.date), "dd/MM/yyyy", { locale: ptBR })
               : "Data não disponível"}

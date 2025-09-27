@@ -14,6 +14,7 @@ const openCashSchema = z.object({
     .number()
     .min(0, "Valor inicial deve ser maior ou igual a zero"),
   openingNotes: z.string().optional(),
+  identifier: z.string().optional().nullable(),
 });
 
 // Schema para fechamento de caixa
@@ -84,10 +85,11 @@ export const openCashAction = actionClient
         .values({
           clinicId,
           userId,
+          identifier: data.parsedInput.identifier,
           date: today,
           openingTime: new Date(),
-          openingAmount: data.openingAmount,
-          openingNotes: data.openingNotes,
+          openingAmount: data.parsedInput.openingAmount,
+          openingNotes: data.parsedInput.openingNotes,
           status: "open",
         })
         .returning();
@@ -97,8 +99,8 @@ export const openCashAction = actionClient
         dailyCashId: newCash.id,
         userId,
         type: "opening",
-        amountInCents: data.openingAmount || 0,
-        description: `Abertura de caixa - Valor inicial: R$ ${((data.openingAmount || 0) / 100).toFixed(2)}`,
+        amountInCents: data.parsedInput.openingAmount || 0,
+        description: `Abertura de caixa - Valor inicial: R$ ${((data.parsedInput.openingAmount || 0) / 100).toFixed(2)}`,
       });
 
       return {

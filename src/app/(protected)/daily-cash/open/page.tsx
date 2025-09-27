@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { DollarSign, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useAction } from "next-safe-action/hooks";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
+import { toast } from "sonner";
+import { z } from "zod";
 
+import { openCashAction } from "@/actions/daily-cash";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -17,7 +22,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   PageActions,
   PageContainer,
@@ -27,18 +31,14 @@ import {
   PageHeaderContent,
   PageTitle,
 } from "@/components/ui/page-container";
-import { useAction } from "next-safe-action/hooks";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-
-import { openCashAction } from "@/actions/daily-cash";
+import { Textarea } from "@/components/ui/textarea";
 
 const openCashSchema = z.object({
   openingAmount: z
     .number()
     .min(0, "Valor inicial deve ser maior ou igual a zero"),
   openingNotes: z.string().optional(),
+  identifier: z.string().optional(),
 });
 
 type OpenCashForm = z.infer<typeof openCashSchema>;
@@ -52,6 +52,7 @@ export default function OpenCashPage() {
     defaultValues: {
       openingAmount: 0,
       openingNotes: "",
+      identifier: "",
     },
   });
 
@@ -82,6 +83,7 @@ export default function OpenCashPage() {
     executeOpenCash({
       openingAmount: amountInCents,
       openingNotes: data.openingNotes || undefined,
+      identifier: data.identifier || undefined,
     });
   };
 
@@ -144,6 +146,24 @@ export default function OpenCashPage() {
                           placeholder="0,00"
                           disabled={isSubmitting}
                         />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="identifier"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Identificador do Caixa (Opcional)</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Ex: Caixa #123456"
+                            disabled={isSubmitting}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}

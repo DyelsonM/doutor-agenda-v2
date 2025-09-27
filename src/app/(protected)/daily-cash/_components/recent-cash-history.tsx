@@ -30,6 +30,7 @@ interface RecentCashHistoryProps {
     id: string;
     date: Date;
     status: "open" | "closed" | "suspended";
+    identifier?: string | null;
     openingAmount: number;
     closingAmount?: number | null;
     totalCashIn: number;
@@ -138,6 +139,11 @@ export function RecentCashHistory({ history }: RecentCashHistoryProps) {
                         locale: ptBR,
                       })
                     : "Data não disponível"}
+                  {cash.identifier && (
+                    <span className="text-muted-foreground ml-1">
+                      - {cash.identifier}
+                    </span>
+                  )}
                 </span>
                 <Badge variant={getStatusVariant(cash.status)}>
                   {getStatusLabel(cash.status)}

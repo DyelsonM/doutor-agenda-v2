@@ -761,6 +761,7 @@ export const dailyCashTable = pgTable("daily_cash", {
   userId: text("user_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
+  identifier: text("identifier"), // Identificador manual do caixa (opcional)
   date: timestamp("date").notNull(), // Data do caixa (sem horário)
   openingTime: timestamp("opening_time").notNull(), // Horário de abertura
   closingTime: timestamp("closing_time"), // Horário de fechamento

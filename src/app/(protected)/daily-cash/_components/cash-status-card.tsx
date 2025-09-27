@@ -21,6 +21,7 @@ interface CashStatusCardProps {
     id: string;
     date: Date;
     status: "open" | "closed" | "suspended";
+    identifier?: string | null;
     openingTime: Date;
     closingTime?: Date | null;
     openingAmount: number;
@@ -114,7 +115,11 @@ export function CashStatusCard({ cash }: CashStatusCardProps) {
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {statusInfo.icon}
-            Status do Caixa -{" "}
+            Status do Caixa
+            {cash.identifier && (
+              <span className="text-muted-foreground">- {cash.identifier}</span>
+            )}
+            {" - "}
             {cash.date
               ? format(new Date(cash.date), "dd/MM/yyyy", { locale: ptBR })
               : "Data não disponível"}

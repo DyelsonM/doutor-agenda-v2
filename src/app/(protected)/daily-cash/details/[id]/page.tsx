@@ -59,7 +59,14 @@ export default async function CashDetailsPage({
         <PageHeaderContent>
           <div className="flex items-center gap-2">
             <PageTitle>
-              Detalhes do Caixa -{" "}
+              Detalhes do Caixa
+              {cash.identifier && (
+                <span className="text-muted-foreground">
+                  {" "}
+                  - {cash.identifier}
+                </span>
+              )}
+              {" - "}
               {cash.date
                 ? format(new Date(cash.date), "dd/MM/yyyy", { locale: ptBR })
                 : "Data não disponível"}

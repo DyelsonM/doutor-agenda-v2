@@ -1,0 +1,1 @@
+ALTER TABLE "daily_cash" ADD COLUMN "identifier" text;

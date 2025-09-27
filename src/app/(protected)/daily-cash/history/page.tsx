@@ -1,11 +1,12 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft, Calendar, Clock, CheckCircle, Lock } from "lucide-react";
+import { desc, eq } from "drizzle-orm";
+import { ArrowLeft, Calendar, CheckCircle, Clock, Lock } from "lucide-react";
 import Link from "next/link";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   PageActions,
   PageContainer,
@@ -17,9 +18,9 @@ import {
 } from "@/components/ui/page-container";
 import { db } from "@/db";
 import { cashOperationsTable, dailyCashTable } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
 import { formatCurrencyInCents } from "@/helpers/financial";
 import { getAuthSession } from "@/lib/auth-utils";
+
 import { CashHistoryList } from "./_components/cash-history-list";
 
 export default async function CashHistoryPage() {
