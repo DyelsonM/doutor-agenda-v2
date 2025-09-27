@@ -62,7 +62,8 @@ export const createTransactionAction = action
         amountInCents: parsedInput.amountInCents,
         description: parsedInput.description,
         paymentMethod: parsedInput.paymentMethod,
-        expenseCategory: parsedInput.expenseCategory,
+        expenseCategory:
+          parsedInput.type === "expense" ? parsedInput.expenseCategory : null,
         stripePaymentIntentId: parsedInput.stripePaymentIntentId,
         stripeChargeId: parsedInput.stripeChargeId,
         metadata: parsedInput.metadata,
@@ -338,289 +339,263 @@ export const getFinancialSummaryAction = action
 export const generateFinancialReportAction = action
   .schema(getFinancialReportSchema)
   .action(async ({ parsedInput }) => {
-    const session = await getAuthSession();
+    try {
+      const session = await getAuthSession();
 
-    if (!session.user.clinic) {
-      throw new Error("Clínica não encontrada");
-    }
+      if (!session.user.clinic) {
+        throw new Error("Clínica não encontrada");
+      }
 
-    // Gerar relatório financeiro diretamente
-    // Para relatórios diários, usar apenas a parte da data sem hora
-    const isDaily =
-      parsedInput.reportType === "daily" ||
-      parsedInput.periodStart.toDateString() ===
-        parsedInput.periodEnd.toDateString();
+      // Gerar relatório financeiro diretamente
+      // Para relatórios diários, usar apenas a parte da data sem hora
+      const isDaily =
+        parsedInput.reportType === "daily" ||
+        parsedInput.periodStart.toDateString() ===
+          parsedInput.periodEnd.toDateString();
 
-    let whereConditions;
-    if (isDaily) {
-      // Para relatórios diários, usar range de horas para o dia inteiro
-      const startOfDay = new Date(parsedInput.periodStart);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(parsedInput.periodStart);
-      endOfDay.setHours(23, 59, 59, 999);
+      let whereConditions;
+      if (isDaily) {
+        // Para relatórios diários, usar range de horas para o dia inteiro
+        const startOfDay = new Date(parsedInput.periodStart);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(parsedInput.periodStart);
+        endOfDay.setHours(23, 59, 59, 999);
 
-      whereConditions = and(
-        eq(transactionsTable.clinicId, session.user.clinic.id),
-        gte(transactionsTable.createdAt, startOfDay),
-        lte(transactionsTable.createdAt, endOfDay),
-      );
-    } else {
-      // Para relatórios mensais/anuais, usar range de timestamp
-      whereConditions = and(
-        eq(transactionsTable.clinicId, session.user.clinic.id),
-        gte(transactionsTable.createdAt, parsedInput.periodStart),
-        lte(transactionsTable.createdAt, parsedInput.periodEnd),
-      );
-    }
+        whereConditions = and(
+          eq(transactionsTable.clinicId, session.user.clinic.id),
+          gte(transactionsTable.createdAt, startOfDay),
+          lte(transactionsTable.createdAt, endOfDay),
+        );
+      } else {
+        // Para relatórios mensais/anuais, usar range de timestamp
+        whereConditions = and(
+          eq(transactionsTable.clinicId, session.user.clinic.id),
+          gte(transactionsTable.createdAt, parsedInput.periodStart),
+          lte(transactionsTable.createdAt, parsedInput.periodEnd),
+        );
+      }
 
-    // Resumo financeiro separado por categoria
-    // RECEITAS (entrada de dinheiro)
-    const revenueSummary = await db
-      .select({
-        totalRevenue: sum(transactionsTable.amountInCents),
-        transactionCount: count(transactionsTable.id),
-      })
-      .from(transactionsTable)
-      .where(
-        and(
-          whereConditions,
-          eq(transactionsTable.status, "completed"),
-          eq(transactionsTable.type, "appointment_payment"),
-        ),
-      );
-
-    // DESPESAS (saída de dinheiro)
-    const expenseSummary = await db
-      .select({
-        totalExpenses: sum(transactionsTable.amountInCents),
-        transactionCount: count(transactionsTable.id),
-      })
-      .from(transactionsTable)
-      .where(
-        and(
-          whereConditions,
-          eq(transactionsTable.status, "completed"),
-          eq(transactionsTable.type, "expense"),
-        ),
-      );
-
-    const refundSummary = await db
-      .select({
-        totalExpenses: sum(transactionsTable.amountInCents),
-        transactionCount: count(transactionsTable.id),
-      })
-      .from(transactionsTable)
-      .where(
-        and(
-          whereConditions,
-          eq(transactionsTable.status, "completed"),
-          eq(transactionsTable.type, "refund"),
-        ),
-      );
-
-    // OUTROS (neutros)
-    const otherSummary = await db
-      .select({
-        totalOther: sum(transactionsTable.amountInCents),
-        transactionCount: count(transactionsTable.id),
-      })
-      .from(transactionsTable)
-      .where(
-        and(
-          whereConditions,
-          eq(transactionsTable.status, "completed"),
-          eq(transactionsTable.type, "other"),
-        ),
-      );
-
-    // Receita por tipo de transação (todos os tipos)
-    const revenueByType = await db
-      .select({
-        type: transactionsTable.type,
-        total: sum(transactionsTable.amountInCents),
-        count: count(transactionsTable.id),
-      })
-      .from(transactionsTable)
-      .where(and(whereConditions, eq(transactionsTable.status, "completed")))
-      .groupBy(transactionsTable.type);
-
-    // Despesas por categoria
-    const expensesByCategory = await db
-      .select({
-        category: transactionsTable.expenseCategory,
-        total: sum(transactionsTable.amountInCents),
-        count: count(transactionsTable.id),
-      })
-      .from(transactionsTable)
-      .where(
-        and(
-          whereConditions,
-          eq(transactionsTable.status, "completed"),
-          eq(transactionsTable.type, "expense"),
-        ),
-      )
-      .groupBy(transactionsTable.expenseCategory);
-
-    // Dados de contas a pagar
-    const payablesSummary = await db
-      .select({
-        total: sum(payablesTable.amountInCents),
-        pending: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' THEN ${payablesTable.amountInCents} ELSE 0 END)`,
-        paid: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'paid' THEN ${payablesTable.amountInCents} ELSE 0 END)`,
-        overdue: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' AND ${payablesTable.dueDate} < NOW() THEN ${payablesTable.amountInCents} ELSE 0 END)`,
-        count: count(payablesTable.id),
-      })
-      .from(payablesTable)
-      .where(eq(payablesTable.clinicId, session.user.clinic.id));
-
-    // Contas a pagar por categoria
-    const payablesByCategory = await db
-      .select({
-        category: payablesTable.category,
-        total: sum(payablesTable.amountInCents),
-        pending: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' THEN ${payablesTable.amountInCents} ELSE 0 END)`,
-        paid: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'paid' THEN ${payablesTable.amountInCents} ELSE 0 END)`,
-        count: count(payablesTable.id),
-      })
-      .from(payablesTable)
-      .where(eq(payablesTable.clinicId, session.user.clinic.id))
-      .groupBy(payablesTable.category);
-
-    // Contas a pagar vencidas no período
-    const overduePayables = await db
-      .select({
-        total: sum(payablesTable.amountInCents),
-        count: count(payablesTable.id),
-      })
-      .from(payablesTable)
-      .where(
-        and(
-          eq(payablesTable.clinicId, session.user.clinic.id),
-          eq(payablesTable.status, "pending"),
-          lte(payablesTable.dueDate, parsedInput.periodEnd),
-        ),
-      );
-
-    // Calcular métricas adicionais
-    let appointmentsInPeriod;
-    if (isDaily) {
-      // Para relatórios diários, usar o mesmo range de data
-      const startOfDay = new Date(parsedInput.periodStart);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(parsedInput.periodStart);
-      endOfDay.setHours(23, 59, 59, 999);
-
-      appointmentsInPeriod = await db
+      // Resumo financeiro separado por categoria
+      // RECEITAS (entrada de dinheiro)
+      const revenueSummary = await db
         .select({
-          count: count(appointmentsTable.id),
-          totalValue: sum(appointmentsTable.appointmentPriceInCents),
+          totalRevenue: sum(transactionsTable.amountInCents),
+          transactionCount: count(transactionsTable.id),
         })
-        .from(appointmentsTable)
+        .from(transactionsTable)
         .where(
           and(
-            eq(appointmentsTable.clinicId, session.user.clinic.id),
-            gte(appointmentsTable.date, startOfDay),
-            lte(appointmentsTable.date, endOfDay),
-            lte(appointmentsTable.date, new Date()), // Apenas consultas que já aconteceram
+            whereConditions,
+            eq(transactionsTable.status, "completed"),
+            eq(transactionsTable.type, "appointment_payment"),
           ),
         );
-    } else {
-      // Para relatórios mensais/anuais, usar range de datas
-      appointmentsInPeriod = await db
+
+      // DESPESAS (saída de dinheiro)
+      const expenseSummary = await db
         .select({
-          count: count(appointmentsTable.id),
-          totalValue: sum(appointmentsTable.appointmentPriceInCents),
+          totalExpenses: sum(transactionsTable.amountInCents),
+          transactionCount: count(transactionsTable.id),
         })
-        .from(appointmentsTable)
+        .from(transactionsTable)
         .where(
           and(
-            eq(appointmentsTable.clinicId, session.user.clinic.id),
-            gte(appointmentsTable.date, parsedInput.periodStart),
-            lte(appointmentsTable.date, parsedInput.periodEnd),
-            lte(appointmentsTable.date, new Date()), // Apenas consultas que já aconteceram
+            whereConditions,
+            eq(transactionsTable.status, "completed"),
+            eq(transactionsTable.type, "expense"),
           ),
         );
-    }
 
-    const averageAppointmentValue = appointmentsInPeriod[0]?.count
-      ? Math.round(
-          (Number(appointmentsInPeriod[0].totalValue) || 0) /
-            appointmentsInPeriod[0].count,
+      // REFUNDS (reembolsos) - removido pois não existe mais o tipo "refund"
+
+      // OUTROS (neutros) - removido pois não existe mais o tipo "other"
+
+      // Receita por tipo de transação (todos os tipos)
+      const revenueByType = await db
+        .select({
+          type: transactionsTable.type,
+          total: sum(transactionsTable.amountInCents),
+          count: count(transactionsTable.id),
+        })
+        .from(transactionsTable)
+        .where(and(whereConditions, eq(transactionsTable.status, "completed")))
+        .groupBy(transactionsTable.type);
+
+      // Despesas por categoria
+      const expensesByCategory = await db
+        .select({
+          category: transactionsTable.expenseCategory,
+          total: sum(transactionsTable.amountInCents),
+          count: count(transactionsTable.id),
+        })
+        .from(transactionsTable)
+        .where(
+          and(
+            whereConditions,
+            eq(transactionsTable.status, "completed"),
+            eq(transactionsTable.type, "expense"),
+          ),
         )
-      : 0;
+        .groupBy(transactionsTable.expenseCategory);
 
-    // Criar relatório
-    const reportData = {
-      summary: {
-        totalRevenue: Number(revenueSummary[0]?.totalRevenue) || 0,
-        totalRefunds: Number(refundSummary[0]?.totalExpenses) || 0,
-        totalExpenses: Number(expenseSummary[0]?.totalExpenses) || 0,
-        totalOther: Number(otherSummary[0]?.totalOther) || 0,
-        netProfit:
-          (Number(revenueSummary[0]?.totalRevenue) || 0) -
-          (Number(refundSummary[0]?.totalExpenses) || 0) -
-          (Number(expenseSummary[0]?.totalExpenses) || 0) +
-          (Number(otherSummary[0]?.totalOther) || 0),
-        revenueTransactionCount:
-          Number(revenueSummary[0]?.transactionCount) || 0,
-        refundTransactionCount: Number(refundSummary[0]?.transactionCount) || 0,
-        expenseTransactionCount:
-          Number(expenseSummary[0]?.transactionCount) || 0,
-        otherTransactionCount: Number(otherSummary[0]?.transactionCount) || 0,
-      },
-      revenueByType,
-      expensesByCategory,
-      appointments: {
-        count: Number(appointmentsInPeriod[0]?.count) || 0,
-        totalValue: Number(appointmentsInPeriod[0]?.totalValue) || 0,
-        averageValue: averageAppointmentValue,
-      },
-      payables: {
+      // Dados de contas a pagar
+      const payablesSummary = await db
+        .select({
+          total: sum(payablesTable.amountInCents),
+          pending: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' THEN ${payablesTable.amountInCents} ELSE 0 END)`,
+          paid: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'paid' THEN ${payablesTable.amountInCents} ELSE 0 END)`,
+          overdue: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' AND ${payablesTable.dueDate} < NOW() THEN ${payablesTable.amountInCents} ELSE 0 END)`,
+          count: count(payablesTable.id),
+        })
+        .from(payablesTable)
+        .where(eq(payablesTable.clinicId, session.user.clinic.id));
+
+      // Contas a pagar por categoria
+      const payablesByCategory = await db
+        .select({
+          category: payablesTable.category,
+          total: sum(payablesTable.amountInCents),
+          pending: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'pending' THEN ${payablesTable.amountInCents} ELSE 0 END)`,
+          paid: sql<number>`SUM(CASE WHEN ${payablesTable.status} = 'paid' THEN ${payablesTable.amountInCents} ELSE 0 END)`,
+          count: count(payablesTable.id),
+        })
+        .from(payablesTable)
+        .where(eq(payablesTable.clinicId, session.user.clinic.id))
+        .groupBy(payablesTable.category);
+
+      // Contas a pagar vencidas no período
+      const overduePayables = await db
+        .select({
+          total: sum(payablesTable.amountInCents),
+          count: count(payablesTable.id),
+        })
+        .from(payablesTable)
+        .where(
+          and(
+            eq(payablesTable.clinicId, session.user.clinic.id),
+            eq(payablesTable.status, "pending"),
+            lte(payablesTable.dueDate, parsedInput.periodEnd),
+          ),
+        );
+
+      // Calcular métricas adicionais
+      let appointmentsInPeriod;
+      if (isDaily) {
+        // Para relatórios diários, usar o mesmo range de data
+        const startOfDay = new Date(parsedInput.periodStart);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(parsedInput.periodStart);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        appointmentsInPeriod = await db
+          .select({
+            count: count(appointmentsTable.id),
+            totalValue: sum(appointmentsTable.appointmentPriceInCents),
+          })
+          .from(appointmentsTable)
+          .where(
+            and(
+              eq(appointmentsTable.clinicId, session.user.clinic.id),
+              gte(appointmentsTable.date, startOfDay),
+              lte(appointmentsTable.date, endOfDay),
+              lte(appointmentsTable.date, new Date()), // Apenas consultas que já aconteceram
+            ),
+          );
+      } else {
+        // Para relatórios mensais/anuais, usar range de datas
+        appointmentsInPeriod = await db
+          .select({
+            count: count(appointmentsTable.id),
+            totalValue: sum(appointmentsTable.appointmentPriceInCents),
+          })
+          .from(appointmentsTable)
+          .where(
+            and(
+              eq(appointmentsTable.clinicId, session.user.clinic.id),
+              gte(appointmentsTable.date, parsedInput.periodStart),
+              lte(appointmentsTable.date, parsedInput.periodEnd),
+              lte(appointmentsTable.date, new Date()), // Apenas consultas que já aconteceram
+            ),
+          );
+      }
+
+      const averageAppointmentValue = appointmentsInPeriod[0]?.count
+        ? Math.round(
+            (Number(appointmentsInPeriod[0].totalValue) || 0) /
+              appointmentsInPeriod[0].count,
+          )
+        : 0;
+
+      // Criar relatório
+      const reportData = {
         summary: {
-          total: payablesSummary[0]?.total || 0,
-          pending: payablesSummary[0]?.pending || 0,
-          paid: payablesSummary[0]?.paid || 0,
-          overdue: payablesSummary[0]?.overdue || 0,
-          count: payablesSummary[0]?.count || 0,
+          totalRevenue: Number(revenueSummary[0]?.totalRevenue) || 0,
+          totalRefunds: 0, // Removido pois não existe mais o tipo "refund"
+          totalExpenses: Number(expenseSummary[0]?.totalExpenses) || 0,
+          totalOther: 0, // Removido pois não existe mais o tipo "other"
+          netProfit:
+            (Number(revenueSummary[0]?.totalRevenue) || 0) -
+            (Number(expenseSummary[0]?.totalExpenses) || 0),
+          revenueTransactionCount:
+            Number(revenueSummary[0]?.transactionCount) || 0,
+          refundTransactionCount: 0, // Removido pois não existe mais o tipo "refund"
+          expenseTransactionCount:
+            Number(expenseSummary[0]?.transactionCount) || 0,
+          otherTransactionCount: 0, // Removido pois não existe mais o tipo "other"
         },
-        byCategory: payablesByCategory,
-        overdueInPeriod: {
-          total: overduePayables[0]?.total || 0,
-          count: overduePayables[0]?.count || 0,
+        revenueByType,
+        expensesByCategory,
+        appointments: {
+          count: Number(appointmentsInPeriod[0]?.count) || 0,
+          totalValue: Number(appointmentsInPeriod[0]?.totalValue) || 0,
+          averageValue: averageAppointmentValue,
         },
-      },
-    };
+        payables: {
+          summary: {
+            total: payablesSummary[0]?.total || 0,
+            pending: payablesSummary[0]?.pending || 0,
+            paid: payablesSummary[0]?.paid || 0,
+            overdue: payablesSummary[0]?.overdue || 0,
+            count: payablesSummary[0]?.count || 0,
+          },
+          byCategory: payablesByCategory,
+          overdueInPeriod: {
+            total: overduePayables[0]?.total || 0,
+            count: overduePayables[0]?.count || 0,
+          },
+        },
+      };
 
-    const report = await db
-      .insert(financialReportsTable)
-      .values({
-        clinicId: session.user.clinic.id,
-        reportType: parsedInput.reportType,
-        periodStart: parsedInput.periodStart,
-        periodEnd: parsedInput.periodEnd,
-        totalRevenue: Number(revenueSummary[0]?.totalRevenue) || 0,
-        totalExpenses:
-          (Number(expenseSummary[0]?.totalExpenses) || 0) +
-          (Number(refundSummary[0]?.totalExpenses) || 0),
-        netProfit:
-          (Number(revenueSummary[0]?.totalRevenue) || 0) -
-          (Number(refundSummary[0]?.totalExpenses) || 0) -
-          (Number(expenseSummary[0]?.totalExpenses) || 0) +
-          (Number(otherSummary[0]?.totalOther) || 0),
-        appointmentCount: Number(appointmentsInPeriod[0]?.count) || 0,
-        averageAppointmentValue,
-        reportData: JSON.stringify(reportData),
-      })
-      .returning();
+      const report = await db
+        .insert(financialReportsTable)
+        .values({
+          clinicId: session.user.clinic.id,
+          reportType: parsedInput.reportType,
+          periodStart: parsedInput.periodStart,
+          periodEnd: parsedInput.periodEnd,
+          totalRevenue: Number(revenueSummary[0]?.totalRevenue) || 0,
+          totalExpenses: Number(expenseSummary[0]?.totalExpenses) || 0,
+          netProfit:
+            (Number(revenueSummary[0]?.totalRevenue) || 0) -
+            (Number(expenseSummary[0]?.totalExpenses) || 0),
+          appointmentCount: Number(appointmentsInPeriod[0]?.count) || 0,
+          averageAppointmentValue,
+          reportData: JSON.stringify(reportData),
+        })
+        .returning();
 
-    return {
-      success: true,
-      data: {
-        report: report[0],
-        reportData,
-      },
-      message: "Relatório financeiro gerado com sucesso!",
-    };
+      return {
+        success: true,
+        data: {
+          report: report[0],
+          reportData,
+        },
+        message: "Relatório financeiro gerado com sucesso!",
+      };
+    } catch (error) {
+      console.error("Erro ao gerar relatório financeiro:", error);
+      throw new Error("Erro interno ao gerar relatório financeiro");
+    }
   });
 
 export const getReportByIdAction = action

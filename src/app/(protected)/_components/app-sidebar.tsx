@@ -12,6 +12,7 @@ import {
   UsersRound,
   Crown,
   Handshake,
+  Calculator,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -117,6 +118,11 @@ const adminItems = [
         url: "/financial/reports",
       },
     ],
+  },
+  {
+    title: "Caixa Diário",
+    url: "/daily-cash",
+    icon: Calculator,
   },
 ];
 

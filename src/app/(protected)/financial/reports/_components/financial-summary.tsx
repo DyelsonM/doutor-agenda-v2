@@ -96,11 +96,6 @@ export function FinancialSummary({
         return;
       }
 
-      console.log("Iniciando exportação PDF...");
-      console.log("Transações:", filteredTransactions.length);
-      console.log("Receitas:", totalRevenue);
-      console.log("Despesas:", totalExpenses);
-
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
       const margin = 20;
@@ -272,7 +267,6 @@ export function FinancialSummary({
 
       // Salvar arquivo
       const fileName = `resumo-financeiro-${format(new Date(), "dd-MM-yyyy-HHmm")}.pdf`;
-      console.log("Salvando arquivo:", fileName);
 
       doc.save(fileName);
       toast.success("PDF exportado com sucesso!");

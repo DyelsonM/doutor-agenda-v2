@@ -1,0 +1,1 @@
+ALTER TABLE "cash_operations" ADD COLUMN "payment_method" "payment_method" DEFAULT 'cash' NOT NULL;

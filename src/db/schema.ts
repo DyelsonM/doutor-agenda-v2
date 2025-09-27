@@ -30,6 +30,8 @@ export const usersTableRelations = relations(usersTable, ({ many, one }) => ({
     references: [doctorsTable.userId],
   }),
   notifications: many(notificationsTable),
+  dailyCash: many(dailyCashTable),
+  cashOperations: many(cashOperationsTable),
 }));
 
 export const sessionsTable = pgTable("sessions", {
@@ -140,6 +142,7 @@ export const clinicsTableRelations = relations(clinicsTable, ({ many }) => ({
   goldClients: many(goldClientsTable),
   medicalSpecialties: many(medicalSpecialtiesTable),
   partners: many(partnersTable),
+  dailyCash: many(dailyCashTable),
 }));
 
 export const doctorsTable = pgTable("doctors", {
@@ -734,10 +737,79 @@ export const partnersTableRelations = relations(
   }),
 );
 
+// Enums para sistema de caixa diário
+export const cashStatusEnum = pgEnum("cash_status", [
+  "open",
+  "closed",
+  "suspended",
+]);
+
+export const cashOperationTypeEnum = pgEnum("cash_operation_type", [
+  "opening",
+  "closing",
+  "cash_in",
+  "cash_out",
+  "adjustment",
+]);
+
+// Tabela de caixa diário
+export const dailyCashTable = pgTable("daily_cash", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clinicId: uuid("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  date: timestamp("date").notNull(), // Data do caixa (sem horário)
+  openingTime: timestamp("opening_time").notNull(), // Horário de abertura
+  closingTime: timestamp("closing_time"), // Horário de fechamento
+  status: cashStatusEnum("status").notNull().default("open"),
+  // Valores em centavos
+  openingAmount: integer("opening_amount").notNull().default(0), // Valor inicial do caixa
+  closingAmount: integer("closing_amount"), // Valor final do caixa
+  expectedAmount: integer("expected_amount"), // Valor esperado (calculado)
+  difference: integer("difference"), // Diferença entre esperado e real
+  // Totais do dia
+  totalRevenue: integer("total_revenue").notNull().default(0),
+  totalExpenses: integer("total_expenses").notNull().default(0),
+  totalCashIn: integer("total_cash_in").notNull().default(0), // Entradas de dinheiro
+  totalCashOut: integer("total_cash_out").notNull().default(0), // Saídas de dinheiro
+  // Observações
+  openingNotes: text("opening_notes"),
+  closingNotes: text("closing_notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+// Tabela de operações de caixa
+export const cashOperationsTable = pgTable("cash_operations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  dailyCashId: uuid("daily_cash_id")
+    .notNull()
+    .references(() => dailyCashTable.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  type: cashOperationTypeEnum("type").notNull(),
+  amountInCents: integer("amount_in_cents").notNull(),
+  description: text("description").notNull(),
+  paymentMethod: paymentMethodEnum("payment_method").notNull().default("cash"),
+  // Referência à transação relacionada (opcional)
+  transactionId: uuid("transaction_id").references(() => transactionsTable.id, {
+    onDelete: "set null",
+  }),
+  // Dados adicionais em JSON
+  metadata: text("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relações das tabelas financeiras
 export const transactionsTableRelations = relations(
   transactionsTable,
-  ({ one }) => ({
+  ({ one, many }) => ({
     clinic: one(clinicsTable, {
       fields: [transactionsTable.clinicId],
       references: [clinicsTable.id],
@@ -745,6 +817,41 @@ export const transactionsTableRelations = relations(
     appointment: one(appointmentsTable, {
       fields: [transactionsTable.appointmentId],
       references: [appointmentsTable.id],
+    }),
+    cashOperations: many(cashOperationsTable),
+  }),
+);
+
+// Relações das tabelas de caixa
+export const dailyCashTableRelations = relations(
+  dailyCashTable,
+  ({ one, many }) => ({
+    clinic: one(clinicsTable, {
+      fields: [dailyCashTable.clinicId],
+      references: [clinicsTable.id],
+    }),
+    user: one(usersTable, {
+      fields: [dailyCashTable.userId],
+      references: [usersTable.id],
+    }),
+    operations: many(cashOperationsTable),
+  }),
+);
+
+export const cashOperationsTableRelations = relations(
+  cashOperationsTable,
+  ({ one }) => ({
+    dailyCash: one(dailyCashTable, {
+      fields: [cashOperationsTable.dailyCashId],
+      references: [dailyCashTable.id],
+    }),
+    user: one(usersTable, {
+      fields: [cashOperationsTable.userId],
+      references: [usersTable.id],
+    }),
+    transaction: one(transactionsTable, {
+      fields: [cashOperationsTable.transactionId],
+      references: [transactionsTable.id],
     }),
   }),
 );

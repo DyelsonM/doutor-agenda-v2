@@ -40,11 +40,6 @@ function getLocalDateString(date: Date | string): string {
 }
 
 export function RevenueChart({ revenueData, expenseData }: RevenueChartProps) {
-  // Debug: Log dos dados recebidos
-  console.log("=== DEBUG FRONTEND ===");
-  console.log("Revenue Data:", revenueData);
-  console.log("Expense Data:", expenseData);
-
   // Criar um mapa de datas para combinar receitas e despesas
   const dateMap = new Map<string, { revenue: number; expense: number }>();
 
@@ -54,10 +49,6 @@ export function RevenueChart({ revenueData, expenseData }: RevenueChartProps) {
     const amount = item.amount ? item.amount / 100 : 0;
     const existing = dateMap.get(dateStr) || { revenue: 0, expense: 0 };
     dateMap.set(dateStr, { ...existing, revenue: existing.revenue + amount });
-
-    console.log(
-      `Receita processada: ${item.date} -> ${dateStr} = R$ ${amount}`,
-    );
   });
 
   // Processar dados de despesas
@@ -66,10 +57,6 @@ export function RevenueChart({ revenueData, expenseData }: RevenueChartProps) {
     const amount = item.amount ? item.amount / 100 : 0;
     const existing = dateMap.get(dateStr) || { revenue: 0, expense: 0 };
     dateMap.set(dateStr, { ...existing, expense: existing.expense + amount });
-
-    console.log(
-      `Despesa processada: ${item.date} -> ${dateStr} = R$ ${amount}`,
-    );
   });
 
   // Gerar 7 dias: 4 passados + hoje + 2 futuros
@@ -106,10 +93,6 @@ export function RevenueChart({ revenueData, expenseData }: RevenueChartProps) {
       fullDate: dateKey,
     };
   });
-
-  console.log("Data do mapa:", Array.from(dateMap.entries()));
-  console.log("Dias do gráfico:", chartDays);
-  console.log("Dados finais do gráfico:", chartData);
 
   // Se não há dados, mostrar mensagem
   if (chartData.length === 0) {

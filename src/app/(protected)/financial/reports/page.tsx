@@ -71,11 +71,8 @@ const ReportsPage = async () => {
             gte(transactionsTable.createdAt, currentMonth),
             lte(transactionsTable.createdAt, nextMonth),
             eq(transactionsTable.status, "completed"),
-            // Receitas são todos os tipos exceto "expense"
-            or(
-              eq(transactionsTable.type, "appointment_payment"),
-              eq(transactionsTable.type, "other"),
-            ),
+            // Receitas são apenas "appointment_payment"
+            eq(transactionsTable.type, "appointment_payment"),
           ),
         ),
 

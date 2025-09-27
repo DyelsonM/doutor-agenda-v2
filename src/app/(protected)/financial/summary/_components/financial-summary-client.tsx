@@ -4,12 +4,7 @@ import { FinancialSummary } from "../../reports/_components/financial-summary";
 
 interface TransactionData {
   id: string;
-  type:
-    | "appointment_payment"
-    | "subscription_payment"
-    | "refund"
-    | "expense"
-    | "other";
+  type: "appointment_payment" | "expense";
   description: string;
   amountInCents: number;
   paymentMethod:

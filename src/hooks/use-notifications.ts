@@ -26,16 +26,16 @@ export function useNotifications(options?: {
     execute(options || {});
   }, [shouldRefetch, optionsString]); // Use string version to avoid object reference issues
 
-  // Auto-refresh a cada 30 segundos para notificações não lidas
-  useEffect(() => {
-    if (options?.status === "unread" || !options?.status) {
-      const interval = setInterval(() => {
-        execute(options || {});
-      }, 30000); // 30 segundos
+  // Auto-refresh removido para evitar muitas requisições
+  // useEffect(() => {
+  //   if (options?.status === "unread" || !options?.status) {
+  //     const interval = setInterval(() => {
+  //       execute(options || {});
+  //     }, 30000); // 30 segundos
 
-      return () => clearInterval(interval);
-    }
-  }, [options?.status, optionsString]); // Use string version for consistency
+  //     return () => clearInterval(interval);
+  //   }
+  // }, [options?.status, optionsString]); // Use string version for consistency
 
   const refetch = () => {
     setShouldRefetch((prev) => !prev);
@@ -70,9 +70,13 @@ export function useMarkAllNotificationsAsRead() {
   };
 }
 
-// Hook para buscar apenas o contador de notificações não lidas
+// Hook otimizado para buscar apenas o contador de notificações não lidas
 export function useUnreadNotificationsCount() {
-  const { data } = useNotifications({ status: "unread", limit: 1 });
+  const { data, isLoading } = useNotifications({ status: "unread", limit: 1 });
+
+  // Retornar 0 se ainda está carregando para evitar estados inconsistentes
+  if (isLoading) return 0;
+
   return data?.unreadCount || 0;
 }
 

@@ -38,28 +38,41 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
-const addTransactionSchema = z.object({
-  type: z.enum(["appointment_payment", "refund", "expense", "other"]),
-  amount: z.number().min(0.01, "Valor deve ser maior que zero"),
-  description: z.string().min(1, "Descrição é obrigatória"),
-  paymentMethod: z.enum(["stripe", "cash", "pix", "bank_transfer", "other"]),
-  expenseCategory: z
-    .enum([
-      "rent",
-      "utilities",
-      "equipment",
-      "supplies",
-      "marketing",
-      "staff",
-      "colaborador",
-      "insurance",
-      "software",
-      "laboratory",
-      "shipping",
-      "other",
-    ])
-    .optional(),
-});
+const addTransactionSchema = z
+  .object({
+    type: z.enum(["appointment_payment", "expense"]),
+    amount: z.number().min(0.01, "Valor deve ser maior que zero"),
+    description: z.string().min(1, "Descrição é obrigatória"),
+    paymentMethod: z.enum(["stripe", "cash", "pix", "bank_transfer", "other"]),
+    expenseCategory: z
+      .enum([
+        "rent",
+        "utilities",
+        "equipment",
+        "supplies",
+        "marketing",
+        "staff",
+        "colaborador",
+        "insurance",
+        "software",
+        "laboratory",
+        "shipping",
+        "other",
+      ])
+      .optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.type === "expense" && !data.expenseCategory) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Categoria de despesa é obrigatória para despesas",
+      path: ["expenseCategory"],
+    },
+  );
 
 type AddTransactionFormData = z.infer<typeof addTransactionSchema>;
 
@@ -232,6 +245,7 @@ export function AddTransactionButton() {
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
+                    disabled={form.watch("type") !== "expense"}
                   >
                     <FormControl>
                       <SelectTrigger>

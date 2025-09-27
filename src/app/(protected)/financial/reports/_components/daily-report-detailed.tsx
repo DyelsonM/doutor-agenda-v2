@@ -101,8 +101,6 @@ export function DailyReportDetailed({
         return;
       }
 
-      console.log("Iniciando exportação PDF do relatório diário...");
-
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
       const margin = 20;
@@ -261,7 +259,6 @@ export function DailyReportDetailed({
 
       // Salvar arquivo
       const fileName = `relatorio-diario-${format(reportData.periodStart, "dd-MM-yyyy")}.pdf`;
-      console.log("Salvando arquivo:", fileName);
 
       doc.save(fileName);
       toast.success("Relatório diário exportado com sucesso!");

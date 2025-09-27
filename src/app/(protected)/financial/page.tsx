@@ -1,5 +1,11 @@
 import { and, count, desc, eq, gte, lte, sql, sum } from "drizzle-orm";
-import { AlertTriangle, DollarSign, FileText, TrendingUp } from "lucide-react";
+import {
+  AlertTriangle,
+  DollarSign,
+  FileText,
+  TrendingUp,
+  Calculator,
+} from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -198,11 +204,6 @@ const FinancialPage = async () => {
     999,
   );
 
-  // Debug: Log das datas de busca
-  console.log("=== DEBUG BACKEND ===");
-  console.log("Chart Start Date:", chartStartDate);
-  console.log("Chart End Date:", chartEndDate);
-
   const [revenueChartData, expenseChartData] = await Promise.all([
     // Receitas por dia (usando timezone local)
     db
@@ -242,26 +243,6 @@ const FinancialPage = async () => {
       .groupBy(sql`DATE(${transactionsTable.createdAt})`)
       .orderBy(sql`DATE(${transactionsTable.createdAt})`),
   ]);
-
-  // Debug: Log dos dados retornados do banco
-  console.log(
-    "Dados de receita do banco:",
-    revenueChartData.map((item) => ({
-      date: item.date,
-      dateType: typeof item.date,
-      dateString: item.date?.toString(),
-      amount: item.amount,
-    })),
-  );
-  console.log(
-    "Dados de despesa do banco:",
-    expenseChartData.map((item) => ({
-      date: item.date,
-      dateType: typeof item.date,
-      dateString: item.date?.toString(),
-      amount: item.amount,
-    })),
-  );
 
   // Calcular tendências comparando período atual vs anterior
   const calculateTrend = (current: number, previous: number) => {
@@ -328,6 +309,12 @@ const FinancialPage = async () => {
               </PageDescription>
             </PageHeaderContent>
             <PageActions>
+              <Link href="/daily-cash">
+                <Button variant="outline">
+                  <Calculator className="mr-2 h-4 w-4" />
+                  Caixa Diário
+                </Button>
+              </Link>
               <Link href="/financial/transactions">
                 <Button variant="outline">
                   <DollarSign className="mr-2 h-4 w-4" />

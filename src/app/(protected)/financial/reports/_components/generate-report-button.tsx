@@ -35,11 +35,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const generateReportSchema = z.object({
-  reportType: z.enum(["daily", "monthly", "yearly"]),
-  periodStart: z.date(),
-  periodEnd: z.date(),
-});
+const generateReportSchema = z
+  .object({
+    reportType: z.enum(["daily", "monthly", "yearly"]),
+    periodStart: z.date({
+      required_error: "Data de início é obrigatória",
+      invalid_type_error: "Data de início inválida",
+    }),
+    periodEnd: z.date({
+      required_error: "Data de fim é obrigatória",
+      invalid_type_error: "Data de fim inválida",
+    }),
+  })
+  .refine(
+    (data) => {
+      return data.periodStart <= data.periodEnd;
+    },
+    {
+      message: "Data de início deve ser anterior ou igual à data de fim",
+      path: ["periodEnd"],
+    },
+  );
 
 type GenerateReportFormData = z.infer<typeof generateReportSchema>;
 
@@ -57,7 +73,12 @@ export function GenerateReportButton() {
         router.refresh(); // Atualiza a página para mostrar o novo relatório
       },
       onError: ({ error }) => {
-        toast.error(error.serverError || "Erro ao gerar relatório");
+        console.error("Erro ao gerar relatório:", error);
+        toast.error(
+          error.serverError ||
+            error.validationErrors?.message ||
+            "Erro ao gerar relatório. Verifique os dados e tente novamente.",
+        );
       },
     },
   );
