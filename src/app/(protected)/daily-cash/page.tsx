@@ -47,6 +47,9 @@ const DailyCashPage = async () => {
     ),
     with: {
       operations: {
+        with: {
+          user: true,
+        },
         orderBy: [desc(cashOperationsTable.createdAt)],
         limit: 5,
       },
@@ -67,6 +70,9 @@ const DailyCashPage = async () => {
     with: {
       user: true,
       operations: {
+        with: {
+          user: true,
+        },
         orderBy: [desc(cashOperationsTable.createdAt)],
       },
     },

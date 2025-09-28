@@ -1,13 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Plus, Minus, Loader2, DollarSign } from "lucide-react";
-import { toast } from "sonner";
+import { DollarSign, Loader2, Minus, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAction } from "next-safe-action/hooks";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
+import { toast } from "sonner";
+import { z } from "zod";
 
+import { getOpenCashAction } from "@/actions/daily-cash";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -19,14 +24,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   PageActions,
   PageContainer,
@@ -36,12 +33,14 @@ import {
   PageHeaderContent,
   PageTitle,
 } from "@/components/ui/page-container";
-import { useAction } from "next-safe-action/hooks";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-
-import { getOpenCashAction } from "@/actions/daily-cash";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { formatCurrencyInCents } from "@/helpers/financial";
 import { useCashOperation } from "@/hooks/use-cash-operation";
 
@@ -52,6 +51,7 @@ const cashOperationSchema = z.object({
   paymentMethod: z.enum(["stripe", "cash", "pix", "bank_transfer", "other"]),
   customerName: z.string().optional(),
   customerCpf: z.string().optional(),
+  receiptNumber: z.string().optional(),
 });
 
 type CashOperationForm = z.infer<typeof cashOperationSchema>;
@@ -114,6 +114,7 @@ export default function CashOperationsPage() {
       paymentMethod: "cash",
       customerName: "",
       customerCpf: "",
+      receiptNumber: "",
     },
   });
 
@@ -161,6 +162,7 @@ export default function CashOperationsPage() {
     const metadata = {
       customerName: data.customerName || null,
       customerCpf: data.customerCpf || null,
+      receiptNumber: data.receiptNumber || null,
     };
 
     addOperation({
@@ -487,6 +489,24 @@ export default function CashOperationsPage() {
                           </FormItem>
                         )}
                       />
+
+                      <FormField
+                        control={form.control}
+                        name="receiptNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Número do Recibo (Opcional)</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder="EX: #0001234"
+                                disabled={isExecuting}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
                   </div>
 
@@ -588,7 +608,8 @@ export default function CashOperationsPage() {
                                 const metadata = JSON.parse(operation.metadata);
                                 if (
                                   metadata.customerName ||
-                                  metadata.customerCpf
+                                  metadata.customerCpf ||
+                                  metadata.receiptNumber
                                 ) {
                                   return (
                                     <div className="mt-2 space-y-1">
@@ -600,6 +621,11 @@ export default function CashOperationsPage() {
                                       {metadata.customerCpf && (
                                         <p className="text-sm text-blue-600">
                                           📋 CPF: {metadata.customerCpf}
+                                        </p>
+                                      )}
+                                      {metadata.receiptNumber && (
+                                        <p className="text-sm text-blue-600">
+                                          🧾 Recibo: {metadata.receiptNumber}
                                         </p>
                                       )}
                                     </div>

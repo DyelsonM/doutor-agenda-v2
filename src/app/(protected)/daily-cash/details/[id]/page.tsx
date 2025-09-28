@@ -34,6 +34,9 @@ export default async function CashDetailsPage({
     where: eq(dailyCashTable.id, id),
     with: {
       operations: {
+        with: {
+          user: true,
+        },
         orderBy: [dailyCashTable.createdAt],
       },
       user: true,

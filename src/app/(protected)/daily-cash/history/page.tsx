@@ -37,6 +37,9 @@ export default async function CashHistoryPage() {
     with: {
       user: true,
       operations: {
+        with: {
+          user: true,
+        },
         orderBy: [desc(cashOperationsTable.createdAt)],
       },
     },

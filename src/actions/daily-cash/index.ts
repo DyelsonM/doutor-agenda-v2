@@ -139,7 +139,11 @@ export const closeCashAction = actionClient
           eq(dailyCashTable.status, "open"),
         ),
         with: {
-          operations: true,
+          operations: {
+            with: {
+              user: true,
+            },
+          },
         },
       });
 
@@ -351,6 +355,9 @@ export const getOpenCashAction = actionClient
       ),
       with: {
         operations: {
+          with: {
+            user: true,
+          },
           orderBy: [desc(cashOperationsTable.createdAt)],
         },
         user: true,
@@ -427,7 +434,11 @@ export const deleteCashAction = actionClient
           eq(dailyCashTable.clinicId, clinicId),
         ),
         with: {
-          operations: true,
+          operations: {
+            with: {
+              user: true,
+            },
+          },
         },
       });
 
@@ -482,6 +493,9 @@ export const debugCashAction = actionClient
       ),
       with: {
         operations: {
+          with: {
+            user: true,
+          },
           orderBy: [desc(cashOperationsTable.createdAt)],
         },
         user: true,

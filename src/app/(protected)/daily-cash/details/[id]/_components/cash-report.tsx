@@ -3,7 +3,7 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import jsPDF from "jspdf";
-import { Download, FileText } from "lucide-react";
+import { Download, DollarSign, FileText, Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -430,6 +430,112 @@ export function CashReport({ cashData }: CashReportProps) {
                   <strong>Fechamento:</strong> {cashData.closingNotes}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Histórico de Operações */}
+          {cashData.operations && cashData.operations.length > 0 && (
+            <div>
+              <h4 className="mb-4 text-lg font-medium">
+                Histórico de Operações
+              </h4>
+              <div className="space-y-3">
+                {cashData.operations.map((operation: any) => {
+                  const isCashIn = operation.type === "cash_in";
+                  const typeLabel = isCashIn
+                    ? "Entrada"
+                    : operation.type === "cash_out"
+                      ? "Saída"
+                      : "Ajuste";
+
+                  const getTypeIcon = () => {
+                    switch (operation.type) {
+                      case "cash_in":
+                        return <Plus className="h-4 w-4 text-green-600" />;
+                      case "cash_out":
+                        return <Minus className="h-4 w-4 text-red-600" />;
+                      case "adjustment":
+                        return <DollarSign className="h-4 w-4 text-blue-600" />;
+                      default:
+                        return <DollarSign className="h-4 w-4 text-gray-600" />;
+                    }
+                  };
+
+                  return (
+                    <div
+                      key={operation.id}
+                      className="flex items-center justify-between rounded-lg border p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        {getTypeIcon()}
+                        <div>
+                          <p className="font-medium">{operation.description}</p>
+                          <div className="text-muted-foreground flex items-center gap-4 text-sm">
+                            <span>{typeLabel}</span>
+                            <span>
+                              {operation.createdAt
+                                ? format(
+                                    new Date(operation.createdAt),
+                                    "HH:mm",
+                                    { locale: ptBR },
+                                  )
+                                : "Horário não disponível"}
+                            </span>
+                            {operation.user?.name && (
+                              <span>• {operation.user.name}</span>
+                            )}
+                          </div>
+                          {/* Exibir informações do cliente se existirem */}
+                          {operation.metadata &&
+                            (() => {
+                              try {
+                                const metadata = JSON.parse(operation.metadata);
+                                if (
+                                  metadata.customerName ||
+                                  metadata.customerCpf ||
+                                  metadata.receiptNumber
+                                ) {
+                                  return (
+                                    <div className="mt-2 space-y-1">
+                                      {metadata.customerName && (
+                                        <p className="text-sm text-blue-600">
+                                          👤 {metadata.customerName}
+                                        </p>
+                                      )}
+                                      {metadata.customerCpf && (
+                                        <p className="text-sm text-blue-600">
+                                          📋 CPF: {metadata.customerCpf}
+                                        </p>
+                                      )}
+                                      {metadata.receiptNumber && (
+                                        <p className="text-sm text-blue-600">
+                                          🧾 Recibo: {metadata.receiptNumber}
+                                        </p>
+                                      )}
+                                    </div>
+                                  );
+                                }
+                              } catch (e) {
+                                // Ignorar erro de parsing
+                              }
+                              return null;
+                            })()}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p
+                          className={`font-semibold ${
+                            isCashIn ? "text-green-600" : "text-red-600"
+                          }`}
+                        >
+                          {isCashIn ? "+" : "-"}
+                          {formatCurrencyInCents(operation.amountInCents)}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
