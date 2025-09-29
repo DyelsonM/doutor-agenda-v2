@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { DollarSign, Loader2, Minus, Plus } from "lucide-react";
+import { DollarSign, Loader2, Minus, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
@@ -13,8 +13,20 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { getOpenCashAction } from "@/actions/daily-cash";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -48,7 +60,9 @@ const cashOperationSchema = z.object({
   type: z.enum(["cash_in", "cash_out", "adjustment"]),
   amount: z.number().min(0.01, "Valor deve ser maior que zero"),
   description: z.string().min(1, "Descrição é obrigatória"),
-  paymentMethod: z.enum(["stripe", "cash", "pix", "bank_transfer", "other"]),
+  paymentMethods: z
+    .array(z.enum(["stripe", "cash", "pix", "bank_transfer", "other"]))
+    .min(1, "Selecione pelo menos uma forma de pagamento"),
   customerName: z.string().optional(),
   customerCpf: z.string().optional(),
   receiptNumber: z.string().optional(),
@@ -100,6 +114,11 @@ const getPaymentMethodLabel = (method: string) => {
   }
 };
 
+const getPaymentMethodsLabels = (methods: string[]) => {
+  if (!methods || methods.length === 0) return "Não informado";
+  return methods.map(getPaymentMethodLabel).join(", ");
+};
+
 export default function CashOperationsPage() {
   const router = useRouter();
   const [cashData, setCashData] = useState<any>(null);
@@ -111,7 +130,7 @@ export default function CashOperationsPage() {
       type: "cash_in",
       amount: 0,
       description: "",
-      paymentMethod: "cash",
+      paymentMethods: ["cash"],
       customerName: "",
       customerCpf: "",
       receiptNumber: "",
@@ -138,23 +157,26 @@ export default function CashOperationsPage() {
     },
   });
 
-  const { addOperation, isExecuting } = useCashOperation({
-    onSuccess: () => {
-      // Resetar formulário mantendo o tipo de operação selecionado
-      const currentType = form.getValues("type");
-      form.reset({
-        type: currentType, // Manter o tipo atual
-        amount: 0,
-        description: "",
-        paymentMethod: "cash",
-        customerName: "",
-        customerCpf: "",
-        receiptNumber: "",
-      });
-      // Recarregar dados do caixa após operação
-      executeGetCash({});
-    },
-  });
+  const { addOperation, deleteOperation, isExecuting, isDeleting } =
+    useCashOperation({
+      onSuccess: () => {
+        // Resetar formulário mantendo o tipo de operação selecionado
+        const currentType = form.getValues("type");
+        const currentPaymentMethods = form.getValues("paymentMethods");
+        form.reset({
+          type: currentType, // Manter o tipo atual
+          amount: 0,
+          description: "",
+          paymentMethods:
+            currentPaymentMethods.length > 0 ? currentPaymentMethods : ["cash"],
+          customerName: "",
+          customerCpf: "",
+          receiptNumber: "",
+        });
+        // Recarregar dados do caixa após operação
+        executeGetCash({});
+      },
+    });
 
   useEffect(() => {
     executeGetCash({});
@@ -171,6 +193,7 @@ export default function CashOperationsPage() {
       type: data.type,
       amount: data.amount,
       description: data.description,
+      paymentMethods: data.paymentMethods,
     });
 
     const amountInCents = Math.round(data.amount * 100);
@@ -187,9 +210,13 @@ export default function CashOperationsPage() {
       type: data.type,
       amountInCents,
       description: data.description,
-      paymentMethod: data.paymentMethod,
+      paymentMethods: data.paymentMethods,
       metadata: JSON.stringify(metadata),
     });
+  };
+
+  const handleDeleteOperation = (operationId: string) => {
+    deleteOperation({ operationId });
   };
 
   if (isLoading) {
@@ -430,29 +457,58 @@ export default function CashOperationsPage() {
 
                     <FormField
                       control={form.control}
-                      name="paymentMethod"
-                      render={({ field }) => (
+                      name="paymentMethods"
+                      render={() => (
                         <FormItem>
-                          <FormLabel>Forma de Pagamento</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Selecione a forma" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="cash">Dinheiro</SelectItem>
-                              <SelectItem value="pix">PIX</SelectItem>
-                              <SelectItem value="stripe">Cartão</SelectItem>
-                              <SelectItem value="bank_transfer">
-                                Transferência
-                              </SelectItem>
-                              <SelectItem value="other">Outro</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <FormLabel>Formas de Pagamento</FormLabel>
+                          <div className="space-y-2">
+                            {[
+                              { value: "cash", label: "Dinheiro" },
+                              { value: "pix", label: "PIX" },
+                              { value: "stripe", label: "Cartão" },
+                              {
+                                value: "bank_transfer",
+                                label: "Transferência",
+                              },
+                              { value: "other", label: "Outro" },
+                            ].map((method) => (
+                              <FormField
+                                key={method.value}
+                                control={form.control}
+                                name="paymentMethods"
+                                render={({ field }) => (
+                                  <FormItem
+                                    key={method.value}
+                                    className="flex flex-row items-start space-y-0 space-x-3"
+                                  >
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value?.includes(
+                                          method.value,
+                                        )}
+                                        onCheckedChange={(checked) => {
+                                          return checked
+                                            ? field.onChange([
+                                                ...field.value,
+                                                method.value,
+                                              ])
+                                            : field.onChange(
+                                                field.value?.filter(
+                                                  (value) =>
+                                                    value !== method.value,
+                                                ),
+                                              );
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="text-sm font-normal">
+                                      {method.label}
+                                    </FormLabel>
+                                  </FormItem>
+                                )}
+                              />
+                            ))}
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -616,7 +672,25 @@ export default function CashOperationsPage() {
                                 })
                               : "Horário não disponível"}{" "}
                             - {getOperationTypeLabel(operation.type)} -{" "}
-                            {getPaymentMethodLabel(operation.paymentMethod)}
+                            {(() => {
+                              try {
+                                if (operation.metadata) {
+                                  const metadata = JSON.parse(
+                                    operation.metadata,
+                                  );
+                                  if (metadata.paymentMethods) {
+                                    return getPaymentMethodsLabels(
+                                      metadata.paymentMethods,
+                                    );
+                                  }
+                                }
+                              } catch (e) {
+                                // Fallback para o campo antigo
+                              }
+                              return getPaymentMethodLabel(
+                                operation.paymentMethod,
+                              );
+                            })()}
                           </p>
                           {/* Exibição das informações do cliente */}
                           {operation.metadata &&
@@ -655,19 +729,78 @@ export default function CashOperationsPage() {
                             })()}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p
-                          className={`text-lg font-semibold ${
-                            operation.type === "cash_in"
-                              ? "text-green-600"
-                              : operation.type === "cash_out"
-                                ? "text-red-600"
-                                : "text-blue-600"
-                          }`}
-                        >
-                          {operation.type === "cash_in" ? "+" : "-"}
-                          {formatCurrencyInCents(operation.amountInCents)}
-                        </p>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <p
+                            className={`text-lg font-semibold ${
+                              operation.type === "cash_in"
+                                ? "text-green-600"
+                                : operation.type === "cash_out"
+                                  ? "text-red-600"
+                                  : "text-blue-600"
+                            }`}
+                          >
+                            {operation.type === "cash_in" ? "+" : "-"}
+                            {formatCurrencyInCents(operation.amountInCents)}
+                          </p>
+                        </div>
+                        {/* Botão de exclusão - apenas para operações que podem ser excluídas */}
+                        {operation.type !== "opening" &&
+                          operation.type !== "closing" && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                  disabled={isDeleting}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Excluir Operação
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja excluir esta
+                                    operação? Esta ação não pode ser desfeita.
+                                    <br />
+                                    <br />
+                                    <strong>Operação:</strong>{" "}
+                                    {operation.description}
+                                    <br />
+                                    <strong>Valor:</strong>{" "}
+                                    {formatCurrencyInCents(
+                                      operation.amountInCents,
+                                    )}
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>
+                                    Cancelar
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() =>
+                                      handleDeleteOperation(operation.id)
+                                    }
+                                    className="bg-red-600 hover:bg-red-700"
+                                    disabled={isDeleting}
+                                  >
+                                    {isDeleting ? (
+                                      <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Excluindo...
+                                      </>
+                                    ) : (
+                                      "Excluir"
+                                    )}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
                       </div>
                     </div>
                   ))}

@@ -36,7 +36,9 @@ const cashOperationSchema = z.object({
     .min(1, "Valor deve ser maior que zero")
     .int("Valor deve ser um número inteiro"),
   description: z.string().min(1, "Descrição é obrigatória"),
-  paymentMethod: z.enum(["stripe", "cash", "pix", "bank_transfer", "other"]),
+  paymentMethods: z
+    .array(z.enum(["stripe", "cash", "pix", "bank_transfer", "other"]))
+    .min(1, "Selecione pelo menos uma forma de pagamento"),
   transactionId: z.string().uuid().optional(),
   metadata: z.string().optional(),
 });
@@ -217,7 +219,7 @@ export const addCashOperationAction = actionClient
         type,
         amountInCents,
         description,
-        paymentMethod,
+        paymentMethods,
         transactionId,
         metadata,
       } = data.parsedInput;
@@ -227,6 +229,7 @@ export const addCashOperationAction = actionClient
         type,
         amountInCents,
         description,
+        paymentMethods,
       });
 
       const session = await getAuthSession();
@@ -244,7 +247,7 @@ export const addCashOperationAction = actionClient
         throw new Error("Caixa não encontrado ou já fechado");
       }
 
-      // Criar operação
+      // Criar operação - armazenar múltiplas formas de pagamento como JSON
       const [operation] = await db
         .insert(cashOperationsTable)
         .values({
@@ -253,9 +256,12 @@ export const addCashOperationAction = actionClient
           type: type,
           amountInCents: amountInCents || 0,
           description: description,
-          paymentMethod: paymentMethod,
+          paymentMethod: paymentMethods[0] || "cash", // Campo obrigatório no banco, usar a primeira forma
           transactionId: transactionId,
-          metadata: metadata,
+          metadata: JSON.stringify({
+            ...(metadata ? JSON.parse(metadata) : {}),
+            paymentMethods: paymentMethods, // Armazenar todas as formas no metadata
+          }),
         })
         .returning();
 
@@ -431,6 +437,11 @@ const deleteCashSchema = z.object({
   cashId: z.string().min(1, "ID do caixa é obrigatório"),
 });
 
+// Schema para exclusão de operação de caixa
+const deleteCashOperationSchema = z.object({
+  operationId: z.string().min(1, "ID da operação é obrigatório"),
+});
+
 // Action para excluir caixa
 export const deleteCashAction = actionClient
   .schema(deleteCashSchema)
@@ -487,6 +498,79 @@ export const deleteCashAction = actionClient
       };
     } catch (error) {
       console.error("Error deleting cash:", error);
+      throw error;
+    }
+  });
+
+// Action para excluir operação de caixa
+export const deleteCashOperationAction = actionClient
+  .schema(deleteCashOperationSchema)
+  .action(async (data) => {
+    try {
+      // Extrair dados do parsedInput
+      const { operationId } = data.parsedInput;
+
+      const session = await getAuthSession();
+      const userId = session.user.id;
+      const clinicId = session.user.clinic.id;
+
+      // Buscar a operação para verificar se existe e pertence à clínica do usuário
+      const operation = await db.query.cashOperationsTable.findFirst({
+        where: eq(cashOperationsTable.id, operationId),
+        with: {
+          dailyCash: true,
+        },
+      });
+
+      if (!operation) {
+        throw new Error("Operação não encontrada");
+      }
+
+      // Verificar se a operação pertence à clínica do usuário
+      if (operation.dailyCash.clinicId !== clinicId) {
+        throw new Error("Você não tem permissão para excluir esta operação");
+      }
+
+      // Verificar se o caixa está aberto (só permite excluir operações de caixas abertos)
+      if (operation.dailyCash.status !== "open") {
+        throw new Error("Não é possível excluir operações de caixas fechados");
+      }
+
+      // Não permitir exclusão de operações de abertura/fechamento
+      if (operation.type === "opening" || operation.type === "closing") {
+        throw new Error(
+          "Não é possível excluir operações de abertura ou fechamento",
+        );
+      }
+
+      // Deletar a operação
+      await db
+        .delete(cashOperationsTable)
+        .where(eq(cashOperationsTable.id, operationId));
+
+      // Atualizar totais do caixa subtraindo o valor da operação excluída
+      if (operation.type === "cash_in") {
+        await db
+          .update(dailyCashTable)
+          .set({
+            totalCashIn: sql`${dailyCashTable.totalCashIn} - ${operation.amountInCents}`,
+          })
+          .where(eq(dailyCashTable.id, operation.dailyCashId));
+      } else if (operation.type === "cash_out") {
+        await db
+          .update(dailyCashTable)
+          .set({
+            totalCashOut: sql`${dailyCashTable.totalCashOut} - ${operation.amountInCents}`,
+          })
+          .where(eq(dailyCashTable.id, operation.dailyCashId));
+      }
+
+      return {
+        success: true,
+        data: { deletedOperationId: operationId },
+      };
+    } catch (error) {
+      console.error("Error deleting cash operation:", error);
       throw error;
     }
   });
