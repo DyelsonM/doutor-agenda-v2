@@ -140,7 +140,17 @@ export default function CashOperationsPage() {
 
   const { addOperation, isExecuting } = useCashOperation({
     onSuccess: () => {
-      form.reset();
+      // Resetar formulário mantendo o tipo de operação selecionado
+      const currentType = form.getValues("type");
+      form.reset({
+        type: currentType, // Manter o tipo atual
+        amount: 0,
+        description: "",
+        paymentMethod: "cash",
+        customerName: "",
+        customerCpf: "",
+        receiptNumber: "",
+      });
       // Recarregar dados do caixa após operação
       executeGetCash({});
     },
@@ -155,6 +165,13 @@ export default function CashOperationsPage() {
       toast.error("Dados do caixa não encontrados. Recarregue a página.");
       return;
     }
+
+    // Debug log para verificar o tipo sendo enviado
+    console.log("Operação sendo enviada:", {
+      type: data.type,
+      amount: data.amount,
+      description: data.description,
+    });
 
     const amountInCents = Math.round(data.amount * 100);
 
@@ -351,7 +368,7 @@ export default function CashOperationsPage() {
                           <FormLabel>Tipo de Operação</FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            value={field.value}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -419,7 +436,7 @@ export default function CashOperationsPage() {
                           <FormLabel>Forma de Pagamento</FormLabel>
                           <Select
                             onValueChange={field.onChange}
-                            defaultValue={field.value}
+                            value={field.value}
                           >
                             <FormControl>
                               <SelectTrigger>

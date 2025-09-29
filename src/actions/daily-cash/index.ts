@@ -222,6 +222,13 @@ export const addCashOperationAction = actionClient
         metadata,
       } = data.parsedInput;
 
+      // Debug log para verificar o tipo recebido
+      console.log("Backend recebeu operação:", {
+        type,
+        amountInCents,
+        description,
+      });
+
       const session = await getAuthSession();
       const userId = session.user.id;
 
@@ -253,13 +260,22 @@ export const addCashOperationAction = actionClient
         .returning();
 
       // Atualizar totais do caixa
-      const operationType = type === "cash_in" ? "totalCashIn" : "totalCashOut";
-      await db
-        .update(dailyCashTable)
-        .set({
-          [operationType]: sql`${dailyCashTable[operationType]} + ${amountInCents}`,
-        })
-        .where(eq(dailyCashTable.id, dailyCashId));
+      if (type === "cash_in") {
+        await db
+          .update(dailyCashTable)
+          .set({
+            totalCashIn: sql`${dailyCashTable.totalCashIn} + ${amountInCents}`,
+          })
+          .where(eq(dailyCashTable.id, dailyCashId));
+      } else if (type === "cash_out") {
+        await db
+          .update(dailyCashTable)
+          .set({
+            totalCashOut: sql`${dailyCashTable.totalCashOut} + ${amountInCents}`,
+          })
+          .where(eq(dailyCashTable.id, dailyCashId));
+      }
+      // Para 'adjustment', não atualizamos os totais separados
 
       return {
         success: true,
