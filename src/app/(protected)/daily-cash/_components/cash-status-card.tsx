@@ -5,6 +5,7 @@ import { ptBR } from "date-fns/locale";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { useEffect, useState } from "react";
 import {
   AlertCircle,
   CheckCircle,
@@ -53,6 +54,12 @@ interface CashStatusCardProps {
 }
 
 export function CashStatusCard({ cash }: CashStatusCardProps) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   if (!cash) {
     return (
       <Card>
@@ -128,11 +135,13 @@ export function CashStatusCard({ cash }: CashStatusCardProps) {
             )}
             {" - "}
             {cash.date
-              ? format(
-                  dayjs(cash.date).utc().tz("America/Sao_Paulo").toDate(),
-                  "dd/MM/yyyy",
-                  { locale: ptBR },
-                )
+              ? isClient
+                ? format(
+                    dayjs(cash.date).utc().tz("America/Sao_Paulo").toDate(),
+                    "dd/MM/yyyy",
+                    { locale: ptBR },
+                  )
+                : format(new Date(cash.date), "dd/MM/yyyy", { locale: ptBR })
               : "Data não disponível"}
           </div>
           <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
@@ -150,16 +159,20 @@ export function CashStatusCard({ cash }: CashStatusCardProps) {
               <p className="text-muted-foreground">Horário de abertura:</p>
               <p className="font-medium">
                 {cash.openingTime
-                  ? format(
-                      dayjs(cash.openingTime)
-                        .utc()
-                        .tz("America/Sao_Paulo")
-                        .toDate(),
-                      "HH:mm",
-                      {
+                  ? isClient
+                    ? format(
+                        dayjs(cash.openingTime)
+                          .utc()
+                          .tz("America/Sao_Paulo")
+                          .toDate(),
+                        "HH:mm",
+                        {
+                          locale: ptBR,
+                        },
+                      )
+                    : format(new Date(cash.openingTime), "HH:mm", {
                         locale: ptBR,
-                      },
-                    )
+                      })
                   : "Horário não disponível"}
               </p>
             </div>
@@ -171,16 +184,20 @@ export function CashStatusCard({ cash }: CashStatusCardProps) {
                 <p className="text-muted-foreground">Horário de fechamento:</p>
                 <p className="font-medium">
                   {cash.closingTime
-                    ? format(
-                        dayjs(cash.closingTime)
-                          .utc()
-                          .tz("America/Sao_Paulo")
-                          .toDate(),
-                        "HH:mm",
-                        {
+                    ? isClient
+                      ? format(
+                          dayjs(cash.closingTime)
+                            .utc()
+                            .tz("America/Sao_Paulo")
+                            .toDate(),
+                          "HH:mm",
+                          {
+                            locale: ptBR,
+                          },
+                        )
+                      : format(new Date(cash.closingTime), "HH:mm", {
                           locale: ptBR,
-                        },
-                      )
+                        })
                     : "Horário não disponível"}
                 </p>
               </div>

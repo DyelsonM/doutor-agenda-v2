@@ -3,6 +3,13 @@ import { ptBR } from "date-fns/locale";
 import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { Calendar, DollarSign, History, Plus } from "lucide-react";
 import Link from "next/link";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+// Configurar dayjs
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +27,7 @@ import { cashOperationsTable, dailyCashTable } from "@/db/schema";
 import { formatCurrencyInCents } from "@/helpers/financial";
 import { getAuthSession } from "@/lib/auth-utils";
 
-import { CashStatusCard } from "./_components/cash-status-card";
+import { CashStatusCardWrapper } from "./_components/cash-status-card-wrapper";
 import { DailyCashClient } from "./_components/daily-cash-client";
 import { RecentCashHistory } from "./_components/recent-cash-history";
 
@@ -34,10 +41,13 @@ const DailyCashPage = async () => {
   const clinicId = session.user.clinic.id;
 
   // Buscar caixa do dia atual
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const today = dayjs().tz("America/Sao_Paulo").startOf("day").utc().toDate();
+  const tomorrow = dayjs()
+    .tz("America/Sao_Paulo")
+    .add(1, "day")
+    .startOf("day")
+    .utc()
+    .toDate();
 
   const todayCash = await db.query.dailyCashTable.findFirst({
     where: and(
@@ -59,8 +69,12 @@ const DailyCashPage = async () => {
   });
 
   // Buscar histórico recente (últimos 7 dias)
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const sevenDaysAgo = dayjs()
+    .tz("America/Sao_Paulo")
+    .subtract(7, "day")
+    .startOf("day")
+    .utc()
+    .toDate();
 
   const recentHistory = await db.query.dailyCashTable.findMany({
     where: and(
@@ -113,7 +127,7 @@ const DailyCashPage = async () => {
           <div className="space-y-6">
             {/* Status do caixa atual ou botão para abrir */}
             {todayCash && todayCash.status === "open" ? (
-              <CashStatusCard cash={todayCash} />
+              <CashStatusCardWrapper cash={todayCash} />
             ) : (
               <Card className="border-2 border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-12">
