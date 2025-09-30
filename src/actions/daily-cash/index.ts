@@ -2,11 +2,18 @@
 
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { z } from "zod";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 
 import { db } from "@/db";
 import { cashOperationsTable, dailyCashTable } from "@/db/schema";
 import { getAuthSession } from "@/lib/auth-utils";
 import { actionClient } from "@/lib/next-safe-action";
+
+// Configurar dayjs
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Schema para abertura de caixa
 const openCashSchema = z.object({
@@ -63,10 +70,13 @@ export const openCashAction = actionClient
       const userId = session.user.id;
 
       // Verificar se já existe caixa aberto para hoje
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
+      // Usar timezone de São Paulo para garantir consistência
+      const today = dayjs().tz("America/Sao_Paulo").startOf("day").toDate();
+      const tomorrow = dayjs()
+        .tz("America/Sao_Paulo")
+        .add(1, "day")
+        .startOf("day")
+        .toDate();
 
       const existingCash = await db.query.dailyCashTable.findFirst({
         where: and(
@@ -89,7 +99,7 @@ export const openCashAction = actionClient
           userId,
           identifier: data.parsedInput.identifier,
           date: today,
-          openingTime: new Date(),
+          openingTime: dayjs().tz("America/Sao_Paulo").toDate(),
           openingAmount: data.parsedInput.openingAmount,
           openingNotes: data.parsedInput.openingNotes,
           status: "open",
@@ -302,14 +312,19 @@ export const getDailyCashAction = actionClient
 
     let targetDate: Date;
     if (data.date) {
-      targetDate = new Date(data.date);
+      targetDate = dayjs(data.date)
+        .tz("America/Sao_Paulo")
+        .startOf("day")
+        .toDate();
     } else {
-      targetDate = new Date();
+      targetDate = dayjs().tz("America/Sao_Paulo").startOf("day").toDate();
     }
-    targetDate.setHours(0, 0, 0, 0);
 
-    const nextDay = new Date(targetDate);
-    nextDay.setDate(nextDay.getDate() + 1);
+    const nextDay = dayjs(targetDate)
+      .tz("America/Sao_Paulo")
+      .add(1, "day")
+      .startOf("day")
+      .toDate();
 
     const cash = await db.query.dailyCashTable.findFirst({
       where: and(
@@ -345,14 +360,19 @@ export const getOpenCashAction = actionClient
 
     let targetDate: Date;
     if (data.date) {
-      targetDate = new Date(data.date);
+      targetDate = dayjs(data.date)
+        .tz("America/Sao_Paulo")
+        .startOf("day")
+        .toDate();
     } else {
-      targetDate = new Date();
+      targetDate = dayjs().tz("America/Sao_Paulo").startOf("day").toDate();
     }
-    targetDate.setHours(0, 0, 0, 0);
 
-    const nextDay = new Date(targetDate);
-    nextDay.setDate(nextDay.getDate() + 1);
+    const nextDay = dayjs(targetDate)
+      .tz("America/Sao_Paulo")
+      .add(1, "day")
+      .startOf("day")
+      .toDate();
 
     // Primeiro, vamos buscar qualquer caixa do dia para debug
     const anyCash = await db.query.dailyCashTable.findFirst({
