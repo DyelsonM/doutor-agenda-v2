@@ -70,12 +70,17 @@ export const openCashAction = actionClient
       const userId = session.user.id;
 
       // Verificar se já existe caixa aberto para hoje
-      // Usar timezone de São Paulo para garantir consistência
-      const today = dayjs().tz("America/Sao_Paulo").startOf("day").toDate();
+      // Usar UTC para armazenamento consistente
+      const today = dayjs()
+        .tz("America/Sao_Paulo")
+        .startOf("day")
+        .utc()
+        .toDate();
       const tomorrow = dayjs()
         .tz("America/Sao_Paulo")
         .add(1, "day")
         .startOf("day")
+        .utc()
         .toDate();
 
       const existingCash = await db.query.dailyCashTable.findFirst({
@@ -99,7 +104,7 @@ export const openCashAction = actionClient
           userId,
           identifier: data.parsedInput.identifier,
           date: today,
-          openingTime: dayjs().tz("America/Sao_Paulo").toDate(),
+          openingTime: dayjs().tz("America/Sao_Paulo").utc().toDate(),
           openingAmount: data.parsedInput.openingAmount,
           openingNotes: data.parsedInput.openingNotes,
           status: "open",
@@ -315,15 +320,21 @@ export const getDailyCashAction = actionClient
       targetDate = dayjs(data.date)
         .tz("America/Sao_Paulo")
         .startOf("day")
+        .utc()
         .toDate();
     } else {
-      targetDate = dayjs().tz("America/Sao_Paulo").startOf("day").toDate();
+      targetDate = dayjs()
+        .tz("America/Sao_Paulo")
+        .startOf("day")
+        .utc()
+        .toDate();
     }
 
     const nextDay = dayjs(targetDate)
       .tz("America/Sao_Paulo")
       .add(1, "day")
       .startOf("day")
+      .utc()
       .toDate();
 
     const cash = await db.query.dailyCashTable.findFirst({
@@ -363,15 +374,21 @@ export const getOpenCashAction = actionClient
       targetDate = dayjs(data.date)
         .tz("America/Sao_Paulo")
         .startOf("day")
+        .utc()
         .toDate();
     } else {
-      targetDate = dayjs().tz("America/Sao_Paulo").startOf("day").toDate();
+      targetDate = dayjs()
+        .tz("America/Sao_Paulo")
+        .startOf("day")
+        .utc()
+        .toDate();
     }
 
     const nextDay = dayjs(targetDate)
       .tz("America/Sao_Paulo")
       .add(1, "day")
       .startOf("day")
+      .utc()
       .toDate();
 
     // Primeiro, vamos buscar qualquer caixa do dia para debug
