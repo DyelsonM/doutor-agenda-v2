@@ -708,6 +708,7 @@ export const partnerExamsTable = pgTable("partner_exams", {
     .references(() => partnersTable.id, { onDelete: "cascade" }),
   code: text("code").notNull(), // Código ou sigla do exame
   name: text("name").notNull(), // Nome do exame
+  description: text("description"), // Descrição do exame
   popularPriceInCents: integer("popular_price_in_cents"), // Valor CL Popular
   particularPriceInCents: integer("particular_price_in_cents"), // Valor Particular
   createdAt: timestamp("created_at").defaultNow().notNull(),

@@ -25,6 +25,7 @@ const PartnersPage = async () => {
     with: {
       exams: true,
     },
+    orderBy: (table, { asc }) => [asc(table.companyName)],
   });
 
   return (

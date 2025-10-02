@@ -1,0 +1,1 @@
+ALTER TABLE "partner_exams" ADD COLUMN "description" text;

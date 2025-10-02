@@ -23,7 +23,7 @@ const PatientsPage = async () => {
   // Médicos podem atender qualquer paciente da clínica
   const patients = await db.query.patientsTable.findMany({
     where: eq(patientsTable.clinicId, session.user.clinic?.id ?? ""),
-    orderBy: (patients, { desc }) => [desc(patients.createdAt)],
+    orderBy: (patients, { asc }) => [asc(patients.name)],
   });
   return (
     <PageContainer>

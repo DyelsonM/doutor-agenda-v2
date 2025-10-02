@@ -34,6 +34,7 @@ import { useAction } from "next-safe-action/hooks";
 import UpsertPartnerForm from "./upsert-partner-form";
 import PartnerExamsTable from "./partner-exams-table";
 import AddPartnerExamButton from "./add-partner-exam-button";
+import ExportPartnerPdfButton from "./export-partner-pdf-button";
 
 type Partner = typeof partnersTable.$inferSelect & {
   exams: (typeof partnerExamsTable.$inferSelect)[];
@@ -102,6 +103,7 @@ const PartnersTableClient = ({ partners }: PartnersTableClientProps) => {
                 {partner.companyName}
               </CardTitle>
               <div className="flex gap-2">
+                <ExportPartnerPdfButton partner={partner} />
                 <Button
                   variant="outline"
                   size="sm"
@@ -144,9 +146,9 @@ const PartnersTableClient = ({ partners }: PartnersTableClientProps) => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="flex flex-col lg:flex-row">
               {/* Informações do Parceiro */}
-              <div className="space-y-4">
+              <div className="space-y-3 lg:w-1/3">
                 {/* Dados da Empresa */}
                 <div className="space-y-3">
                   <h4 className="text-muted-foreground text-sm font-medium tracking-wide uppercase">
@@ -252,7 +254,7 @@ const PartnersTableClient = ({ partners }: PartnersTableClientProps) => {
               </div>
 
               {/* Exames */}
-              <div className="space-y-3">
+              <div className="space-y-2 lg:w-2/3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-muted-foreground text-sm font-medium tracking-wide uppercase">
                     Exames ({partner.exams.length})

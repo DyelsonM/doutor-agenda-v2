@@ -91,6 +91,7 @@ const PartnerExamsTable = ({ partnerId, exams }: PartnerExamsTableProps) => {
             <TableRow>
               <TableHead>Código/Sigla</TableHead>
               <TableHead>Nome do Exame</TableHead>
+              <TableHead>Descrição</TableHead>
               <TableHead>CL Popular</TableHead>
               <TableHead>Particular</TableHead>
               <TableHead className="text-right">Ações</TableHead>
@@ -101,6 +102,12 @@ const PartnerExamsTable = ({ partnerId, exams }: PartnerExamsTableProps) => {
               <TableRow key={exam.id}>
                 <TableCell className="font-medium">{exam.code}</TableCell>
                 <TableCell>{exam.name}</TableCell>
+                <TableCell
+                  className="max-w-xs truncate"
+                  title={exam.description || ""}
+                >
+                  {exam.description || "-"}
+                </TableCell>
                 <TableCell>{formatPrice(exam.popularPriceInCents)}</TableCell>
                 <TableCell>
                   {formatPrice(exam.particularPriceInCents)}

@@ -24,6 +24,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { partnerExamsTable } from "@/db/schema";
 
 const formSchema = z.object({
@@ -33,6 +34,7 @@ const formSchema = z.object({
   name: z.string().trim().min(1, {
     message: "Nome do exame é obrigatório.",
   }),
+  description: z.string().trim().optional(),
   popularPriceInCents: z
     .number()
     .min(0, {
@@ -68,6 +70,7 @@ const UpsertPartnerExamForm = ({
     defaultValues: {
       code: exam?.code ?? "",
       name: exam?.name ?? "",
+      description: exam?.description ?? "",
       popularPriceInCents: exam?.popularPriceInCents
         ? exam.popularPriceInCents / 100
         : undefined,
@@ -82,6 +85,7 @@ const UpsertPartnerExamForm = ({
       form.reset({
         code: exam?.code ?? "",
         name: exam?.name ?? "",
+        description: exam?.description ?? "",
         popularPriceInCents: exam?.popularPriceInCents
           ? exam.popularPriceInCents / 100
           : undefined,
@@ -156,6 +160,25 @@ const UpsertPartnerExamForm = ({
                   <Input
                     className="w-full"
                     placeholder="Ex: Hemograma completo, Glicose, etc."
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Descrição</FormLabel>
+                <FormControl>
+                  <Textarea
+                    className="w-full"
+                    placeholder="Descreva o exame, instruções especiais, preparo necessário, etc."
+                    rows={3}
                     {...field}
                   />
                 </FormControl>

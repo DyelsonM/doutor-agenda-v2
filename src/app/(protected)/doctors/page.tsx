@@ -24,6 +24,7 @@ const DoctorsPage = async () => {
 
   const doctors = await db.query.doctorsTable.findMany({
     where: eq(doctorsTable.clinicId, session.user.clinic.id),
+    orderBy: (doctors, { asc }) => [asc(doctors.name)],
   });
   return (
     <PageContainer>

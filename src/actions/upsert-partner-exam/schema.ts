@@ -9,6 +9,7 @@ export const upsertPartnerExamSchema = z.object({
   name: z.string().trim().min(1, {
     message: "Nome do exame é obrigatório.",
   }),
+  description: z.string().trim().optional(),
   popularPriceInCents: z
     .number()
     .min(0, {

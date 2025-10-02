@@ -302,6 +302,13 @@
       "when": 1759014112525,
       "tag": "0042_worthless_rocket_racer",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1759431090017,
+      "tag": "0043_safe_imperial_guard",
+      "breakpoints": true
     }
   ]
 }
