@@ -55,6 +55,7 @@ export const exportDocumentAction = action
         type: document.type,
         title: document.title,
         content: document.content,
+        patientEvolution: document.patientEvolution,
         createdAt: document.createdAt,
         updatedAt: document.updatedAt,
       },

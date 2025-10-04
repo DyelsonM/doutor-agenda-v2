@@ -114,7 +114,7 @@ const DocumentPage = async ({ params }: DocumentPageProps) => {
 
       <PageContent>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
+          <div className="space-y-6 lg:col-span-2">
             <Card>
               <CardHeader>
                 <CardTitle>Conteúdo do Documento</CardTitle>
@@ -127,6 +127,21 @@ const DocumentPage = async ({ params }: DocumentPageProps) => {
                 </div>
               </CardContent>
             </Card>
+
+            {document.patientEvolution && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Evolução do Paciente</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose max-w-none">
+                    <pre className="font-sans text-sm leading-relaxed whitespace-pre-wrap">
+                      {document.patientEvolution}
+                    </pre>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           <div className="space-y-6">

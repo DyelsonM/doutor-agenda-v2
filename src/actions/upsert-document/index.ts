@@ -29,7 +29,8 @@ export const upsertDocumentAction = action
       redirect("/clinic-form");
     }
 
-    const { id, patientId, doctorId, type, title, content } = parsedInput;
+    const { id, patientId, doctorId, type, title, content, patientEvolution } =
+      parsedInput;
 
     if (id) {
       // Update existing document
@@ -41,6 +42,7 @@ export const upsertDocumentAction = action
           type,
           title,
           content,
+          patientEvolution,
           updatedAt: new Date(),
         })
         .where(eq(documentsTable.id, id));
@@ -56,6 +58,7 @@ export const upsertDocumentAction = action
         type,
         title,
         content,
+        patientEvolution,
       });
 
       revalidatePath("/documents");

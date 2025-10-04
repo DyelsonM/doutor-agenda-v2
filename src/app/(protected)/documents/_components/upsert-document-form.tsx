@@ -58,6 +58,7 @@ interface UpsertDocumentFormProps {
       | "other";
     title: string;
     content: string;
+    patientEvolution: string | null;
   };
   defaultValues?: {
     type?:
@@ -69,6 +70,7 @@ interface UpsertDocumentFormProps {
       | "other";
     title?: string;
     content?: string;
+    patientEvolution?: string;
   };
   onSuccess?: () => void;
 }
@@ -125,6 +127,7 @@ export function UpsertDocumentForm({
       selectedTemplateName || selectedPredefinedTemplate
         ? z.string().optional().or(z.literal(""))
         : z.string().min(1, "Conteúdo é obrigatório"),
+    patientEvolution: z.string().optional(),
   });
 
   const form = useForm<z.infer<typeof dynamicSchema>>({
@@ -136,6 +139,8 @@ export function UpsertDocumentForm({
       type: document?.type || defaultValues?.type || "anamnesis",
       title: document?.title || defaultValues?.title || "",
       content: document?.content || defaultValues?.content || "",
+      patientEvolution:
+        document?.patientEvolution || defaultValues?.patientEvolution || "",
     },
   });
 
@@ -525,6 +530,25 @@ export function UpsertDocumentForm({
             )}
           />
         )}
+
+        {/* Evolução do paciente - sempre visível */}
+        <FormField
+          control={form.control}
+          name="patientEvolution"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Evolução do paciente</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Digite a evolução do paciente..."
+                  className="min-h-[200px]"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="flex justify-end space-x-2">
           <Button type="submit" disabled={isExecuting}>

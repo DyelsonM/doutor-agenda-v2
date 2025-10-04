@@ -43,6 +43,7 @@ export type Document = {
     | "other";
   title: string;
   content: string;
+  patientEvolution: string | null;
   createdAt: Date;
   updatedAt: Date | null;
   patient: { id: string; name: string };

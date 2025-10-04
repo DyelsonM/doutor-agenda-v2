@@ -23,4 +23,5 @@ export const upsertDocumentSchema = z.object({
     .min(1, "Título é obrigatório")
     .max(255, "Título deve ter no máximo 255 caracteres"),
   content: z.string().min(1, "Conteúdo é obrigatório"),
+  patientEvolution: z.string().optional(),
 });

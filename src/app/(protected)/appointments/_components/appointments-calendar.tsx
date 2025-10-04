@@ -28,6 +28,16 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.locale("pt-br");
 
+// Função para formatar telefone
+const formatPhoneNumber = (phone: string) => {
+  if (!phone) return "-";
+  const cleaned = phone.replace(/\D/g, "");
+  if (cleaned.length === 11) {
+    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
+  }
+  return phone;
+};
+
 interface Doctor {
   id: string;
   name: string;
@@ -44,6 +54,7 @@ interface Appointment {
   isReturn: boolean;
   patient: {
     name: string;
+    phoneNumber: string;
   };
   doctor: {
     id: string;
@@ -323,7 +334,7 @@ export function AppointmentsCalendar({
                       <div
                         key={appointment.id}
                         className="bg-primary/10 truncate rounded p-1 text-xs"
-                        title={`${dayjs(appointment.date).utc().tz("America/Sao_Paulo").format("HH:mm")} - ${appointment.patient.name} ${Boolean(appointment.isReturn) ? "(Retorno)" : ""}`}
+                        title={`${dayjs(appointment.date).utc().tz("America/Sao_Paulo").format("HH:mm")} - ${appointment.patient.name} ${formatPhoneNumber(appointment.patient.phoneNumber)} ${Boolean(appointment.isReturn) ? "(Retorno)" : ""}`}
                       >
                         {dayjs(appointment.date)
                           .utc()
@@ -377,6 +388,7 @@ export function AppointmentsCalendar({
         selectedDate={selectedDay}
         doctor={selectedDoctorData || null}
         appointments={appointments}
+        userRole={userRole}
       />
     </Card>
   );

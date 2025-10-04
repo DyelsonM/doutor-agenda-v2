@@ -14,7 +14,36 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Clock, User, Calendar } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Clock,
+  User,
+  Calendar,
+  MoreVertical,
+  Edit,
+  Trash2,
+} from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { toast } from "sonner";
+import { deleteAppointment } from "@/actions/delete-appointment";
 import { getAvailableTimes } from "@/actions/get-available-times";
 import { getSpecialtyLabel } from "../../doctors/_constants";
 import { cn } from "@/lib/utils";
@@ -22,6 +51,16 @@ import { cn } from "@/lib/utils";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.locale("pt-br");
+
+// Função para formatar telefone
+const formatPhoneNumber = (phone: string) => {
+  if (!phone) return "-";
+  const cleaned = phone.replace(/\D/g, "");
+  if (cleaned.length === 11) {
+    return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
+  }
+  return phone;
+};
 
 interface Doctor {
   id: string;
@@ -39,6 +78,7 @@ interface Appointment {
   isReturn: boolean;
   patient: {
     name: string;
+    phoneNumber: string;
   };
   doctor: {
     id: string;
@@ -52,6 +92,7 @@ interface DayDetailsModalProps {
   selectedDate: dayjs.Dayjs | null;
   doctor: Doctor | null;
   appointments: Appointment[];
+  userRole: "admin" | "doctor";
 }
 
 export function DayDetailsModal({
@@ -60,9 +101,25 @@ export function DayDetailsModal({
   selectedDate,
   doctor,
   appointments,
+  userRole,
 }: DayDetailsModalProps) {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const deleteAppointmentAction = useAction(deleteAppointment, {
+    onSuccess: () => {
+      toast.success("Agendamento deletado com sucesso.");
+      // Recarregar a página para atualizar os dados
+      window.location.reload();
+    },
+    onError: () => {
+      toast.error("Erro ao deletar agendamento.");
+    },
+  });
+
+  const handleDeleteAppointment = (appointmentId: string) => {
+    deleteAppointmentAction.execute({ id: appointmentId });
+  };
 
   useEffect(() => {
     if (isOpen && selectedDate && doctor) {
@@ -247,7 +304,7 @@ export function DayDetailsModal({
                       key={appointment.id}
                       className="bg-muted flex items-center justify-between rounded-lg p-3"
                     >
-                      <div>
+                      <div className="flex-1">
                         <div className="font-medium">
                           {dayjs(appointment.date)
                             .utc()
@@ -255,7 +312,10 @@ export function DayDetailsModal({
                             .format("HH:mm")}
                         </div>
                         <div className="text-muted-foreground text-sm">
-                          {appointment.patient.name}
+                          <div>{appointment.patient.name}</div>
+                          <div className="text-xs">
+                            {formatPhoneNumber(appointment.patient.phoneNumber)}
+                          </div>
                           {Boolean(appointment.isReturn) && (
                             <span className="text-primary ml-2 font-medium">
                               (Retorno)
@@ -263,7 +323,68 @@ export function DayDetailsModal({
                           )}
                         </div>
                       </div>
-                      <Badge variant="secondary">Confirmado</Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">Confirmado</Badge>
+                        {userRole === "admin" && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>
+                                {appointment.patient.name}
+                              </DropdownMenuLabel>
+                              <DropdownMenuSeparator />
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <DropdownMenuItem
+                                    onSelect={(e) => e.preventDefault()}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Excluir
+                                  </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                      Tem certeza que deseja deletar esse
+                                      agendamento?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Essa ação não pode ser revertida. Isso irá
+                                      deletar o agendamento de{" "}
+                                      <strong>
+                                        {appointment.patient.name}
+                                      </strong>{" "}
+                                      permanentemente.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>
+                                      Cancelar
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() =>
+                                        handleDeleteAppointment(appointment.id)
+                                      }
+                                      disabled={
+                                        deleteAppointmentAction.isPending
+                                      }
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      {deleteAppointmentAction.isPending
+                                        ? "Deletando..."
+                                        : "Deletar"}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

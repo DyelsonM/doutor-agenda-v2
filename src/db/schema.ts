@@ -334,6 +334,7 @@ export const documentsTable = pgTable("documents", {
   type: documentTypeEnum("type").notNull(),
   title: text("title").notNull(),
   content: text("content").notNull(),
+  patientEvolution: text("patient_evolution"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

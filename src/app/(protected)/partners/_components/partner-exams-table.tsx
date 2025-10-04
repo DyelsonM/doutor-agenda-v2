@@ -98,7 +98,9 @@ const PartnerExamsTable = ({ partnerId, exams }: PartnerExamsTableProps) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {exams.map((exam) => (
+            {exams
+              .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+              .map((exam) => (
               <TableRow key={exam.id}>
                 <TableCell className="font-medium">{exam.code}</TableCell>
                 <TableCell>{exam.name}</TableCell>

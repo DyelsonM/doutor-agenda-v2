@@ -39,6 +39,7 @@ export interface ExportDocumentData {
     type: string;
     title: string;
     content: string;
+    patientEvolution: string | null;
     createdAt: Date;
     updatedAt: Date | null;
   };
@@ -225,6 +226,52 @@ export const exportToPDF = async (data: ExportDocumentData): Promise<void> => {
     yPosition += 2; // Espaçamento entre linhas
   }
 
+  // Evolução do paciente (se existir)
+  if (data.document.patientEvolution && data.document.patientEvolution.trim()) {
+    yPosition += 10;
+
+    // Verificar se precisa de nova página
+    if (yPosition > pageHeight - margin - 30) {
+      doc.addPage();
+      yPosition = margin;
+    }
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("EVOLUÇÃO DO PACIENTE", margin, yPosition);
+    yPosition += 10;
+
+    // Processar a evolução do paciente
+    const evolutionContent = data.document.patientEvolution;
+    const evolutionLines = evolutionContent.split("\n");
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+
+    for (const line of evolutionLines) {
+      // Verificar se precisa de nova página
+      if (yPosition > pageHeight - margin - 10) {
+        doc.addPage();
+        yPosition = margin;
+      }
+
+      // Processar linhas longas
+      const splitLines = doc.splitTextToSize(line, contentWidth);
+
+      for (const splitLine of splitLines) {
+        if (yPosition > pageHeight - margin - 10) {
+          doc.addPage();
+          yPosition = margin;
+        }
+
+        doc.text(splitLine, margin, yPosition);
+        yPosition += 5;
+      }
+
+      yPosition += 2; // Espaçamento entre linhas
+    }
+  }
+
   // Rodapé com data de criação
   const footerY = pageHeight - 15;
   doc.setFontSize(8);
@@ -268,6 +315,13 @@ export const exportToText = (data: ExportDocumentData): void => {
   content += "CONTEÚDO DO DOCUMENTO\n";
   content += "-".repeat(30) + "\n";
   content += data.document.content + "\n\n";
+
+  // Evolução do paciente (se existir)
+  if (data.document.patientEvolution && data.document.patientEvolution.trim()) {
+    content += "EVOLUÇÃO DO PACIENTE\n";
+    content += "-".repeat(30) + "\n";
+    content += data.document.patientEvolution + "\n\n";
+  }
 
   const createdAt = new Date(data.document.createdAt);
   content += `Documento criado em: ${createdAt.toLocaleString("pt-BR")}\n`;

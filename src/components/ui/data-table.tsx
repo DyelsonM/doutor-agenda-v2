@@ -8,7 +8,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { Input } from "@/components/ui/input";
 import {
@@ -34,6 +34,12 @@ export function DataTable<TData, TValue>({
   searchPlaceholder = "Pesquisar...",
 }: DataTableProps<TData, TValue>) {
   const [globalFilter, setGlobalFilter] = useState("");
+  const [isClient, setIsClient] = useState(false);
+
+  // Garantir que o componente só renderize no cliente para evitar problemas de hidratação
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const table = useReactTable({
     data,
@@ -42,7 +48,7 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      if (!searchKey) return true;
+      if (!searchKey || !filterValue) return true;
 
       const cellValue = row.getValue(searchKey) as string;
       if (!cellValue) return false;
@@ -53,6 +59,52 @@ export function DataTable<TData, TValue>({
       globalFilter,
     },
   });
+
+  // Não renderizar até que esteja no cliente
+  if (!isClient) {
+    return (
+      <div className="space-y-4">
+        {searchKey && (
+          <div className="relative max-w-sm">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+            <Input placeholder={searchPlaceholder} disabled className="pl-10" />
+          </div>
+        )}
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  Carregando...
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

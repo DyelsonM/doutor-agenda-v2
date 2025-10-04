@@ -23,7 +23,7 @@ Local e data: [Cidade], [ ] de [ ] de 20[ ]
 Assinatura e carimbo do médico: [ ]`,
   },
   {
-    id: "other-pcd",
+    id: "other-pcd-characterization",
     type: "other" as const,
     title: "Laudo Caracterizador de Deficiência",
     description: "Template padrão para laudo caracterizador de deficiência",
