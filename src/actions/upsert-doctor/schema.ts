@@ -20,6 +20,23 @@ export const upsertDoctorSchema = z
     availableToTime: z.string().min(1, {
       message: "Hora de término é obrigatória.",
     }),
+    // Informações pessoais opcionais
+    cpf: z.string().optional().or(z.literal("")),
+    rg: z.string().optional().or(z.literal("")),
+    birthDate: z.string().optional().or(z.literal("")),
+    address: z.string().optional().or(z.literal("")),
+    email: z
+      .string()
+      .email({
+        message: "Email inválido.",
+      })
+      .optional()
+      .or(z.literal("")),
+    phoneNumber: z.string().optional().or(z.literal("")),
+    // Registros profissionais opcionais
+    crmNumber: z.string().optional().or(z.literal("")),
+    rqe: z.string().optional().or(z.literal("")),
+    cro: z.string().optional().or(z.literal("")),
   })
   .refine(
     (data) => {

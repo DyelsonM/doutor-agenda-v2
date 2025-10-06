@@ -138,6 +138,7 @@ export const clinicsTableRelations = relations(clinicsTable, ({ many }) => ({
   transactions: many(transactionsTable),
   financialReports: many(financialReportsTable),
   payables: many(payablesTable),
+  receivables: many(receivablesTable),
   notifications: many(notificationsTable),
   goldClients: many(goldClientsTable),
   medicalSpecialties: many(medicalSpecialtiesTable),
@@ -155,6 +156,17 @@ export const doctorsTable = pgTable("doctors", {
   }),
   name: text("name").notNull(),
   avatarImageUrl: text("avatar_image_url"),
+  // Informações pessoais
+  cpf: text("cpf"),
+  rg: text("rg"),
+  birthDate: timestamp("birth_date"),
+  address: text("address"),
+  email: text("email"),
+  phoneNumber: text("phone_number"),
+  // Registros profissionais
+  crmNumber: text("crm_number"),
+  rqe: text("rqe"),
+  cro: text("cro"),
   // 1 - Monday, 2 - Tuesday, 3 - Wednesday, 4 - Thursday, 5 - Friday, 6 - Saturday, 0 - Sunday
   availableFromWeekDay: integer("available_from_week_day").notNull(),
   availableToWeekDay: integer("available_to_week_day").notNull(),
@@ -467,6 +479,26 @@ export const payableCategoryEnum = pgEnum("payable_category", [
   "other",
 ]);
 
+// Enums para contas a receber
+export const receivableStatusEnum = pgEnum("receivable_status", [
+  "pending",
+  "received",
+  "overdue",
+  "cancelled",
+]);
+
+export const receivableCategoryEnum = pgEnum("receivable_category", [
+  "consultation",
+  "procedure",
+  "examination",
+  "treatment",
+  "medication",
+  "equipment_rental",
+  "professional_service",
+  "insurance_reimbursement",
+  "other",
+]);
+
 // Tabela de contas a pagar
 export const payablesTable = pgTable("payables", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -495,6 +527,38 @@ export const payablesTableRelations = relations(payablesTable, ({ one }) => ({
     references: [clinicsTable.id],
   }),
 }));
+
+// Tabela de contas a receber
+export const receivablesTable = pgTable("receivables", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clinicId: uuid("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  description: text("description").notNull(),
+  amountInCents: integer("amount_in_cents").notNull(),
+  category: receivableCategoryEnum("category").notNull(),
+  status: receivableStatusEnum("status").notNull().default("pending"),
+  dueDate: timestamp("due_date").notNull(),
+  receivedDate: timestamp("received_date"),
+  patientName: text("patient_name"),
+  patientDocument: text("patient_document"), // CPF/CNPJ
+  invoiceNumber: text("invoice_number"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
+export const receivablesTableRelations = relations(
+  receivablesTable,
+  ({ one }) => ({
+    clinic: one(clinicsTable, {
+      fields: [receivablesTable.clinicId],
+      references: [clinicsTable.id],
+    }),
+  }),
+);
 
 // Enums para notificações - usando os tipos já existentes
 export const notificationStatusEnum = pgEnum("notification_status", [

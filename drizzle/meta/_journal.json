@@ -316,6 +316,13 @@
       "when": 1759592017642,
       "tag": "0044_friendly_hardball",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1759794463849,
+      "tag": "0045_secret_paibok",
+      "breakpoints": true
     }
   ]
 }

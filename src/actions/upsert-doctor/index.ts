@@ -24,6 +24,11 @@ export const upsertDoctor = actionClient
     const availableFromTimeFormatted = availableFromTime;
     const availableToTimeFormatted = availableToTime;
 
+    // Converter data de nascimento se fornecida
+    const birthDate = parsedInput.birthDate
+      ? dayjs(parsedInput.birthDate).toDate()
+      : null;
+
     const session = await auth.api.getSession({
       headers: await headers(),
     });
@@ -33,22 +38,32 @@ export const upsertDoctor = actionClient
     if (!session?.user.clinic?.id) {
       throw new Error("Clinic not found");
     }
+
+    // Preparar dados para inserção/atualização
+    const doctorData = {
+      ...parsedInput,
+      id: parsedInput.id,
+      clinicId: session?.user.clinic?.id,
+      availableFromTime: availableFromTimeFormatted,
+      availableToTime: availableToTimeFormatted,
+      birthDate,
+      // Limpar campos vazios
+      cpf: parsedInput.cpf || null,
+      rg: parsedInput.rg || null,
+      address: parsedInput.address || null,
+      email: parsedInput.email || null,
+      phoneNumber: parsedInput.phoneNumber || null,
+      crmNumber: parsedInput.crmNumber || null,
+      rqe: parsedInput.rqe || null,
+      cro: parsedInput.cro || null,
+    };
+
     await db
       .insert(doctorsTable)
-      .values({
-        ...parsedInput,
-        id: parsedInput.id,
-        clinicId: session?.user.clinic?.id,
-        availableFromTime: availableFromTimeFormatted,
-        availableToTime: availableToTimeFormatted,
-      })
+      .values(doctorData)
       .onConflictDoUpdate({
         target: [doctorsTable.id],
-        set: {
-          ...parsedInput,
-          availableFromTime: availableFromTimeFormatted,
-          availableToTime: availableToTimeFormatted,
-        },
+        set: doctorData,
       });
     revalidatePath("/doctors");
   });

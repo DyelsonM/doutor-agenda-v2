@@ -327,6 +327,12 @@ const FinancialPage = async () => {
                   Contas a Pagar
                 </Button>
               </Link>
+              <Link href="/financial/receivables">
+                <Button variant="outline">
+                  <TrendingUp className="mr-2 h-4 w-4" />
+                  Contas a Receber
+                </Button>
+              </Link>
               <Link href="/financial/reports">
                 <Button variant="outline">
                   <FileText className="mr-2 h-4 w-4" />
@@ -342,7 +348,7 @@ const FinancialPage = async () => {
               <FinancialSummaryCards stats={financialStats} />
 
               {/* Navegação rápida */}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <Link href="/financial/transactions">
                   <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -377,6 +383,23 @@ const FinancialPage = async () => {
                       <p className="text-muted-foreground text-xs">
                         {financialStats.pendingPayablesCount} pendentes,{" "}
                         {financialStats.overduePayablesCount} vencidas
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+
+                <Link href="/financial/receivables">
+                  <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        Contas a Receber
+                      </CardTitle>
+                      <TrendingUp className="text-muted-foreground h-4 w-4" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">R$ 0,00</div>
+                      <p className="text-muted-foreground text-xs">
+                        Gerencie recebimentos
                       </p>
                     </CardContent>
                   </Card>

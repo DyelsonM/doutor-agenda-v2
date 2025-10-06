@@ -4,3 +4,10 @@ export const formatCurrencyInCents = (amount: number) => {
     currency: "BRL",
   }).format(amount / 100);
 };
+
+export const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(amount);
+};

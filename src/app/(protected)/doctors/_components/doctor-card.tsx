@@ -6,6 +6,7 @@ import {
   DollarSignIcon,
   TrashIcon,
   UserPlus,
+  Eye,
 } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
@@ -42,6 +43,7 @@ import { getAvailability } from "../_helpers/availability";
 import { CreateDoctorUserDialog } from "./create-doctor-user-dialog";
 import { ManageDoctorCredentials } from "./manage-doctor-credentials";
 import UpsertDoctorForm from "./upsert-doctor-form";
+import ViewDoctorDialog from "./view-doctor-dialog";
 
 interface DoctorCardProps {
   doctor: typeof doctorsTable.$inferSelect;
@@ -50,6 +52,7 @@ interface DoctorCardProps {
 const DoctorCard = ({ doctor }: DoctorCardProps) => {
   const [isUpsertDoctorDialogOpen, setIsUpsertDoctorDialogOpen] =
     useState(false);
+  const [isViewDoctorDialogOpen, setIsViewDoctorDialogOpen] = useState(false);
   const deleteDoctorAction = useAction(deleteDoctor, {
     onSuccess: () => {
       toast.success("Médico deletado com sucesso.");
@@ -102,23 +105,38 @@ const DoctorCard = ({ doctor }: DoctorCardProps) => {
       </CardContent>
       <Separator />
       <CardFooter className="flex flex-col gap-2">
-        <Dialog
-          open={isUpsertDoctorDialogOpen}
-          onOpenChange={setIsUpsertDoctorDialogOpen}
-        >
-          <DialogTrigger asChild>
-            <Button className="w-full">Ver detalhes</Button>
-          </DialogTrigger>
-          <UpsertDoctorForm
-            doctor={{
-              ...doctor,
-              availableFromTime: availability.from.format("HH:mm:ss"),
-              availableToTime: availability.to.format("HH:mm:ss"),
-            }}
-            onSuccess={() => setIsUpsertDoctorDialogOpen(false)}
-            isOpen={isUpsertDoctorDialogOpen}
-          />
-        </Dialog>
+        <div className="grid w-full grid-cols-2 gap-2">
+          <Dialog
+            open={isViewDoctorDialogOpen}
+            onOpenChange={setIsViewDoctorDialogOpen}
+          >
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full gap-2">
+                <Eye className="h-4 w-4" />
+                Ver
+              </Button>
+            </DialogTrigger>
+            <ViewDoctorDialog doctor={doctor} />
+          </Dialog>
+
+          <Dialog
+            open={isUpsertDoctorDialogOpen}
+            onOpenChange={setIsUpsertDoctorDialogOpen}
+          >
+            <DialogTrigger asChild>
+              <Button className="w-full gap-2">Editar</Button>
+            </DialogTrigger>
+            <UpsertDoctorForm
+              doctor={{
+                ...doctor,
+                availableFromTime: availability.from.format("HH:mm:ss"),
+                availableToTime: availability.to.format("HH:mm:ss"),
+              }}
+              onSuccess={() => setIsUpsertDoctorDialogOpen(false)}
+              isOpen={isUpsertDoctorDialogOpen}
+            />
+          </Dialog>
+        </div>
 
         {!doctor.userId ? (
           <CreateDoctorUserDialog
