@@ -76,7 +76,7 @@ export default function PayablesPageClient() {
   useEffect(() => {
     getPayables({
       page: 1,
-      limit: 20,
+      limit: 100,
       status: filters.status,
       category: filters.category,
       startDate: filters.startDate,
@@ -87,7 +87,7 @@ export default function PayablesPageClient() {
   const handleRefresh = () => {
     getPayables({
       page: 1,
-      limit: 20,
+      limit: 100,
       status: filters.status,
       category: filters.category,
       startDate: filters.startDate,
@@ -99,7 +99,7 @@ export default function PayablesPageClient() {
     setFilters(newFilters);
     getPayables({
       page: 1,
-      limit: 20,
+      limit: 100,
       status: newFilters.status,
       category: newFilters.category,
       startDate: newFilters.startDate,
