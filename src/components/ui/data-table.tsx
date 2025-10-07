@@ -24,6 +24,7 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   searchKey?: string;
+  searchKeys?: string[];
   searchPlaceholder?: string;
   maxHeight?: string;
 }
@@ -32,6 +33,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey,
+  searchKeys,
   searchPlaceholder = "Pesquisar...",
   maxHeight = "600px",
 }: DataTableProps<TData, TValue>) {
@@ -50,12 +52,33 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      if (!searchKey || !filterValue) return true;
+      if (!filterValue) return true;
 
-      const cellValue = row.getValue(searchKey) as string;
-      if (!cellValue) return false;
+      // Função auxiliar para obter valor de campo aninhado
+      const getNestedValue = (obj: any, keyPath: string) => {
+        const keys = keyPath.split(".");
+        let value = obj;
 
-      return cellValue.toLowerCase().includes(filterValue.toLowerCase());
+        for (const key of keys) {
+          value = value?.[key];
+          if (value === undefined || value === null) return null;
+        }
+
+        return value;
+      };
+
+      // Se searchKeys for fornecido, pesquisar em todos os campos
+      const keysToSearch = searchKeys || (searchKey ? [searchKey] : []);
+
+      if (keysToSearch.length === 0) return true;
+
+      // Verificar se o valor de pesquisa está presente em qualquer um dos campos
+      return keysToSearch.some((key) => {
+        const cellValue = getNestedValue(row.original, key);
+        if (typeof cellValue !== "string") return false;
+
+        return cellValue.toLowerCase().includes(filterValue.toLowerCase());
+      });
     },
     state: {
       globalFilter,
@@ -66,7 +89,7 @@ export function DataTable<TData, TValue>({
   if (!isClient) {
     return (
       <div className="space-y-4">
-        {searchKey && (
+        {(searchKey || searchKeys) && (
           <div className="relative max-w-sm">
             <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
             <Input placeholder={searchPlaceholder} disabled className="pl-10" />
@@ -113,7 +136,7 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       {/* Campo de pesquisa */}
-      {searchKey && (
+      {(searchKey || searchKeys) && (
         <div className="relative max-w-sm">
           <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input

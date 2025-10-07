@@ -37,8 +37,14 @@ export function AppointmentsTableClient({
     <DataTable
       data={appointments}
       columns={getAppointmentsTableColumns(userRole, patients, doctors)}
-      searchKey="patient.name"
-      searchPlaceholder="Pesquisar agendamentos por paciente..."
+      searchKeys={[
+        "patient.name",
+        "patient.phoneNumber",
+        "doctor.name",
+        "modality",
+      ]}
+      searchPlaceholder="Pesquisar agendamentos por paciente, médico, telefone ou modalidade..."
+      maxHeight="70vh"
     />
   );
 }
