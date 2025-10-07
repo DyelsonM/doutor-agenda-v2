@@ -29,12 +29,18 @@ export const getAppointmentModalitiesByCategory = async () => {
   // Agrupar por categoria
   const modalitiesByCategory = modalities.reduce(
     (acc, modality) => {
+      // Verificar se a modalidade tem os campos necessários
+      if (!modality.category || !modality.code || !modality.name) {
+        console.warn("Modalidade com dados incompletos:", modality);
+        return acc;
+      }
+
       if (!acc[modality.category]) {
         acc[modality.category] = [];
       }
       acc[modality.category].push({
-        code: modality.code,
-        name: modality.name,
+        code: modality.code.trim(),
+        name: modality.name.trim(),
       });
       return acc;
     },
@@ -42,11 +48,21 @@ export const getAppointmentModalitiesByCategory = async () => {
   );
 
   // Converter para o formato esperado pelos componentes
-  return Object.entries(modalitiesByCategory).map(
-    ([categoryName, modalities]) => ({
-      categoryKey: categoryName.toLowerCase().replace(/\s+/g, "_"),
-      categoryName,
-      modalities,
-    }),
-  );
+  return Object.entries(modalitiesByCategory)
+    .filter(([categoryName, modalities]) => {
+      // Filtrar categorias vazias ou com dados inválidos
+      return categoryName && modalities && modalities.length > 0;
+    })
+    .map(([categoryName, modalities]) => ({
+      categoryKey: categoryName.toLowerCase().replace(/\s+/g, "_").trim(),
+      categoryName: categoryName.trim(),
+      modalities: modalities.filter(
+        (modality) =>
+          modality.code &&
+          modality.name &&
+          modality.code.trim() &&
+          modality.name.trim(),
+      ),
+    }))
+    .filter((category) => category.modalities.length > 0); // Filtrar categorias sem modalidades válidas
 };

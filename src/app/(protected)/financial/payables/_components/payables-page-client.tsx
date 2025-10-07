@@ -146,6 +146,7 @@ export default function PayablesPageClient() {
         <DataTable
           columns={payablesTableColumns({ onRefresh: handleRefresh })}
           data={rows || []}
+          maxHeight="70vh"
         />
       </PageContent>
 
