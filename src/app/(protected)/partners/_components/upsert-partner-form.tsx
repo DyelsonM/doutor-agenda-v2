@@ -365,7 +365,7 @@ const UpsertPartnerForm = ({
                   <FormLabel>Data de Pagamentos</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value || ""}
                   >
                     <FormControl>
                       <SelectTrigger className="w-full">
@@ -392,7 +392,7 @@ const UpsertPartnerForm = ({
                   <FormLabel>Tipo da Chave PIX</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value || ""}
                   >
                     <FormControl>
                       <SelectTrigger className="w-full">

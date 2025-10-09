@@ -8,7 +8,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Search } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import {
@@ -92,7 +92,12 @@ export function DataTable<TData, TValue>({
         {(searchKey || searchKeys) && (
           <div className="relative max-w-sm">
             <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <Input placeholder={searchPlaceholder} disabled className="pl-10" />
+            <Input
+              placeholder={searchPlaceholder}
+              value=""
+              disabled
+              className="pl-10"
+            />
           </div>
         )}
         <div className="rounded-md border">

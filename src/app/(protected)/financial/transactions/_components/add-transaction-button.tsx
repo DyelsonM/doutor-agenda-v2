@@ -143,10 +143,7 @@ export function AddTransactionButton() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Tipo de Transação</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o tipo" />
@@ -212,10 +209,7 @@ export function AddTransactionButton() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Método de Pagamento</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o método" />
@@ -244,7 +238,7 @@ export function AddTransactionButton() {
                   <FormLabel>Categoria de Despesa</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value || ""}
                     disabled={form.watch("type") !== "expense"}
                   >
                     <FormControl>

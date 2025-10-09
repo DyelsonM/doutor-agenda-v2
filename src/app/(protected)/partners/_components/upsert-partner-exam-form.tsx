@@ -73,10 +73,10 @@ const UpsertPartnerExamForm = ({
       description: exam?.description ?? "",
       popularPriceInCents: exam?.popularPriceInCents
         ? exam.popularPriceInCents / 100
-        : undefined,
+        : 0,
       particularPriceInCents: exam?.particularPriceInCents
         ? exam.particularPriceInCents / 100
-        : undefined,
+        : 0,
     },
   });
 
@@ -88,10 +88,10 @@ const UpsertPartnerExamForm = ({
         description: exam?.description ?? "",
         popularPriceInCents: exam?.popularPriceInCents
           ? exam.popularPriceInCents / 100
-          : undefined,
+          : 0,
         particularPriceInCents: exam?.particularPriceInCents
           ? exam.particularPriceInCents / 100
-          : undefined,
+          : 0,
       });
     }
   }, [isOpen, form, exam]);
@@ -111,12 +111,14 @@ const UpsertPartnerExamForm = ({
       ...values,
       id: exam?.id,
       partnerId,
-      popularPriceInCents: values.popularPriceInCents
-        ? Math.round(values.popularPriceInCents * 100)
-        : undefined,
-      particularPriceInCents: values.particularPriceInCents
-        ? Math.round(values.particularPriceInCents * 100)
-        : undefined,
+      popularPriceInCents:
+        values.popularPriceInCents && values.popularPriceInCents > 0
+          ? Math.round(values.popularPriceInCents * 100)
+          : undefined,
+      particularPriceInCents:
+        values.particularPriceInCents && values.particularPriceInCents > 0
+          ? Math.round(values.particularPriceInCents * 100)
+          : undefined,
     });
   };
 
