@@ -143,8 +143,6 @@ const ExamQuotesClient = ({ partners }: ExamQuotesClientProps) => {
               {patientName && `Paciente: ${patientName}`}
               <br />
               Tipo: {clientType === "popular" ? "CL Popular" : "Particular"}
-              <br />
-              Data: {new Date().toLocaleDateString("pt-BR")}
             </CardDescription>
           </CardHeader>
           <CardContent>
