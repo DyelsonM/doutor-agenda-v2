@@ -87,7 +87,7 @@ Este documento detalha as otimizações de performance implementadas no sistema 
 - Documents: Limite de 200 mais recentes + contador total
 - Patients: Limite de 500 + ordenação por nome
 - Doctors: Limite de 100 + ordenação por nome
-- **Appointments: Filtro de data (últimos 3 meses + próximos 6 meses)** + apenas campos necessários
+- **Appointments: Filtro de data (últimos 6 meses + próximos 12 meses)** + apenas campos necessários
   - Reduz drasticamente o volume de dados carregados no calendário
   - Seleciona apenas campos essenciais em patient e doctor (id, name, phoneNumber, sex, specialty)
 
@@ -97,6 +97,7 @@ Este documento detalha as otimizações de performance implementadas no sistema 
 - `src/app/(protected)/patients/page.tsx`
 - `src/app/(protected)/doctors/page.tsx`
 - `src/app/(protected)/appointments/page.tsx` - **Otimização crítica para calendário**
+- `src/app/(protected)/appointments/_components/appointments-calendar.tsx` - **Melhorias visuais**
 - `src/helpers/pagination.ts` (criado)
 
 **Impacto:** ⭐⭐⭐⭐⭐ (Crítico para calendário)
@@ -309,6 +310,7 @@ idx_users_clinics_user          (user_id)
 - [x] Cache do dashboard implementado
 - [x] useEffect corrigidos
 - [x] React.memo adicionado
+- [x] Calendário de agendamentos melhorado
 
 **Status:** ✅ **TODAS AS OTIMIZAÇÕES IMPLEMENTADAS COM SUCESSO**
 

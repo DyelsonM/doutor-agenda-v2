@@ -8,7 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 
 import { getAvailableTimes } from "@/actions/get-available-times";
 import { Button } from "@/components/ui/button";
@@ -114,10 +114,13 @@ export function AppointmentsCalendar({
               doctorId: selectedDoctor,
               date: date.format("YYYY-MM-DD"),
             });
-            
+
             // Extrair horários disponíveis do resultado
             let availableTimeStrings: string[] = [];
-            if (availableTimesForDate?.data && Array.isArray(availableTimesForDate.data)) {
+            if (
+              availableTimesForDate?.data &&
+              Array.isArray(availableTimesForDate.data)
+            ) {
               availableTimeStrings = availableTimesForDate.data
                 .filter((item) => item.available)
                 .map((item) => item.value);
@@ -126,7 +129,7 @@ export function AppointmentsCalendar({
                 .filter((item) => item.available)
                 .map((item) => item.value);
             }
-            
+
             times[date.format("YYYY-MM-DD")] = availableTimeStrings;
           } catch (error) {
             console.error(
@@ -175,7 +178,6 @@ export function AppointmentsCalendar({
       }
     });
   };
-
 
   // Gerar dias do mês
   const generateCalendarDays = () => {
@@ -277,7 +279,8 @@ export function AppointmentsCalendar({
             const isCurrentMonth = day.isSame(currentDate, "month");
             const isToday = day.isSame(dayjs(), "day");
             const isPast = day.isBefore(dayjs(), "day");
-            const hasAvailableSlots = availableTimes[dateStr] && availableTimes[dateStr].length > 0;
+            const hasAvailableSlots =
+              availableTimes[dateStr] && availableTimes[dateStr].length > 0;
 
             return (
               <div
@@ -285,28 +288,35 @@ export function AppointmentsCalendar({
                 onClick={() => handleDayClick(day)}
                 className={cn(
                   "group relative min-h-[120px] cursor-pointer rounded-lg border-2 p-3 text-sm transition-all duration-200 hover:shadow-lg",
-                  !isCurrentMonth && "text-muted-foreground bg-muted/20 border-muted/30",
-                  isCurrentMonth && !isToday && "bg-background border-border hover:border-primary/50",
+                  !isCurrentMonth &&
+                    "text-muted-foreground bg-muted/20 border-muted/30",
+                  isCurrentMonth &&
+                    !isToday &&
+                    "bg-background border-border hover:border-primary/50",
                   isToday && "bg-primary/5 border-primary shadow-md",
                   isPast && "opacity-60",
-                  dayAppointments.length > 0 && "bg-blue-50/50 border-blue-200",
-                  hasAvailableSlots && dayAppointments.length === 0 && "bg-green-50/50 border-green-200",
+                  dayAppointments.length > 0 && "border-blue-200 bg-blue-50/50",
+                  hasAvailableSlots &&
+                    dayAppointments.length === 0 &&
+                    "border-green-200 bg-green-50/50",
                 )}
               >
                 {/* Número do dia */}
-                <div className={cn(
-                  "mb-2 font-semibold text-base",
-                  isToday && "text-primary",
-                  isCurrentMonth && !isToday && "text-foreground",
-                  !isCurrentMonth && "text-muted-foreground"
-                )}>
+                <div
+                  className={cn(
+                    "mb-2 text-base font-semibold",
+                    isToday && "text-primary",
+                    isCurrentMonth && !isToday && "text-foreground",
+                    !isCurrentMonth && "text-muted-foreground",
+                  )}
+                >
                   {day.format("D")}
                 </div>
 
                 {/* Indicadores de status */}
                 <div className="space-y-1">
                   {loading ? (
-                    <div className="text-muted-foreground text-xs animate-pulse">
+                    <div className="text-muted-foreground animate-pulse text-xs">
                       Carregando...
                     </div>
                   ) : (
@@ -315,31 +325,33 @@ export function AppointmentsCalendar({
                       {hasAvailableSlots && (
                         <div className="flex items-center gap-1">
                           <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                          <span className="text-green-700 text-xs font-medium">
+                          <span className="text-xs font-medium text-green-700">
                             {availableTimes[dateStr].length} horários
                           </span>
                         </div>
                       )}
-                      
+
                       {/* Agendamentos confirmados */}
                       {dayAppointments.length > 0 && (
                         <div className="flex items-center gap-1">
                           <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                          <span className="text-blue-700 text-xs font-medium">
+                          <span className="text-xs font-medium text-blue-700">
                             {dayAppointments.length} agendado(s)
                           </span>
                         </div>
                       )}
 
                       {/* Sem disponibilidade */}
-                      {!hasAvailableSlots && dayAppointments.length === 0 && isCurrentMonth && (
-                        <div className="flex items-center gap-1">
-                          <div className="h-2 w-2 rounded-full bg-gray-300"></div>
-                          <span className="text-gray-500 text-xs">
-                            Sem horários
-                          </span>
-                        </div>
-                      )}
+                      {!hasAvailableSlots &&
+                        dayAppointments.length === 0 &&
+                        isCurrentMonth && (
+                          <div className="flex items-center gap-1">
+                            <div className="h-2 w-2 rounded-full bg-gray-300"></div>
+                            <span className="text-xs text-gray-500">
+                              Sem horários
+                            </span>
+                          </div>
+                        )}
                     </>
                   )}
                 </div>
@@ -350,7 +362,7 @@ export function AppointmentsCalendar({
                     {dayAppointments.slice(0, 3).map((appointment) => (
                       <div
                         key={appointment.id}
-                        className="bg-blue-100 border border-blue-200 truncate rounded-md p-2 text-xs shadow-sm"
+                        className="truncate rounded-md border border-blue-200 bg-blue-100 p-2 text-xs shadow-sm"
                         title={`${dayjs(appointment.date).utc().tz("America/Sao_Paulo").format("HH:mm")} - ${appointment.patient.name} ${formatPhoneNumber(appointment.patient.phoneNumber)} ${Boolean(appointment.isReturn) ? "(Retorno)" : ""}`}
                       >
                         <div className="font-medium text-blue-800">
@@ -359,18 +371,18 @@ export function AppointmentsCalendar({
                             .tz("America/Sao_Paulo")
                             .format("HH:mm")}
                         </div>
-                        <div className="text-blue-700 truncate">
+                        <div className="truncate text-blue-700">
                           {appointment.patient.name}
                         </div>
                         {Boolean(appointment.isReturn) && (
-                          <div className="text-blue-600 font-medium text-xs">
+                          <div className="text-xs font-medium text-blue-600">
                             Retorno
                           </div>
                         )}
                       </div>
                     ))}
                     {dayAppointments.length > 3 && (
-                      <div className="text-blue-600 bg-blue-50 rounded-md p-1 text-center text-xs font-medium">
+                      <div className="rounded-md bg-blue-50 p-1 text-center text-xs font-medium text-blue-600">
                         +{dayAppointments.length - 3} mais
                       </div>
                     )}
@@ -378,42 +390,52 @@ export function AppointmentsCalendar({
                 )}
 
                 {/* Indicador de clique */}
-                <div className="absolute inset-0 rounded-lg bg-transparent group-hover:bg-primary/5 transition-colors pointer-events-none" />
+                <div className="group-hover:bg-primary/5 pointer-events-none absolute inset-0 rounded-lg bg-transparent transition-colors" />
               </div>
             );
           })}
         </div>
 
         {/* Legenda melhorada */}
-        <div className="mt-6 rounded-lg bg-muted/30 p-4">
-          <h4 className="mb-3 font-medium text-sm">Legenda</h4>
+        <div className="bg-muted/30 mt-6 rounded-lg p-4">
+          <h4 className="mb-3 text-sm font-medium">Legenda</h4>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded border-2 border-primary bg-primary/5"></div>
+                <div className="border-primary bg-primary/5 h-3 w-3 rounded border-2"></div>
                 <span className="text-muted-foreground">Hoje</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                <span className="text-muted-foreground">Horários disponíveis</span>
+                <span className="text-muted-foreground">
+                  Horários disponíveis
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                <span className="text-muted-foreground">Agendamentos confirmados</span>
+                <span className="text-muted-foreground">
+                  Agendamentos confirmados
+                </span>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-gray-300"></div>
-                <span className="text-muted-foreground">Sem horários disponíveis</span>
+                <span className="text-muted-foreground">
+                  Sem horários disponíveis
+                </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="bg-blue-100 border border-blue-200 h-3 w-3 rounded"></div>
-                <span className="text-muted-foreground">Card de agendamento</span>
+                <div className="h-3 w-3 rounded border border-blue-200 bg-blue-100"></div>
+                <span className="text-muted-foreground">
+                  Card de agendamento
+                </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="bg-blue-50 h-3 w-3 rounded"></div>
-                <span className="text-muted-foreground">Dia com agendamentos</span>
+                <div className="h-3 w-3 rounded bg-blue-50"></div>
+                <span className="text-muted-foreground">
+                  Dia com agendamentos
+                </span>
               </div>
             </div>
           </div>
