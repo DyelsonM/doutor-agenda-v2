@@ -1,4 +1,5 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, gte, lte } from "drizzle-orm";
+import dayjs from "dayjs";
 
 import {
   PageActions,
@@ -19,17 +20,25 @@ import { AppointmentsView } from "./_components/appointments-view";
 const AppointmentsPage = async () => {
   const session = await getAuthSession();
 
+  // Otimização: Carregar apenas agendamentos relevantes (últimos 3 meses + próximos 6 meses)
+  const startDate = dayjs().subtract(3, "months").startOf("day").toDate();
+  const endDate = dayjs().add(6, "months").endOf("day").toDate();
+
   let appointmentsFilter;
   let patientsFilter;
   let doctorsFilter;
 
   if (session.user.role === "admin") {
-    // Admin vê todos os agendamentos da clínica
-    appointmentsFilter = eq(appointmentsTable.clinicId, session.user.clinic.id);
+    // Admin vê todos os agendamentos da clínica (com filtro de data)
+    appointmentsFilter = and(
+      eq(appointmentsTable.clinicId, session.user.clinic.id),
+      gte(appointmentsTable.date, startDate),
+      lte(appointmentsTable.date, endDate),
+    );
     patientsFilter = eq(patientsTable.clinicId, session.user.clinic.id);
     doctorsFilter = eq(doctorsTable.clinicId, session.user.clinic.id);
   } else {
-    // Médico vê apenas seus agendamentos
+    // Médico vê apenas seus agendamentos (com filtro de data)
     const doctorId = await getDoctorIdFromUser(session.user.id);
     if (!doctorId) {
       // Se médico não está vinculado ainda, mostrar apenas estrutura vazia
@@ -41,6 +50,8 @@ const AppointmentsPage = async () => {
       appointmentsFilter = and(
         eq(appointmentsTable.clinicId, session.user.clinic.id),
         eq(appointmentsTable.doctorId, doctorId),
+        gte(appointmentsTable.date, startDate),
+        lte(appointmentsTable.date, endDate),
       );
       patientsFilter = eq(patientsTable.clinicId, session.user.clinic.id);
       doctorsFilter = and(
@@ -62,14 +73,27 @@ const AppointmentsPage = async () => {
       orderBy: (doctors, { asc }) => [asc(doctors.name)],
       limit: 100, // Limite para dropdowns
     }),
+    // Otimização: Carregar apenas campos necessários + filtro de data
     db.query.appointmentsTable.findMany({
       where: appointmentsFilter,
       with: {
-        patient: true,
-        doctor: true,
+        patient: {
+          columns: {
+            id: true,
+            name: true,
+            phoneNumber: true,
+            sex: true,
+          },
+        },
+        doctor: {
+          columns: {
+            id: true,
+            name: true,
+            specialty: true,
+          },
+        },
       },
       orderBy: (appointments, { asc }) => [asc(appointments.date)],
-      // Não adicionar limit aqui pois o calendário precisa de todos os agendamentos visíveis
     }),
   ]);
 
@@ -87,7 +111,7 @@ const AppointmentsPage = async () => {
           <PageDescription>
             {!isDoctorLinked && session.user.role === "doctor"
               ? "Aguardando vinculação do seu perfil pelo administrador"
-              : "Gerencie os agendamentos da sua clínica"}
+              : "Gerencie os agendamentos da sua clínica (últimos 3 meses + próximos 6 meses)"}
           </PageDescription>
         </PageHeaderContent>
         <PageActions>

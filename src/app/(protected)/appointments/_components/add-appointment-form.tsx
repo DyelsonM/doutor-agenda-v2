@@ -108,13 +108,15 @@ const AddAppointmentForm = ({
   const selectedPatientId = form.watch("patientId");
   const selectedDate = form.watch("date");
 
-  const { data: availableTimes } = useQuery({
+  const { data: availableTimes, isLoading: isLoadingTimes } = useQuery({
     queryKey: ["available-times", selectedDate, selectedDoctorId],
-    queryFn: () =>
-      getAvailableTimes({
+    queryFn: async () => {
+      const result = await getAvailableTimes({
         date: dayjs(selectedDate).format("YYYY-MM-DD"),
         doctorId: selectedDoctorId,
-      }),
+      });
+      return result;
+    },
     enabled: !!selectedDate && !!selectedDoctorId,
   });
 
@@ -393,18 +395,31 @@ const AddAppointmentForm = ({
                   <TimeSelect
                     value={field.value}
                     onValueChange={field.onChange}
-                    placeholder="Selecione um horário"
+                    placeholder={
+                      isLoadingTimes
+                        ? "Carregando horários..."
+                        : "Selecione um horário"
+                    }
                     disabled={!isDateTimeEnabled || !selectedDate}
                   >
-                    {availableTimes?.data?.map((time) => (
-                      <TimeSelectItem
-                        key={time.value}
-                        value={time.value}
-                        disabled={!time.available}
-                      >
-                        {time.label} {!time.available && "(Indisponível)"}
-                      </TimeSelectItem>
-                    ))}
+                    {availableTimes?.data &&
+                    Array.isArray(availableTimes.data) ? (
+                      availableTimes.data.map((time) => (
+                        <TimeSelectItem
+                          key={time.value}
+                          value={time.value}
+                          disabled={!time.available}
+                        >
+                          {time.label} {!time.available && "(Indisponível)"}
+                        </TimeSelectItem>
+                      ))
+                    ) : (
+                      <div className="text-muted-foreground p-2 text-center text-sm">
+                        {isLoadingTimes
+                          ? "Carregando..."
+                          : "Nenhum horário disponível"}
+                      </div>
+                    )}
                   </TimeSelect>
                 </FormControl>
                 <FormMessage />
