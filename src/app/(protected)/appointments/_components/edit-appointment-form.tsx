@@ -332,7 +332,7 @@ const EditAppointmentForm = ({
                       <SelectGroup key={category.categoryKey}>
                         <SelectLabel>{category.categoryName}</SelectLabel>
                         {category.modalities.map((modality) => (
-                          <SelectItem key={modality.code} value={modality.code}>
+                          <SelectItem key={modality.code} value={modality.name}>
                             {modality.name}
                           </SelectItem>
                         ))}

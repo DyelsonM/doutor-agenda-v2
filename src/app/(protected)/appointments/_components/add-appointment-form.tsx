@@ -108,28 +108,49 @@ const AddAppointmentForm = ({
   const selectedPatientId = form.watch("patientId");
   const selectedDate = form.watch("date");
 
-  const { data: availableTimes, isLoading: isLoadingTimes } = useQuery({
+  const {
+    data: availableTimes,
+    isLoading: isLoadingTimes,
+    error: availableTimesError,
+    refetch,
+  } = useQuery({
     queryKey: ["available-times", selectedDate, selectedDoctorId],
     queryFn: async () => {
-      // Garantir que a data seja formatada corretamente
-      const formattedDate = dayjs(selectedDate).format("YYYY-MM-DD");
-      console.log("🔍 Debug - Data formatada para query:", formattedDate);
-      
-      const result = await getAvailableTimes({
-        date: formattedDate,
-        doctorId: selectedDoctorId,
-      });
-      
-      console.log("🔍 Debug - Result from getAvailableTimes:", result);
-      console.log("🔍 Debug - result.data:", result?.data);
-      console.log("🔍 Debug - Array.isArray(result):", Array.isArray(result));
-      console.log(
-        "🔍 Debug - Array.isArray(result?.data):",
-        Array.isArray(result?.data),
-      );
-      return result;
+      try {
+        // Garantir que a data seja formatada corretamente
+        const formattedDate = dayjs(selectedDate).format("YYYY-MM-DD");
+        console.log("🔍 Debug - Data formatada para query:", formattedDate);
+        console.log("🔍 Debug - Doctor ID:", selectedDoctorId);
+
+        // Adicionar timeout para evitar carregamento infinito
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("Timeout")), 10000);
+        });
+
+        const resultPromise = getAvailableTimes({
+          date: formattedDate,
+          doctorId: selectedDoctorId,
+        });
+
+        const result = await Promise.race([resultPromise, timeoutPromise]);
+
+        console.log("🔍 Debug - Result from getAvailableTimes:", result);
+        console.log("🔍 Debug - result.data:", (result as any)?.data);
+        console.log("🔍 Debug - Array.isArray(result):", Array.isArray(result));
+        console.log(
+          "🔍 Debug - Array.isArray(result?.data):",
+          Array.isArray((result as any)?.data),
+        );
+        return result;
+      } catch (error) {
+        console.error("🚨 Erro ao buscar horários disponíveis:", error);
+        throw error;
+      }
     },
     enabled: !!selectedDate && !!selectedDoctorId,
+    retry: 1,
+    retryDelay: 1000,
+    staleTime: 30000, // 30 segundos
   });
 
   const { data: appointmentModalitiesByCategory } = useQuery({
@@ -185,7 +206,7 @@ const AddAppointmentForm = ({
     console.log("🔍 Debug - Valores do formulário:", values);
     console.log("🔍 Debug - Data selecionada:", values.date);
     console.log("🔍 Debug - Horário selecionado:", values.time);
-    
+
     createAppointmentAction.execute({
       ...values,
       appointmentPriceInCents: values.appointmentPrice * 100,
@@ -295,7 +316,7 @@ const AddAppointmentForm = ({
                             ? category.modalities.map((modality) => (
                                 <SelectItem
                                   key={modality.code}
-                                  value={modality.code}
+                                  value={modality.name}
                                 >
                                   {modality.name}
                                 </SelectItem>
@@ -419,9 +440,23 @@ const AddAppointmentForm = ({
                     }
                     disabled={!isDateTimeEnabled || !selectedDate}
                   >
-                    {availableTimes?.data &&
-                    Array.isArray(availableTimes.data) ? (
-                      availableTimes.data.map((time) => (
+                    {availableTimesError ? (
+                      <div className="p-2 text-center text-sm">
+                        <div className="mb-2 text-red-500">
+                          Erro ao carregar horários.
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => refetch()}
+                        >
+                          Tentar Novamente
+                        </Button>
+                      </div>
+                    ) : (availableTimes as any)?.data &&
+                      Array.isArray((availableTimes as any).data) ? (
+                      (availableTimes as any).data.map((time: any) => (
                         <TimeSelectItem
                           key={time.value}
                           value={time.value}
@@ -431,7 +466,7 @@ const AddAppointmentForm = ({
                         </TimeSelectItem>
                       ))
                     ) : availableTimes && Array.isArray(availableTimes) ? (
-                      availableTimes.map((time) => (
+                      availableTimes.map((time: any) => (
                         <TimeSelectItem
                           key={time.value}
                           value={time.value}

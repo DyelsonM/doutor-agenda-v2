@@ -25,104 +25,130 @@ export const getAvailableTimes = actionClient
     }),
   )
   .action(async ({ parsedInput }) => {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-    if (!session) {
-      throw new Error("Unauthorized");
-    }
-    if (!session.user.clinic) {
-      throw new Error("Clínica não encontrada");
-    }
-    const doctor = await db.query.doctorsTable.findFirst({
-      where: eq(doctorsTable.id, parsedInput.doctorId),
-    });
-    if (!doctor) {
-      throw new Error("Médico não encontrado");
-    }
+    try {
+      console.log("🔍 Debug - Iniciando getAvailableTimes com:", parsedInput);
 
-    const selectedDayOfWeek = dayjs(parsedInput.date).day();
-    const doctorIsAvailable =
-      selectedDayOfWeek >= doctor.availableFromWeekDay &&
-      selectedDayOfWeek <= doctor.availableToWeekDay;
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
+      if (!session) {
+        console.error("🚨 Erro: Sessão não encontrada");
+        throw new Error("Unauthorized");
+      }
+      if (!session.user.clinic) {
+        console.error("🚨 Erro: Clínica não encontrada");
+        throw new Error("Clínica não encontrada");
+      }
 
-    if (!doctorIsAvailable) {
-      return [];
-    }
+      console.log("🔍 Debug - Sessão válida, buscando médico...");
+      const doctor = await db.query.doctorsTable.findFirst({
+        where: eq(doctorsTable.id, parsedInput.doctorId),
+      });
+      if (!doctor) {
+        console.error("🚨 Erro: Médico não encontrado");
+        throw new Error("Médico não encontrado");
+      }
 
-    // Otimização: Filtrar por data diretamente no banco de dados
-    // Garantir que estamos trabalhando com horário do Brasil
-    const startOfDay = dayjs(parsedInput.date)
-      .tz("America/Sao_Paulo", true)
-      .startOf("day")
-      .utc()
-      .toDate();
-    const endOfDay = dayjs(parsedInput.date)
-      .tz("America/Sao_Paulo", true)
-      .endOf("day")
-      .utc()
-      .toDate();
+      console.log("🔍 Debug - Médico encontrado:", doctor.name);
 
-    // Debug para produção
-    console.log("🔍 Debug - Data solicitada:", parsedInput.date);
-    console.log("🔍 Debug - Start of day (UTC):", startOfDay);
-    console.log("🔍 Debug - End of day (UTC):", endOfDay);
+      const selectedDayOfWeek = dayjs(parsedInput.date).day();
+      const doctorIsAvailable =
+        selectedDayOfWeek >= doctor.availableFromWeekDay &&
+        selectedDayOfWeek <= doctor.availableToWeekDay;
 
-    // Construir filtros dinamicamente
-    const filters = [
-      eq(appointmentsTable.doctorId, parsedInput.doctorId),
-      gte(appointmentsTable.date, startOfDay),
-      lte(appointmentsTable.date, endOfDay),
-    ];
+      if (!doctorIsAvailable) {
+        console.log("🔍 Debug - Médico não disponível neste dia");
+        return [];
+      }
 
-    // Excluir appointment específico se fornecido
-    if (parsedInput.excludeAppointmentId) {
-      filters.push(ne(appointmentsTable.id, parsedInput.excludeAppointmentId));
-    }
+      // Otimização: Filtrar por data diretamente no banco de dados
+      // Garantir que estamos trabalhando com horário do Brasil
+      const startOfDay = dayjs(parsedInput.date)
+        .tz("America/Sao_Paulo", true)
+        .startOf("day")
+        .utc()
+        .toDate();
+      const endOfDay = dayjs(parsedInput.date)
+        .tz("America/Sao_Paulo", true)
+        .endOf("day")
+        .utc()
+        .toDate();
 
-    const appointments = await db.query.appointmentsTable.findMany({
-      where: and(...filters),
-      columns: {
-        date: true,
-      },
-    });
+      // Debug para produção
+      console.log("🔍 Debug - Data solicitada:", parsedInput.date);
+      console.log("🔍 Debug - Start of day (UTC):", startOfDay);
+      console.log("🔍 Debug - End of day (UTC):", endOfDay);
 
-    const appointmentsOnSelectedDate = appointments.map((appointment) =>
-      dayjs(appointment.date).utc().tz("America/Sao_Paulo").format("HH:mm:ss"),
-    );
+      // Construir filtros dinamicamente
+      const filters = [
+        eq(appointmentsTable.doctorId, parsedInput.doctorId),
+        gte(appointmentsTable.date, startOfDay),
+        lte(appointmentsTable.date, endOfDay),
+      ];
 
-    // Debug para produção
-    console.log("🔍 Debug - Agendamentos encontrados:", appointmentsOnSelectedDate);
-    const timeSlots = generateTimeSlots();
+      // Excluir appointment específico se fornecido
+      if (parsedInput.excludeAppointmentId) {
+        filters.push(
+          ne(appointmentsTable.id, parsedInput.excludeAppointmentId),
+        );
+      }
 
-    // Usar os horários do médico diretamente (já estão em horário local)
-    const doctorTimeSlots = timeSlots.filter((time) => {
-      const timeHour = Number(time.split(":")[0]);
-      const timeMinute = Number(time.split(":")[1]);
+      const appointments = await db.query.appointmentsTable.findMany({
+        where: and(...filters),
+        columns: {
+          date: true,
+        },
+      });
 
-      const doctorFromHour = Number(doctor.availableFromTime.split(":")[0]);
-      const doctorFromMinute = Number(doctor.availableFromTime.split(":")[1]);
-      const doctorToHour = Number(doctor.availableToTime.split(":")[0]);
-      const doctorToMinute = Number(doctor.availableToTime.split(":")[1]);
-
-      // Converter para minutos para facilitar comparação
-      const timeInMinutes = timeHour * 60 + timeMinute;
-      const doctorFromInMinutes = doctorFromHour * 60 + doctorFromMinute;
-      const doctorToInMinutes = doctorToHour * 60 + doctorToMinute;
-
-      return (
-        timeInMinutes >= doctorFromInMinutes &&
-        timeInMinutes <= doctorToInMinutes
+      const appointmentsOnSelectedDate = appointments.map((appointment) =>
+        dayjs(appointment.date)
+          .utc()
+          .tz("America/Sao_Paulo")
+          .format("HH:mm:ss"),
       );
-    });
-    // Permitir agendamentos em todos os horários, mesmo os que já passaram
-    return doctorTimeSlots.map((time) => {
-      const isBooked = appointmentsOnSelectedDate.includes(time);
 
-      return {
-        value: time,
-        available: !isBooked, // Removida a validação de horários passados
-        label: time.substring(0, 5),
-      };
-    });
+      // Debug para produção
+      console.log(
+        "🔍 Debug - Agendamentos encontrados:",
+        appointmentsOnSelectedDate,
+      );
+      const timeSlots = generateTimeSlots();
+
+      // Usar os horários do médico diretamente (já estão em horário local)
+      const doctorTimeSlots = timeSlots.filter((time) => {
+        const timeHour = Number(time.split(":")[0]);
+        const timeMinute = Number(time.split(":")[1]);
+
+        const doctorFromHour = Number(doctor.availableFromTime.split(":")[0]);
+        const doctorFromMinute = Number(doctor.availableFromTime.split(":")[1]);
+        const doctorToHour = Number(doctor.availableToTime.split(":")[0]);
+        const doctorToMinute = Number(doctor.availableToTime.split(":")[1]);
+
+        // Converter para minutos para facilitar comparação
+        const timeInMinutes = timeHour * 60 + timeMinute;
+        const doctorFromInMinutes = doctorFromHour * 60 + doctorFromMinute;
+        const doctorToInMinutes = doctorToHour * 60 + doctorToMinute;
+
+        return (
+          timeInMinutes >= doctorFromInMinutes &&
+          timeInMinutes <= doctorToInMinutes
+        );
+      });
+      // Permitir agendamentos em todos os horários, mesmo os que já passaram
+      const result = doctorTimeSlots.map((time) => {
+        const isBooked = appointmentsOnSelectedDate.includes(time);
+
+        return {
+          value: time,
+          available: !isBooked, // Removida a validação de horários passados
+          label: time.substring(0, 5),
+        };
+      });
+
+      console.log("🔍 Debug - Resultado final:", result);
+      return result;
+    } catch (error) {
+      console.error("🚨 Erro em getAvailableTimes:", error);
+      throw error;
+    }
   });
