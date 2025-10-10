@@ -51,8 +51,22 @@ export const getAvailableTimes = actionClient
     }
 
     // Otimização: Filtrar por data diretamente no banco de dados
-    const startOfDay = dayjs(parsedInput.date).startOf("day").toDate();
-    const endOfDay = dayjs(parsedInput.date).endOf("day").toDate();
+    // Garantir que estamos trabalhando com horário do Brasil
+    const startOfDay = dayjs(parsedInput.date)
+      .tz("America/Sao_Paulo", true)
+      .startOf("day")
+      .utc()
+      .toDate();
+    const endOfDay = dayjs(parsedInput.date)
+      .tz("America/Sao_Paulo", true)
+      .endOf("day")
+      .utc()
+      .toDate();
+
+    // Debug para produção
+    console.log("🔍 Debug - Data solicitada:", parsedInput.date);
+    console.log("🔍 Debug - Start of day (UTC):", startOfDay);
+    console.log("🔍 Debug - End of day (UTC):", endOfDay);
 
     // Construir filtros dinamicamente
     const filters = [
@@ -74,8 +88,11 @@ export const getAvailableTimes = actionClient
     });
 
     const appointmentsOnSelectedDate = appointments.map((appointment) =>
-      dayjs(appointment.date).format("HH:mm:ss"),
+      dayjs(appointment.date).utc().tz("America/Sao_Paulo").format("HH:mm:ss"),
     );
+
+    // Debug para produção
+    console.log("🔍 Debug - Agendamentos encontrados:", appointmentsOnSelectedDate);
     const timeSlots = generateTimeSlots();
 
     // Usar os horários do médico diretamente (já estão em horário local)

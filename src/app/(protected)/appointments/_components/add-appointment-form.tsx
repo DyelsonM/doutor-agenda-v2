@@ -74,7 +74,7 @@ const formSchema = z.object({
   time: z.string().min(1, {
     message: "Horário é obrigatório.",
   }),
-  isReturn: z.boolean().default(false),
+  isReturn: z.boolean(),
 });
 
 interface AddAppointmentFormProps {
@@ -111,10 +111,15 @@ const AddAppointmentForm = ({
   const { data: availableTimes, isLoading: isLoadingTimes } = useQuery({
     queryKey: ["available-times", selectedDate, selectedDoctorId],
     queryFn: async () => {
+      // Garantir que a data seja formatada corretamente
+      const formattedDate = dayjs(selectedDate).format("YYYY-MM-DD");
+      console.log("🔍 Debug - Data formatada para query:", formattedDate);
+      
       const result = await getAvailableTimes({
-        date: dayjs(selectedDate).format("YYYY-MM-DD"),
+        date: formattedDate,
         doctorId: selectedDoctorId,
       });
+      
       console.log("🔍 Debug - Result from getAvailableTimes:", result);
       console.log("🔍 Debug - result.data:", result?.data);
       console.log("🔍 Debug - Array.isArray(result):", Array.isArray(result));
@@ -176,6 +181,11 @@ const AddAppointmentForm = ({
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    // Debug para produção
+    console.log("🔍 Debug - Valores do formulário:", values);
+    console.log("🔍 Debug - Data selecionada:", values.date);
+    console.log("🔍 Debug - Horário selecionado:", values.time);
+    
     createAppointmentAction.execute({
       ...values,
       appointmentPriceInCents: values.appointmentPrice * 100,

@@ -93,6 +93,12 @@ export const addAppointment = actionClient
       .utc() // Converter para UTC para armazenar no banco
       .toDate();
 
+    // Debug para produção
+    console.log("🔍 Debug - Data recebida:", parsedInput.date);
+    console.log("🔍 Debug - Horário recebido:", parsedInput.time);
+    console.log("🔍 Debug - Data/hora final (UTC):", appointmentDateTime);
+    console.log("🔍 Debug - Data/hora em SP:", dayjs(appointmentDateTime).utc().tz("America/Sao_Paulo").format("YYYY-MM-DD HH:mm:ss"));
+
     const [newAppointment] = await db
       .insert(appointmentsTable)
       .values({
