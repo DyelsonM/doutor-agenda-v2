@@ -79,7 +79,6 @@ export function AppointmentsCalendar({
   const [availableTimes, setAvailableTimes] = useState<
     Record<string, string[]>
   >({});
-  const [loading, setLoading] = useState(false);
   const [selectedDay, setSelectedDay] = useState<dayjs.Dayjs | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -98,7 +97,6 @@ export function AppointmentsCalendar({
     const loadAvailableTimes = async () => {
       if (!selectedDoctor) return;
 
-      setLoading(true);
       const times: Record<string, string[]> = {};
 
       try {
@@ -144,7 +142,6 @@ export function AppointmentsCalendar({
         console.error("Erro geral ao carregar horários disponíveis:", error);
       } finally {
         setAvailableTimes(times);
-        setLoading(false);
       }
     };
 
@@ -272,7 +269,7 @@ export function AppointmentsCalendar({
         </div>
 
         {/* Dias do calendário */}
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-3">
           {calendarDays.map((day) => {
             const dateStr = day.format("YYYY-MM-DD");
             const dayAppointments = getAppointmentsForDate(dateStr);
@@ -287,155 +284,184 @@ export function AppointmentsCalendar({
                 key={dateStr}
                 onClick={() => handleDayClick(day)}
                 className={cn(
-                  "group relative min-h-[120px] cursor-pointer rounded-lg border-2 p-3 text-sm transition-all duration-200 hover:shadow-lg",
+                  "group relative flex min-h-[140px] cursor-pointer flex-col overflow-hidden rounded-xl border-2 p-3 text-sm transition-all duration-200 hover:scale-[1.02] hover:shadow-xl",
                   !isCurrentMonth &&
                     "text-muted-foreground bg-muted/20 border-muted/30",
                   isCurrentMonth &&
                     !isToday &&
-                    "bg-background border-border hover:border-primary/50",
-                  isToday && "bg-primary/5 border-primary shadow-md",
-                  isPast && "opacity-60",
-                  dayAppointments.length > 0 && "border-blue-200 bg-blue-50/50",
+                    "bg-background border-border hover:border-primary/60",
+                  isToday &&
+                    "from-primary/10 to-primary/5 border-primary ring-primary/20 bg-gradient-to-br shadow-lg ring-2",
+                  isPast && "opacity-70",
+                  dayAppointments.length > 0 &&
+                    "border-blue-300 bg-gradient-to-br from-blue-50 to-blue-100/30",
                   hasAvailableSlots &&
                     dayAppointments.length === 0 &&
-                    "border-green-200 bg-green-50/50",
+                    "border-green-300 bg-gradient-to-br from-green-50 to-green-100/30",
                 )}
               >
-                {/* Número do dia */}
-                <div
-                  className={cn(
-                    "mb-2 text-base font-semibold",
-                    isToday && "text-primary",
-                    isCurrentMonth && !isToday && "text-foreground",
-                    !isCurrentMonth && "text-muted-foreground",
+                {/* Header do dia */}
+                <div className="mb-2 flex items-start justify-between">
+                  <div
+                    className={cn(
+                      "flex h-8 w-8 items-center justify-center rounded-lg text-base font-bold transition-colors",
+                      isToday && "bg-primary text-primary-foreground shadow-md",
+                      isCurrentMonth &&
+                        !isToday &&
+                        "text-foreground group-hover:bg-primary/10",
+                      !isCurrentMonth && "text-muted-foreground",
+                    )}
+                  >
+                    {day.format("D")}
+                  </div>
+
+                  {/* Badge de quantidade */}
+                  {dayAppointments.length > 0 && (
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-xs font-bold text-white shadow-md">
+                      {dayAppointments.length}
+                    </div>
                   )}
-                >
-                  {day.format("D")}
                 </div>
 
                 {/* Indicadores de status */}
-                <div className="space-y-1">
-                  {loading ? (
-                    <div className="text-muted-foreground animate-pulse text-xs">
-                      Carregando...
+                <div className="mb-2 flex-1 space-y-1.5">
+                  {/* Horários disponíveis */}
+                  {hasAvailableSlots && (
+                    <div className="flex items-center gap-1.5 rounded-md bg-green-100/80 px-2 py-1">
+                      <div className="h-2 w-2 animate-pulse rounded-full bg-green-500 shadow-sm"></div>
+                      <span className="text-xs font-semibold text-green-700">
+                        Horários disponíveis
+                      </span>
                     </div>
-                  ) : (
-                    <>
-                      {/* Horários disponíveis */}
-                      {hasAvailableSlots && (
-                        <div className="flex items-center gap-1">
-                          <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                          <span className="text-xs font-medium text-green-700">
-                            {availableTimes[dateStr].length} horários
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Agendamentos confirmados */}
-                      {dayAppointments.length > 0 && (
-                        <div className="flex items-center gap-1">
-                          <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                          <span className="text-xs font-medium text-blue-700">
-                            {dayAppointments.length} agendado(s)
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Sem disponibilidade */}
-                      {!hasAvailableSlots &&
-                        dayAppointments.length === 0 &&
-                        isCurrentMonth && (
-                          <div className="flex items-center gap-1">
-                            <div className="h-2 w-2 rounded-full bg-gray-300"></div>
-                            <span className="text-xs text-gray-500">
-                              Sem horários
-                            </span>
-                          </div>
-                        )}
-                    </>
                   )}
+
+                  {/* Agendamentos confirmados */}
+                  {dayAppointments.length > 0 && (
+                    <div className="flex items-center gap-1.5 rounded-md bg-blue-100/80 px-2 py-1">
+                      <div className="h-2 w-2 rounded-full bg-blue-500 shadow-sm"></div>
+                      <span className="text-xs font-semibold text-blue-700">
+                        {dayAppointments.length} agendado
+                        {dayAppointments.length > 1 ? "s" : ""}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Sem disponibilidade */}
+                  {!hasAvailableSlots &&
+                    dayAppointments.length === 0 &&
+                    isCurrentMonth && (
+                      <div className="flex items-center gap-1.5 rounded-md bg-gray-100 px-2 py-1">
+                        <div className="h-2 w-2 rounded-full bg-gray-400"></div>
+                        <span className="text-xs font-medium text-gray-600">
+                          Sem horários
+                        </span>
+                      </div>
+                    )}
                 </div>
 
-                {/* Lista de agendamentos (mais visível) */}
+                {/* Preview de agendamentos */}
                 {dayAppointments.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {dayAppointments.slice(0, 3).map((appointment) => (
+                  <div className="space-y-1">
+                    {dayAppointments.slice(0, 2).map((appointment) => (
                       <div
                         key={appointment.id}
-                        className="truncate rounded-md border border-blue-200 bg-blue-100 p-2 text-xs shadow-sm"
+                        className="truncate rounded-lg border border-blue-300 bg-white/90 px-2 py-1.5 text-xs shadow-sm backdrop-blur-sm transition-all hover:bg-white"
                         title={`${dayjs(appointment.date).utc().tz("America/Sao_Paulo").format("HH:mm")} - ${appointment.patient.name} ${formatPhoneNumber(appointment.patient.phoneNumber)} ${Boolean(appointment.isReturn) ? "(Retorno)" : ""}`}
                       >
-                        <div className="font-medium text-blue-800">
-                          {dayjs(appointment.date)
-                            .utc()
-                            .tz("America/Sao_Paulo")
-                            .format("HH:mm")}
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-blue-700">
+                            {dayjs(appointment.date)
+                              .utc()
+                              .tz("America/Sao_Paulo")
+                              .format("HH:mm")}
+                          </span>
+                          {Boolean(appointment.isReturn) && (
+                            <span className="rounded-full bg-purple-100 px-1.5 text-[10px] font-medium text-purple-700">
+                              R
+                            </span>
+                          )}
                         </div>
-                        <div className="truncate text-blue-700">
+                        <div className="truncate font-medium text-blue-900">
                           {appointment.patient.name}
                         </div>
-                        {Boolean(appointment.isReturn) && (
-                          <div className="text-xs font-medium text-blue-600">
-                            Retorno
-                          </div>
-                        )}
                       </div>
                     ))}
-                    {dayAppointments.length > 3 && (
-                      <div className="rounded-md bg-blue-50 p-1 text-center text-xs font-medium text-blue-600">
-                        +{dayAppointments.length - 3} mais
+                    {dayAppointments.length > 2 && (
+                      <div className="rounded-lg bg-gradient-to-r from-blue-100 to-blue-50 p-1.5 text-center text-[11px] font-bold text-blue-700 shadow-sm">
+                        +{dayAppointments.length - 2} agendamento
+                        {dayAppointments.length - 2 > 1 ? "s" : ""}
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* Indicador de clique */}
-                <div className="group-hover:bg-primary/5 pointer-events-none absolute inset-0 rounded-lg bg-transparent transition-colors" />
+                {/* Indicador de hover */}
+                <div className="group-hover:from-primary/5 group-hover:to-primary/10 pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
               </div>
             );
           })}
         </div>
 
         {/* Legenda melhorada */}
-        <div className="bg-muted/30 mt-6 rounded-lg p-4">
-          <h4 className="mb-3 text-sm font-medium">Legenda</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="border-primary bg-primary/5 h-3 w-3 rounded border-2"></div>
-                <span className="text-muted-foreground">Hoje</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                <span className="text-muted-foreground">
-                  Horários disponíveis
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                <span className="text-muted-foreground">
-                  Agendamentos confirmados
-                </span>
+        <div className="from-muted/30 to-muted/10 mt-6 rounded-xl border bg-gradient-to-br p-5 shadow-sm">
+          <h4 className="mb-4 flex items-center gap-2 text-sm font-semibold">
+            <div className="bg-primary h-1 w-1 rounded-full"></div>
+            Legenda do Calendário
+          </h4>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {/* Status dos dias */}
+            <div className="space-y-3">
+              <h5 className="text-muted-foreground text-xs font-semibold uppercase">
+                Status dos Dias
+              </h5>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="bg-primary text-primary-foreground flex h-6 w-6 items-center justify-center rounded-lg text-xs font-bold shadow-md">
+                    {dayjs().format("D")}
+                  </div>
+                  <span className="text-sm">Hoje</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-xl border-2 border-green-300 bg-gradient-to-br from-green-50 to-green-100/30"></div>
+                  <span className="text-sm">Com horários disponíveis</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-6 w-6 rounded-xl border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-blue-100/30"></div>
+                  <span className="text-sm">Com agendamentos</span>
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-gray-300"></div>
-                <span className="text-muted-foreground">
-                  Sem horários disponíveis
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded border border-blue-200 bg-blue-100"></div>
-                <span className="text-muted-foreground">
-                  Card de agendamento
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded bg-blue-50"></div>
-                <span className="text-muted-foreground">
-                  Dia com agendamentos
-                </span>
+
+            {/* Indicadores */}
+            <div className="space-y-3">
+              <h5 className="text-muted-foreground text-xs font-semibold uppercase">
+                Indicadores
+              </h5>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 rounded-md bg-green-100/80 px-2 py-1">
+                    <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
+                    <span className="text-xs font-semibold text-green-700">
+                      Horários disponíveis
+                    </span>
+                  </div>
+                  <span className="text-sm">Horários livres</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 rounded-md bg-blue-100/80 px-2 py-1">
+                    <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                    <span className="text-xs font-semibold text-blue-700">
+                      Agendados
+                    </span>
+                  </div>
+                  <span className="text-sm">Confirmados</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-500 text-xs font-bold text-white shadow-md">
+                    5
+                  </div>
+                  <span className="text-sm">Total de agendamentos</span>
+                </div>
               </div>
             </div>
           </div>
