@@ -20,9 +20,9 @@ import { AppointmentsView } from "./_components/appointments-view";
 const AppointmentsPage = async () => {
   const session = await getAuthSession();
 
-  // Otimização: Carregar apenas agendamentos relevantes (últimos 3 meses + próximos 6 meses)
-  const startDate = dayjs().subtract(3, "months").startOf("day").toDate();
-  const endDate = dayjs().add(6, "months").endOf("day").toDate();
+  // Otimização: Carregar agendamentos relevantes (últimos 6 meses + próximos 12 meses)
+  const startDate = dayjs().subtract(6, "months").startOf("day").toDate();
+  const endDate = dayjs().add(12, "months").endOf("day").toDate();
 
   let appointmentsFilter;
   let patientsFilter;
@@ -111,7 +111,7 @@ const AppointmentsPage = async () => {
           <PageDescription>
             {!isDoctorLinked && session.user.role === "doctor"
               ? "Aguardando vinculação do seu perfil pelo administrador"
-              : "Gerencie os agendamentos da sua clínica (últimos 3 meses + próximos 6 meses)"}
+              : "Gerencie os agendamentos da sua clínica"}
           </PageDescription>
         </PageHeaderContent>
         <PageActions>

@@ -115,6 +115,13 @@ const AddAppointmentForm = ({
         date: dayjs(selectedDate).format("YYYY-MM-DD"),
         doctorId: selectedDoctorId,
       });
+      console.log("🔍 Debug - Result from getAvailableTimes:", result);
+      console.log("🔍 Debug - result.data:", result?.data);
+      console.log("🔍 Debug - Array.isArray(result):", Array.isArray(result));
+      console.log(
+        "🔍 Debug - Array.isArray(result?.data):",
+        Array.isArray(result?.data),
+      );
       return result;
     },
     enabled: !!selectedDate && !!selectedDoctorId,
@@ -405,6 +412,16 @@ const AddAppointmentForm = ({
                     {availableTimes?.data &&
                     Array.isArray(availableTimes.data) ? (
                       availableTimes.data.map((time) => (
+                        <TimeSelectItem
+                          key={time.value}
+                          value={time.value}
+                          disabled={!time.available}
+                        >
+                          {time.label} {!time.available && "(Indisponível)"}
+                        </TimeSelectItem>
+                      ))
+                    ) : availableTimes && Array.isArray(availableTimes) ? (
+                      availableTimes.map((time) => (
                         <TimeSelectItem
                           key={time.value}
                           value={time.value}
