@@ -21,9 +21,11 @@ const PatientsPage = async () => {
 
   // Tanto admin quanto médico veem todos os pacientes da clínica
   // Médicos podem atender qualquer paciente da clínica
+  // Otimização: Limitar a 500 pacientes mais recentes
   const patients = await db.query.patientsTable.findMany({
     where: eq(patientsTable.clinicId, session.user.clinic?.id ?? ""),
     orderBy: (patients, { asc }) => [asc(patients.name)],
+    limit: 500, // Limite para melhorar performance
   });
   return (
     <PageContainer>

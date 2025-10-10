@@ -50,12 +50,17 @@ const AppointmentsPage = async () => {
     }
   }
 
+  // Otimização: Adicionar ordenação e limites razoáveis
   const [patients, doctors, appointments] = await Promise.all([
     db.query.patientsTable.findMany({
       where: patientsFilter,
+      orderBy: (patients, { asc }) => [asc(patients.name)],
+      limit: 500, // Limite para dropdowns
     }),
     db.query.doctorsTable.findMany({
       where: doctorsFilter,
+      orderBy: (doctors, { asc }) => [asc(doctors.name)],
+      limit: 100, // Limite para dropdowns
     }),
     db.query.appointmentsTable.findMany({
       where: appointmentsFilter,
@@ -63,6 +68,8 @@ const AppointmentsPage = async () => {
         patient: true,
         doctor: true,
       },
+      orderBy: (appointments, { asc }) => [asc(appointments.date)],
+      // Não adicionar limit aqui pois o calendário precisa de todos os agendamentos visíveis
     }),
   ]);
 

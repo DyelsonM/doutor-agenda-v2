@@ -9,9 +9,11 @@ import {
   Hospital,
   Stethoscope,
 } from "lucide-react";
+import { memo } from "react";
 
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+
 import { getSpecialtyLabel } from "../../doctors/_constants";
 
 interface TopSpecialtiesProps {
@@ -43,7 +45,8 @@ const getSpecialtyIcon = (specialty: string) => {
   return Stethoscope;
 };
 
-export default function TopSpecialties({
+// Otimização: Memoizar para evitar re-renders desnecessários
+const TopSpecialties = memo(function TopSpecialties({
   topSpecialties,
 }: TopSpecialtiesProps) {
   const maxAppointments = Math.max(
@@ -95,4 +98,6 @@ export default function TopSpecialties({
       </CardContent>
     </Card>
   );
-}
+});
+
+export default TopSpecialties;

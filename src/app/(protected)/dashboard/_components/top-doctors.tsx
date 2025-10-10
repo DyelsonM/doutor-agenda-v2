@@ -1,4 +1,5 @@
 import { Stethoscope } from "lucide-react";
+import { memo } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
@@ -14,7 +15,8 @@ interface TopDoctorsProps {
   }[];
 }
 
-export default function TopDoctors({ doctors }: TopDoctorsProps) {
+// Otimização: Memoizar para evitar re-renders desnecessários
+const TopDoctors = memo(function TopDoctors({ doctors }: TopDoctorsProps) {
   return (
     <Card className="mx-auto w-full">
       <CardContent>
@@ -57,4 +59,6 @@ export default function TopDoctors({ doctors }: TopDoctorsProps) {
       </CardContent>
     </Card>
   );
-}
+});
+
+export default TopDoctors;

@@ -3,7 +3,7 @@
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { eq } from "drizzle-orm";
+import { and, eq, gte, lte, ne } from "drizzle-orm";
 import { headers } from "next/headers";
 import { z } from "zod";
 
@@ -49,21 +49,33 @@ export const getAvailableTimes = actionClient
     if (!doctorIsAvailable) {
       return [];
     }
+
+    // Otimização: Filtrar por data diretamente no banco de dados
+    const startOfDay = dayjs(parsedInput.date).startOf("day").toDate();
+    const endOfDay = dayjs(parsedInput.date).endOf("day").toDate();
+
+    // Construir filtros dinamicamente
+    const filters = [
+      eq(appointmentsTable.doctorId, parsedInput.doctorId),
+      gte(appointmentsTable.date, startOfDay),
+      lte(appointmentsTable.date, endOfDay),
+    ];
+
+    // Excluir appointment específico se fornecido
+    if (parsedInput.excludeAppointmentId) {
+      filters.push(ne(appointmentsTable.id, parsedInput.excludeAppointmentId));
+    }
+
     const appointments = await db.query.appointmentsTable.findMany({
-      where: eq(appointmentsTable.doctorId, parsedInput.doctorId),
+      where: and(...filters),
+      columns: {
+        date: true,
+      },
     });
-    const appointmentsOnSelectedDate = appointments
-      .filter((appointment) => {
-        // Excluir o agendamento atual se estivermos editando
-        if (
-          parsedInput.excludeAppointmentId &&
-          appointment.id === parsedInput.excludeAppointmentId
-        ) {
-          return false;
-        }
-        return dayjs(appointment.date).isSame(parsedInput.date, "day");
-      })
-      .map((appointment) => dayjs(appointment.date).format("HH:mm:ss"));
+
+    const appointmentsOnSelectedDate = appointments.map((appointment) =>
+      dayjs(appointment.date).format("HH:mm:ss"),
+    );
     const timeSlots = generateTimeSlots();
 
     // Usar os horários do médico diretamente (já estão em horário local)

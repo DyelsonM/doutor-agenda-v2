@@ -14,9 +14,11 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { addAppointment } from "@/actions/add-appointment";
+import { getAppointmentModalitiesByCategory } from "@/actions/get-appointment-modalities-by-category";
 import { getAvailableTimes } from "@/actions/get-available-times";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DialogContent,
   DialogDescription,
@@ -33,7 +35,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
   PopoverContent,
@@ -53,7 +54,6 @@ import { doctorsTable, patientsTable } from "@/db/schema";
 import { cn } from "@/lib/utils";
 
 import { getSpecialtyLabel } from "../../doctors/_constants";
-import { getAppointmentModalitiesByCategory } from "@/actions/get-appointment-modalities-by-category";
 
 const formSchema = z.object({
   patientId: z.string().min(1, {
@@ -124,6 +124,7 @@ const AddAppointmentForm = ({
   });
 
   // Atualizar o preço quando o médico for selecionado
+  // Otimização: Remover 'form' das dependências para evitar loops
   useEffect(() => {
     if (selectedDoctorId) {
       const selectedDoctor = doctors.find(
@@ -136,8 +137,10 @@ const AddAppointmentForm = ({
         );
       }
     }
-  }, [selectedDoctorId, doctors, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDoctorId, doctors]);
 
+  // Otimização: Remover 'form' das dependências para evitar loops
   useEffect(() => {
     if (isOpen) {
       form.reset({
@@ -150,7 +153,8 @@ const AddAppointmentForm = ({
         isReturn: false,
       });
     }
-  }, [isOpen, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const createAppointmentAction = useAction(addAppointment, {
     onSuccess: () => {

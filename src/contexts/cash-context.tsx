@@ -4,8 +4,8 @@ import {
   createContext,
   useContext,
   useState,
-  useEffect,
   ReactNode,
+  useCallback,
 } from "react";
 import { useRouter } from "next/navigation";
 
@@ -19,17 +19,26 @@ const CashContext = createContext<CashContextType | undefined>(undefined);
 export function CashProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshTimeout, setRefreshTimeout] = useState<NodeJS.Timeout | null>(
+    null,
+  );
 
-  const refreshCashData = () => {
+  const refreshCashData = useCallback(() => {
+    // Evitar múltiplos refreshes em sequência (debounce)
+    if (refreshTimeout) {
+      clearTimeout(refreshTimeout);
+    }
+
     setIsRefreshing(true);
-    // Força atualização de todas as páginas relacionadas ao caixa
-    router.refresh();
 
-    // Reset do estado após um pequeno delay
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
+      // Força atualização apenas da página atual
+      router.refresh();
       setIsRefreshing(false);
-    }, 1000);
-  };
+    }, 300); // Debounce de 300ms
+
+    setRefreshTimeout(timeout);
+  }, [router, refreshTimeout]);
 
   return (
     <CashContext.Provider value={{ refreshCashData, isRefreshing }}>

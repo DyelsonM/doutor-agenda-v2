@@ -91,6 +91,7 @@ const UpsertPatientForm = ({
     },
   });
 
+  // Otimização: Remover 'form' das dependências para evitar loops
   useEffect(() => {
     if (isOpen) {
       form.reset({
@@ -105,7 +106,8 @@ const UpsertPatientForm = ({
         insuranceName: patient?.insuranceName ?? "",
       });
     }
-  }, [isOpen, form, patient]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, patient]);
 
   const upsertPatientAction = useAction(upsertPatient, {
     onSuccess: () => {

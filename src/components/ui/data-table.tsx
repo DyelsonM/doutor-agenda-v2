@@ -8,7 +8,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import {
@@ -29,7 +29,8 @@ interface DataTableProps<TData, TValue> {
   maxHeight?: string;
 }
 
-export function DataTable<TData, TValue>({
+// Otimização: Memoizar componente para evitar re-renders desnecessários
+function DataTableComponent<TData, TValue>({
   columns,
   data,
   searchKey,
@@ -209,3 +210,6 @@ export function DataTable<TData, TValue>({
     </div>
   );
 }
+
+// Exportar versão memoizada para melhor performance
+export const DataTable = memo(DataTableComponent) as typeof DataTableComponent;
