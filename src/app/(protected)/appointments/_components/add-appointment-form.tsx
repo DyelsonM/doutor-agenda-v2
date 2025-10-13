@@ -109,22 +109,34 @@ const AddAppointmentForm = ({
   const selectedPatientId = form.watch("patientId");
   const selectedDate = form.watch("date");
 
+  console.log("🔍 Debug - Valores do formulário:", {
+    selectedDoctorId,
+    selectedPatientId,
+    selectedDate,
+    enabled: !!selectedDate && !!selectedDoctorId,
+  });
+
   const {
     data: availableTimes,
     isLoading: isLoadingTimes,
     error: availableTimesError,
     refetch,
-  } = useDebouncedQuery({
+  } = useQuery({
     queryKey: ["available-times", selectedDate, selectedDoctorId],
     queryFn: async () => {
       const formattedDate = dayjs(selectedDate).format("YYYY-MM-DD");
-      return await getAvailableTimes({
+      console.log("🔍 Debug - Chamando getAvailableTimes com:", {
         date: formattedDate,
         doctorId: selectedDoctorId,
       });
+      const result = await getAvailableTimes({
+        date: formattedDate,
+        doctorId: selectedDoctorId,
+      });
+      console.log("🔍 Debug - Resultado recebido no formulário:", result);
+      return result;
     },
     enabled: !!selectedDate && !!selectedDoctorId,
-    debounceMs: 500, // 500ms de debounce
     retry: 1,
     retryDelay: 1000,
     staleTime: 60000, // 1 minuto de cache
@@ -432,10 +444,10 @@ const AddAppointmentForm = ({
                           Tentar Novamente
                         </Button>
                       </div>
-                    ) : availableTimes &&
-                      Array.isArray(availableTimes) &&
-                      availableTimes.length > 0 ? (
-                      availableTimes.map((time: any) => (
+                    ) : availableTimes?.data &&
+                      Array.isArray(availableTimes.data) &&
+                      availableTimes.data.length > 0 ? (
+                      availableTimes.data.map((time: any) => (
                         <TimeSelectItem
                           key={time.value}
                           value={time.value}

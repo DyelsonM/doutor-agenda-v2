@@ -451,10 +451,10 @@ const EditAppointmentForm = ({
                           Tentar Novamente
                         </Button>
                       </div>
-                    ) : availableTimes &&
-                      Array.isArray(availableTimes) &&
-                      availableTimes.length > 0 ? (
-                      availableTimes.map((time) => (
+                    ) : availableTimes?.data &&
+                      Array.isArray(availableTimes.data) &&
+                      availableTimes.data.length > 0 ? (
+                      availableTimes.data.map((time) => (
                         <TimeSelectItem
                           key={time.value}
                           value={time.value}

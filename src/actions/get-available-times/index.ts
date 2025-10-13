@@ -49,7 +49,20 @@ export const getAvailableTimes = actionClient
         },
       });
 
+      console.log("🔍 Debug - Médico encontrado:", {
+        id: doctor?.id,
+        name: doctor?.name,
+        availableFromTime: doctor?.availableFromTime,
+        availableToTime: doctor?.availableToTime,
+        availableFromWeekDay: doctor?.availableFromWeekDay,
+        availableToWeekDay: doctor?.availableToWeekDay,
+      });
+
       if (!doctor) {
+        console.log(
+          "🚨 Erro - Médico não encontrado para ID:",
+          parsedInput.doctorId,
+        );
         throw new Error("Médico não encontrado");
       }
 
@@ -58,7 +71,16 @@ export const getAvailableTimes = actionClient
         selectedDayOfWeek >= doctor.availableFromWeekDay &&
         selectedDayOfWeek <= doctor.availableToWeekDay;
 
+      console.log("🔍 Debug - Verificação de disponibilidade:", {
+        selectedDate: parsedInput.date,
+        selectedDayOfWeek,
+        doctorFromWeekDay: doctor.availableFromWeekDay,
+        doctorToWeekDay: doctor.availableToWeekDay,
+        doctorIsAvailable,
+      });
+
       if (!doctorIsAvailable) {
+        console.log("🚨 Médico não disponível neste dia da semana");
         return [];
       }
 
@@ -105,6 +127,8 @@ export const getAvailableTimes = actionClient
 
       // Gerar slots de tempo otimizados
       const timeSlots = generateTimeSlots();
+      console.log("🔍 Debug - Total de slots gerados:", timeSlots.length);
+      console.log("🔍 Debug - Primeiros 5 slots:", timeSlots.slice(0, 5));
 
       // Filtrar horários do médico
       const doctorTimeSlots = timeSlots.filter((time) => {
@@ -127,6 +151,13 @@ export const getAvailableTimes = actionClient
         );
       });
 
+      console.log("🔍 Debug - Slots do médico:", {
+        total: doctorTimeSlots.length,
+        first5: doctorTimeSlots.slice(0, 5),
+        doctorFromTime: doctor.availableFromTime,
+        doctorToTime: doctor.availableToTime,
+      });
+
       // Mapear resultado final
       const result = doctorTimeSlots.map((time) => {
         const isBooked = appointmentsOnSelectedDate.includes(time);
@@ -136,6 +167,13 @@ export const getAvailableTimes = actionClient
           available: !isBooked,
           label: time.substring(0, 5),
         };
+      });
+
+      console.log("🔍 Debug - Resultado final:", {
+        total: result.length,
+        available: result.filter((r) => r.available).length,
+        booked: result.filter((r) => !r.available).length,
+        first5: result.slice(0, 5),
       });
 
       // Garantir que sempre retornamos um array válido
