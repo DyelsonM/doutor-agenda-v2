@@ -17,10 +17,10 @@ import { getAuthSession, requireAdmin } from "@/lib/auth-utils";
 
 import AppointmentsOnlyChart from "./_components/appointments-only-chart";
 import { DatePicker } from "./_components/date-picker";
-import StatsCards from "./_components/stats-cards";
+import { StatsCards } from "./_components/stats-cards";
 import { TodayAppointmentsTable } from "./_components/today-appointments-table";
-import TopDoctors from "./_components/top-doctors";
-import TopSpecialties from "./_components/top-specialties";
+import { TopDoctors } from "./_components/top-doctors";
+import { TopSpecialties } from "./_components/top-specialties";
 
 interface DashboardPageProps {
   searchParams: Promise<{

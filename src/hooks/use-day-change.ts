@@ -1,23 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useCallback } from "react";
+import { useEffect } from "react";
 
 /**
  * Hook que detecta quando o dia muda (à meia-noite) e executa uma função callback
- * Otimizado para evitar re-criação desnecessária de timers
  */
 export function useDayChange(onDayChange?: () => void) {
   const router = useRouter();
-
-  const handleDayChange = useCallback(() => {
-    if (onDayChange) {
-      onDayChange();
-    } else {
-      // Por padrão, revalidar a página
-      router.refresh();
-    }
-  }, [onDayChange, router]);
 
   useEffect(() => {
     const setupMidnightTimer = (): NodeJS.Timeout => {
@@ -29,7 +19,12 @@ export function useDayChange(onDayChange?: () => void) {
       const timeUntilMidnight = tomorrow.getTime() - now.getTime();
 
       return setTimeout(() => {
-        handleDayChange();
+        if (onDayChange) {
+          onDayChange();
+        } else {
+          // Por padrão, revalidar a página
+          router.refresh();
+        }
         // Configurar próximo timer para amanhã
         setupMidnightTimer();
       }, timeUntilMidnight);
@@ -41,5 +36,5 @@ export function useDayChange(onDayChange?: () => void) {
     return () => {
       clearTimeout(timeout);
     };
-  }, [handleDayChange]); // Apenas handleDayChange como dependência
+  }, [onDayChange, router]);
 }

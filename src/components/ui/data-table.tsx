@@ -8,7 +8,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Search } from "lucide-react";
-import { memo, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 import {
@@ -211,5 +211,4 @@ function DataTableComponent<TData, TValue>({
   );
 }
 
-// Exportar versão memoizada para melhor performance
-export const DataTable = memo(DataTableComponent) as typeof DataTableComponent;
+export const DataTable = DataTableComponent;

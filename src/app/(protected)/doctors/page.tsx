@@ -22,11 +22,9 @@ const DoctorsPage = async () => {
   // Apenas administradores podem gerenciar médicos
   requireAdmin(session);
 
-  // Otimização: Adicionar limit para melhor performance
   const doctors = await db.query.doctorsTable.findMany({
     where: eq(doctorsTable.clinicId, session.user.clinic.id),
     orderBy: (doctors, { asc }) => [asc(doctors.name)],
-    limit: 100, // Limite razoável - clínicas raramente têm mais de 100 médicos
   });
   return (
     <PageContainer>

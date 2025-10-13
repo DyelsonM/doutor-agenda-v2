@@ -1,5 +1,4 @@
 import { CalendarIcon, UserIcon, UsersIcon } from "lucide-react";
-import { memo } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -9,8 +8,7 @@ interface StatsCardsProps {
   totalDoctors: number;
 }
 
-// Otimização: Memoizar para evitar re-renders desnecessários
-const StatsCards = memo(function StatsCards({
+export function StatsCards({
   totalAppointments,
   totalPatients,
   totalDoctors,
@@ -55,6 +53,4 @@ const StatsCards = memo(function StatsCards({
       })}
     </div>
   );
-});
-
-export default StatsCards;
+}

@@ -9,7 +9,6 @@ import {
   Hospital,
   Stethoscope,
 } from "lucide-react";
-import { memo } from "react";
 
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -45,10 +44,7 @@ const getSpecialtyIcon = (specialty: string) => {
   return Stethoscope;
 };
 
-// Otimização: Memoizar para evitar re-renders desnecessários
-const TopSpecialties = memo(function TopSpecialties({
-  topSpecialties,
-}: TopSpecialtiesProps) {
+export function TopSpecialties({ topSpecialties }: TopSpecialtiesProps) {
   const maxAppointments = Math.max(
     ...topSpecialties.map((i) => i.appointments),
   );
@@ -98,6 +94,4 @@ const TopSpecialties = memo(function TopSpecialties({
       </CardContent>
     </Card>
   );
-});
-
-export default TopSpecialties;
+}

@@ -106,8 +106,7 @@ const UpsertPatientForm = ({
         insuranceName: patient?.insuranceName ?? "",
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, patient]);
+  }, [isOpen, patient, form]);
 
   const upsertPatientAction = useAction(upsertPatient, {
     onSuccess: () => {

@@ -1,5 +1,4 @@
-import { and, eq, gte, lte } from "drizzle-orm";
-import dayjs from "dayjs";
+import { and, eq } from "drizzle-orm";
 
 import {
   PageActions,
@@ -20,25 +19,17 @@ import { AppointmentsView } from "./_components/appointments-view";
 const AppointmentsPage = async () => {
   const session = await getAuthSession();
 
-  // Otimização: Carregar agendamentos relevantes (últimos 6 meses + próximos 12 meses)
-  const startDate = dayjs().subtract(6, "months").startOf("day").toDate();
-  const endDate = dayjs().add(12, "months").endOf("day").toDate();
-
   let appointmentsFilter;
   let patientsFilter;
   let doctorsFilter;
 
   if (session.user.role === "admin") {
-    // Admin vê todos os agendamentos da clínica (com filtro de data)
-    appointmentsFilter = and(
-      eq(appointmentsTable.clinicId, session.user.clinic.id),
-      gte(appointmentsTable.date, startDate),
-      lte(appointmentsTable.date, endDate),
-    );
+    // Admin vê todos os agendamentos da clínica
+    appointmentsFilter = eq(appointmentsTable.clinicId, session.user.clinic.id);
     patientsFilter = eq(patientsTable.clinicId, session.user.clinic.id);
     doctorsFilter = eq(doctorsTable.clinicId, session.user.clinic.id);
   } else {
-    // Médico vê apenas seus agendamentos (com filtro de data)
+    // Médico vê apenas seus agendamentos
     const doctorId = await getDoctorIdFromUser(session.user.id);
     if (!doctorId) {
       // Se médico não está vinculado ainda, mostrar apenas estrutura vazia
@@ -50,8 +41,6 @@ const AppointmentsPage = async () => {
       appointmentsFilter = and(
         eq(appointmentsTable.clinicId, session.user.clinic.id),
         eq(appointmentsTable.doctorId, doctorId),
-        gte(appointmentsTable.date, startDate),
-        lte(appointmentsTable.date, endDate),
       );
       patientsFilter = eq(patientsTable.clinicId, session.user.clinic.id);
       doctorsFilter = and(
@@ -61,37 +50,20 @@ const AppointmentsPage = async () => {
     }
   }
 
-  // Otimização: Adicionar ordenação e limites razoáveis
   const [patients, doctors, appointments] = await Promise.all([
     db.query.patientsTable.findMany({
       where: patientsFilter,
       orderBy: (patients, { asc }) => [asc(patients.name)],
-      limit: 500, // Limite para dropdowns
     }),
     db.query.doctorsTable.findMany({
       where: doctorsFilter,
       orderBy: (doctors, { asc }) => [asc(doctors.name)],
-      limit: 100, // Limite para dropdowns
     }),
-    // Otimização: Carregar apenas campos necessários + filtro de data
     db.query.appointmentsTable.findMany({
       where: appointmentsFilter,
       with: {
-        patient: {
-          columns: {
-            id: true,
-            name: true,
-            phoneNumber: true,
-            sex: true,
-          },
-        },
-        doctor: {
-          columns: {
-            id: true,
-            name: true,
-            specialty: true,
-          },
-        },
+        patient: true,
+        doctor: true,
       },
       orderBy: (appointments, { asc }) => [asc(appointments.date)],
     }),

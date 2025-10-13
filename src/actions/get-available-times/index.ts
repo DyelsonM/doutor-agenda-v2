@@ -3,7 +3,7 @@
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { and, eq, gte, lte, ne } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { z } from "zod";
 
@@ -49,20 +49,7 @@ export const getAvailableTimes = actionClient
         },
       });
 
-      console.log("🔍 Debug - Médico encontrado:", {
-        id: doctor?.id,
-        name: doctor?.name,
-        availableFromTime: doctor?.availableFromTime,
-        availableToTime: doctor?.availableToTime,
-        availableFromWeekDay: doctor?.availableFromWeekDay,
-        availableToWeekDay: doctor?.availableToWeekDay,
-      });
-
       if (!doctor) {
-        console.log(
-          "🚨 Erro - Médico não encontrado para ID:",
-          parsedInput.doctorId,
-        );
         throw new Error("Médico não encontrado");
       }
 
@@ -71,64 +58,40 @@ export const getAvailableTimes = actionClient
         selectedDayOfWeek >= doctor.availableFromWeekDay &&
         selectedDayOfWeek <= doctor.availableToWeekDay;
 
-      console.log("🔍 Debug - Verificação de disponibilidade:", {
-        selectedDate: parsedInput.date,
-        selectedDayOfWeek,
-        doctorFromWeekDay: doctor.availableFromWeekDay,
-        doctorToWeekDay: doctor.availableToWeekDay,
-        doctorIsAvailable,
-      });
-
       if (!doctorIsAvailable) {
-        console.log("🚨 Médico não disponível neste dia da semana");
         return [];
       }
 
-      // Otimização: Usar índices de performance para query mais rápida
-      const startOfDay = dayjs(parsedInput.date)
-        .tz("America/Sao_Paulo", true)
-        .startOf("day")
-        .utc()
-        .toDate();
-      const endOfDay = dayjs(parsedInput.date)
-        .tz("America/Sao_Paulo", true)
-        .endOf("day")
-        .utc()
-        .toDate();
-
-      // Construir filtros otimizados
-      const filters = [
-        eq(appointmentsTable.doctorId, parsedInput.doctorId),
-        gte(appointmentsTable.date, startOfDay),
-        lte(appointmentsTable.date, endOfDay),
-      ];
-
-      // Excluir appointment específico se fornecido
-      if (parsedInput.excludeAppointmentId) {
-        filters.push(
-          ne(appointmentsTable.id, parsedInput.excludeAppointmentId),
-        );
-      }
-
-      // Query otimizada usando índices
-      const appointments = await db.query.appointmentsTable.findMany({
-        where: and(...filters),
-        columns: {
-          date: true,
-        },
+      // Buscar TODOS os agendamentos do médico (sem filtro de data)
+      const allAppointments = await db.query.appointmentsTable.findMany({
+        where: eq(appointmentsTable.doctorId, parsedInput.doctorId),
       });
 
-      const appointmentsOnSelectedDate = appointments.map((appointment) =>
-        dayjs(appointment.date)
-          .utc()
-          .tz("America/Sao_Paulo")
-          .format("HH:mm:ss"),
-      );
+      // Filtrar em memória por data
+      const appointmentsOnSelectedDate = allAppointments
+        .filter((appointment) => {
+          const appointmentDate = dayjs(appointment.date)
+            .utc()
+            .tz("America/Sao_Paulo")
+            .format("YYYY-MM-DD");
+          return appointmentDate === parsedInput.date;
+        })
+        .filter((appointment) => {
+          // Excluir appointment específico se fornecido
+          if (parsedInput.excludeAppointmentId) {
+            return appointment.id !== parsedInput.excludeAppointmentId;
+          }
+          return true;
+        })
+        .map((appointment) =>
+          dayjs(appointment.date)
+            .utc()
+            .tz("America/Sao_Paulo")
+            .format("HH:mm:ss"),
+        );
 
-      // Gerar slots de tempo otimizados
+      // Gerar slots de tempo
       const timeSlots = generateTimeSlots();
-      console.log("🔍 Debug - Total de slots gerados:", timeSlots.length);
-      console.log("🔍 Debug - Primeiros 5 slots:", timeSlots.slice(0, 5));
 
       // Filtrar horários do médico
       const doctorTimeSlots = timeSlots.filter((time) => {
@@ -151,13 +114,6 @@ export const getAvailableTimes = actionClient
         );
       });
 
-      console.log("🔍 Debug - Slots do médico:", {
-        total: doctorTimeSlots.length,
-        first5: doctorTimeSlots.slice(0, 5),
-        doctorFromTime: doctor.availableFromTime,
-        doctorToTime: doctor.availableToTime,
-      });
-
       // Mapear resultado final
       const result = doctorTimeSlots.map((time) => {
         const isBooked = appointmentsOnSelectedDate.includes(time);
@@ -167,13 +123,6 @@ export const getAvailableTimes = actionClient
           available: !isBooked,
           label: time.substring(0, 5),
         };
-      });
-
-      console.log("🔍 Debug - Resultado final:", {
-        total: result.length,
-        available: result.filter((r) => r.available).length,
-        booked: result.filter((r) => !r.available).length,
-        first5: result.slice(0, 5),
       });
 
       // Garantir que sempre retornamos um array válido

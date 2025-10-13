@@ -54,39 +54,33 @@ const DocumentsPage = async () => {
     );
   }
 
-  const [patients, doctors, documents, templates, totalDocumentsCount] =
-    await Promise.all([
-      db.query.patientsTable.findMany({
-        where: patientsFilter,
-        orderBy: (patients, { asc }) => [asc(patients.name)],
-      }),
-      db.query.doctorsTable.findMany({
-        where: doctorsFilter,
-        orderBy: (doctors, { asc }) => [asc(doctors.name)],
-      }),
-      // Otimização: Limitar a 200 documentos mais recentes para melhor performance
-      db.query.documentsTable.findMany({
-        where: documentsFilter,
-        with: {
-          patient: true,
-          doctor: true,
-          appointment: true,
-        },
-        orderBy: (documents, { desc }) => [desc(documents.createdAt)],
-        limit: 200, // Limite para melhorar performance
-      }),
-      db.query.documentTemplatesTable.findMany({
-        where: eq(documentTemplatesTable.clinicId, session.user.clinic.id),
-        orderBy: (templates, { asc }) => [asc(templates.name)],
-      }),
-      // Contar total de documentos para mostrar ao usuário
-      db.$count(documentsTable, documentsFilter),
-    ]);
+  const [patients, doctors, documents, templates] = await Promise.all([
+    db.query.patientsTable.findMany({
+      where: patientsFilter,
+      orderBy: (patients, { asc }) => [asc(patients.name)],
+    }),
+    db.query.doctorsTable.findMany({
+      where: doctorsFilter,
+      orderBy: (doctors, { asc }) => [asc(doctors.name)],
+    }),
+    db.query.documentsTable.findMany({
+      where: documentsFilter,
+      with: {
+        patient: true,
+        doctor: true,
+        appointment: true,
+      },
+      orderBy: (documents, { desc }) => [desc(documents.createdAt)],
+    }),
+    db.query.documentTemplatesTable.findMany({
+      where: eq(documentTemplatesTable.clinicId, session.user.clinic.id),
+      orderBy: (templates, { asc }) => [asc(templates.name)],
+    }),
+  ]);
 
-  // Estatísticas dos documentos (baseado nos documentos carregados)
+  // Estatísticas dos documentos
   const documentStats = {
-    total: totalDocumentsCount,
-    loaded: documents.length,
+    total: documents.length,
     anamnesis: documents.filter((d) => d.type === "anamnesis").length,
     prescriptions: documents.filter((d) => d.type === "prescription").length,
     certificates: documents.filter((d) => d.type === "medical_certificate")
@@ -168,15 +162,7 @@ const DocumentsPage = async () => {
           {/* Tabela de documentos */}
           <Card>
             <CardHeader>
-              <CardTitle>
-                Lista de Documentos
-                {documentStats.total > 200 && (
-                  <span className="text-muted-foreground ml-2 text-sm font-normal">
-                    (mostrando os {documentStats.loaded} mais recentes de{" "}
-                    {documentStats.total})
-                  </span>
-                )}
-              </CardTitle>
+              <CardTitle>Lista de Documentos</CardTitle>
             </CardHeader>
             <CardContent>
               <DocumentsTableClient

@@ -109,13 +109,6 @@ const AddAppointmentForm = ({
   const selectedPatientId = form.watch("patientId");
   const selectedDate = form.watch("date");
 
-  console.log("🔍 Debug - Valores do formulário:", {
-    selectedDoctorId,
-    selectedPatientId,
-    selectedDate,
-    enabled: !!selectedDate && !!selectedDoctorId,
-  });
-
   const {
     data: availableTimes,
     isLoading: isLoadingTimes,
@@ -125,15 +118,10 @@ const AddAppointmentForm = ({
     queryKey: ["available-times", selectedDate, selectedDoctorId],
     queryFn: async () => {
       const formattedDate = dayjs(selectedDate).format("YYYY-MM-DD");
-      console.log("🔍 Debug - Chamando getAvailableTimes com:", {
-        date: formattedDate,
-        doctorId: selectedDoctorId,
-      });
       const result = await getAvailableTimes({
         date: formattedDate,
         doctorId: selectedDoctorId,
       });
-      console.log("🔍 Debug - Resultado recebido no formulário:", result);
       return result;
     },
     enabled: !!selectedDate && !!selectedDoctorId,
@@ -162,10 +150,8 @@ const AddAppointmentForm = ({
         );
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDoctorId, doctors]);
+  }, [selectedDoctorId, doctors, form]);
 
-  // Otimização: Remover 'form' das dependências para evitar loops
   useEffect(() => {
     if (isOpen) {
       form.reset({
@@ -178,8 +164,7 @@ const AddAppointmentForm = ({
         isReturn: false,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }, [isOpen, form]);
 
   const createAppointmentAction = useAction(addAppointment, {
     onSuccess: () => {
@@ -192,11 +177,6 @@ const AddAppointmentForm = ({
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Debug para produção
-    console.log("🔍 Debug - Valores do formulário:", values);
-    console.log("🔍 Debug - Data selecionada:", values.date);
-    console.log("🔍 Debug - Horário selecionado:", values.time);
-
     createAppointmentAction.execute({
       ...values,
       appointmentPriceInCents: values.appointmentPrice * 100,
