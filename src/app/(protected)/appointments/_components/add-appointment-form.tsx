@@ -16,6 +16,7 @@ import { z } from "zod";
 import { addAppointment } from "@/actions/add-appointment";
 import { getAppointmentModalitiesByCategory } from "@/actions/get-appointment-modalities-by-category";
 import { getAvailableTimes } from "@/actions/get-available-times";
+import { useDebouncedQuery } from "@/hooks/use-debounced-query";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -113,44 +114,21 @@ const AddAppointmentForm = ({
     isLoading: isLoadingTimes,
     error: availableTimesError,
     refetch,
-  } = useQuery({
+  } = useDebouncedQuery({
     queryKey: ["available-times", selectedDate, selectedDoctorId],
     queryFn: async () => {
-      try {
-        // Garantir que a data seja formatada corretamente
-        const formattedDate = dayjs(selectedDate).format("YYYY-MM-DD");
-        console.log("🔍 Debug - Data formatada para query:", formattedDate);
-        console.log("🔍 Debug - Doctor ID:", selectedDoctorId);
-
-        // Adicionar timeout para evitar carregamento infinito
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error("Timeout")), 10000);
-        });
-
-        const resultPromise = getAvailableTimes({
-          date: formattedDate,
-          doctorId: selectedDoctorId,
-        });
-
-        const result = await Promise.race([resultPromise, timeoutPromise]);
-
-        console.log("🔍 Debug - Result from getAvailableTimes:", result);
-        console.log("🔍 Debug - result.data:", (result as any)?.data);
-        console.log("🔍 Debug - Array.isArray(result):", Array.isArray(result));
-        console.log(
-          "🔍 Debug - Array.isArray(result?.data):",
-          Array.isArray((result as any)?.data),
-        );
-        return result;
-      } catch (error) {
-        console.error("🚨 Erro ao buscar horários disponíveis:", error);
-        throw error;
-      }
+      const formattedDate = dayjs(selectedDate).format("YYYY-MM-DD");
+      return await getAvailableTimes({
+        date: formattedDate,
+        doctorId: selectedDoctorId,
+      });
     },
     enabled: !!selectedDate && !!selectedDoctorId,
+    debounceMs: 500, // 500ms de debounce
     retry: 1,
     retryDelay: 1000,
-    staleTime: 30000, // 30 segundos
+    staleTime: 60000, // 1 minuto de cache
+    gcTime: 300000, // 5 minutos de garbage collection
   });
 
   const { data: appointmentModalitiesByCategory } = useQuery({

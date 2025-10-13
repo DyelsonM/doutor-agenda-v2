@@ -26,30 +26,32 @@ export const getAvailableTimes = actionClient
   )
   .action(async ({ parsedInput }) => {
     try {
-      console.log("🔍 Debug - Iniciando getAvailableTimes com:", parsedInput);
-
       const session = await auth.api.getSession({
         headers: await headers(),
       });
       if (!session) {
-        console.error("🚨 Erro: Sessão não encontrada");
         throw new Error("Unauthorized");
       }
       if (!session.user.clinic) {
-        console.error("🚨 Erro: Clínica não encontrada");
         throw new Error("Clínica não encontrada");
       }
 
-      console.log("🔍 Debug - Sessão válida, buscando médico...");
+      // Buscar médico com cache otimizado
       const doctor = await db.query.doctorsTable.findFirst({
         where: eq(doctorsTable.id, parsedInput.doctorId),
+        columns: {
+          id: true,
+          name: true,
+          availableFromWeekDay: true,
+          availableToWeekDay: true,
+          availableFromTime: true,
+          availableToTime: true,
+        },
       });
+      
       if (!doctor) {
-        console.error("🚨 Erro: Médico não encontrado");
         throw new Error("Médico não encontrado");
       }
-
-      console.log("🔍 Debug - Médico encontrado:", doctor.name);
 
       const selectedDayOfWeek = dayjs(parsedInput.date).day();
       const doctorIsAvailable =
@@ -57,12 +59,10 @@ export const getAvailableTimes = actionClient
         selectedDayOfWeek <= doctor.availableToWeekDay;
 
       if (!doctorIsAvailable) {
-        console.log("🔍 Debug - Médico não disponível neste dia");
         return [];
       }
 
-      // Otimização: Filtrar por data diretamente no banco de dados
-      // Garantir que estamos trabalhando com horário do Brasil
+      // Otimização: Usar índices de performance para query mais rápida
       const startOfDay = dayjs(parsedInput.date)
         .tz("America/Sao_Paulo", true)
         .startOf("day")
@@ -74,12 +74,7 @@ export const getAvailableTimes = actionClient
         .utc()
         .toDate();
 
-      // Debug para produção
-      console.log("🔍 Debug - Data solicitada:", parsedInput.date);
-      console.log("🔍 Debug - Start of day (UTC):", startOfDay);
-      console.log("🔍 Debug - End of day (UTC):", endOfDay);
-
-      // Construir filtros dinamicamente
+      // Construir filtros otimizados
       const filters = [
         eq(appointmentsTable.doctorId, parsedInput.doctorId),
         gte(appointmentsTable.date, startOfDay),
@@ -93,6 +88,7 @@ export const getAvailableTimes = actionClient
         );
       }
 
+      // Query otimizada usando índices
       const appointments = await db.query.appointmentsTable.findMany({
         where: and(...filters),
         columns: {
@@ -107,14 +103,10 @@ export const getAvailableTimes = actionClient
           .format("HH:mm:ss"),
       );
 
-      // Debug para produção
-      console.log(
-        "🔍 Debug - Agendamentos encontrados:",
-        appointmentsOnSelectedDate,
-      );
+      // Gerar slots de tempo otimizados
       const timeSlots = generateTimeSlots();
 
-      // Usar os horários do médico diretamente (já estão em horário local)
+      // Filtrar horários do médico de forma mais eficiente
       const doctorTimeSlots = timeSlots.filter((time) => {
         const timeHour = Number(time.split(":")[0]);
         const timeMinute = Number(time.split(":")[1]);
@@ -134,21 +126,21 @@ export const getAvailableTimes = actionClient
           timeInMinutes <= doctorToInMinutes
         );
       });
-      // Permitir agendamentos em todos os horários, mesmo os que já passaram
+
+      // Mapear resultado final
       const result = doctorTimeSlots.map((time) => {
         const isBooked = appointmentsOnSelectedDate.includes(time);
 
         return {
           value: time,
-          available: !isBooked, // Removida a validação de horários passados
+          available: !isBooked,
           label: time.substring(0, 5),
         };
       });
 
-      console.log("🔍 Debug - Resultado final:", result);
       return result;
     } catch (error) {
-      console.error("🚨 Erro em getAvailableTimes:", error);
+      console.error("Erro em getAvailableTimes:", error);
       throw error;
     }
   });

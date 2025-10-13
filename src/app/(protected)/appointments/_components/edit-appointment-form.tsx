@@ -15,6 +15,7 @@ import { z } from "zod";
 
 import { updateAppointment } from "@/actions/update-appointment";
 import { getAvailableTimes } from "@/actions/get-available-times";
+import { useDebouncedQuery } from "@/hooks/use-debounced-query";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -128,7 +129,12 @@ const EditAppointmentForm = ({
   const selectedPatientId = form.watch("patientId");
   const selectedDate = form.watch("date");
 
-  const { data: availableTimes } = useQuery({
+  const {
+    data: availableTimes,
+    isLoading: isLoadingTimes,
+    error: availableTimesError,
+    refetch,
+  } = useDebouncedQuery({
     queryKey: [
       "available-times",
       selectedDate,
@@ -142,6 +148,9 @@ const EditAppointmentForm = ({
         excludeAppointmentId: appointment.id,
       }),
     enabled: !!selectedDate && !!selectedDoctorId,
+    debounceMs: 500, // 500ms de debounce
+    staleTime: 60000, // 1 minuto de cache
+    gcTime: 300000, // 5 minutos de garbage collection
   });
 
   const { data: appointmentModalitiesByCategory } = useQuery({
@@ -189,23 +198,13 @@ const EditAppointmentForm = ({
     }
   }, [isOpen, form, appointment]);
 
-  // Manter o horário original selecionado quando o modal abrir
+  // Limpar horário quando a data ou médico mudar para permitir nova seleção
   useEffect(() => {
-    if (isOpen && availableTimes?.data) {
-      const originalTime = dayjs(appointment.date)
-        .utc()
-        .tz("America/Sao_Paulo")
-        .format("HH:mm");
-      const timeExists = availableTimes.data.some(
-        (time) => time.value === originalTime,
-      );
-
-      // Se o horário original existe na lista, mantê-lo selecionado
-      if (timeExists) {
-        form.setValue("time", originalTime);
-      }
+    if (isOpen) {
+      // Resetar horário quando modal abrir para permitir nova seleção
+      form.setValue("time", "");
     }
-  }, [isOpen, availableTimes, form, appointment]);
+  }, [isOpen, form]);
 
   const updateAppointmentAction = useAction(updateAppointment, {
     onSuccess: () => {
@@ -439,18 +438,44 @@ const EditAppointmentForm = ({
                   <TimeSelect
                     value={field.value}
                     onValueChange={field.onChange}
-                    placeholder="Selecione um horário"
-                    disabled={!selectedDate}
+                    placeholder={
+                      isLoadingTimes
+                        ? "Carregando horários..."
+                        : "Selecione um horário"
+                    }
+                    disabled={!selectedDate || isLoadingTimes}
                   >
-                    {availableTimes?.data?.map((time) => (
-                      <TimeSelectItem
-                        key={time.value}
-                        value={time.value}
-                        disabled={!time.available}
-                      >
-                        {time.label} {!time.available && "(Indisponível)"}
-                      </TimeSelectItem>
-                    ))}
+                    {availableTimesError ? (
+                      <div className="p-2 text-center text-sm">
+                        <div className="mb-2 text-red-500">
+                          Erro ao carregar horários.
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => refetch()}
+                        >
+                          Tentar Novamente
+                        </Button>
+                      </div>
+                    ) : availableTimes?.data && Array.isArray(availableTimes.data) ? (
+                      availableTimes.data.map((time) => (
+                        <TimeSelectItem
+                          key={time.value}
+                          value={time.value}
+                          disabled={!time.available}
+                        >
+                          {time.label} {!time.available && "(Indisponível)"}
+                        </TimeSelectItem>
+                      ))
+                    ) : (
+                      <div className="text-muted-foreground p-2 text-center text-sm">
+                        {isLoadingTimes
+                          ? "Carregando..."
+                          : "Nenhum horário disponível"}
+                      </div>
+                    )}
                   </TimeSelect>
                 </FormControl>
                 <FormMessage />

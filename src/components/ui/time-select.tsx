@@ -10,7 +10,6 @@ import {
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
-import { useSlowScroll } from "@/hooks/use-slow-scroll";
 
 interface TimeSelectProps {
   value?: string;
@@ -29,8 +28,6 @@ function TimeSelect({
   children,
   className,
 }: TimeSelectProps) {
-  const scrollRef = useSlowScroll({ speed: 0.2, smoothness: 200 });
-
   return (
     <SelectPrimitive.Root
       value={value}
@@ -56,7 +53,6 @@ function TimeSelect({
         <SelectPrimitive.Content
           className={cn(
             "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-[280px] min-w-[12rem] overflow-hidden rounded-md border shadow-md",
-            "scroll-smooth",
           )}
           position="popper"
           sideOffset={4}
@@ -65,10 +61,7 @@ function TimeSelect({
             <ChevronUpIcon className="size-4" />
           </SelectPrimitive.ScrollUpButton>
 
-          <SelectPrimitive.Viewport
-            ref={scrollRef}
-            className="custom-scrollbar max-h-[240px] overflow-y-auto scroll-smooth p-1"
-          >
+          <SelectPrimitive.Viewport className="max-h-[240px] overflow-y-auto p-1">
             {children}
           </SelectPrimitive.Viewport>
 
