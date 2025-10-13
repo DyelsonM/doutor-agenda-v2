@@ -192,6 +192,22 @@ const EditAppointmentForm = ({
 
   useEffect(() => {
     if (isOpen && appointmentModalitiesByCategory) {
+      // Debug: ver o que está vindo
+      console.log("=== DEBUG MODALIDADE ===");
+      console.log("Modalidade do appointment:", appointment.modality);
+      console.log("Tipo:", typeof appointment.modality);
+      console.log("Modalidades disponíveis:", appointmentModalitiesByCategory);
+
+      // Verificar se a modalidade existe nas opções
+      const allCodes = appointmentModalitiesByCategory.flatMap(
+        (cat) => cat.modalities?.map((m) => m.code) || [],
+      );
+      console.log("Códigos disponíveis:", allCodes);
+      console.log(
+        "Modalidade existe nas opções?",
+        allCodes.includes(appointment.modality || ""),
+      );
+
       // Resetar formulário com valores do agendamento
       // Garantir que as modalidades foram carregadas antes de definir o valor
       const appointmentData = {
@@ -213,10 +229,15 @@ const EditAppointmentForm = ({
       // Usar setTimeout para garantir que o select foi renderizado
       setTimeout(() => {
         if (appointment.modality) {
+          console.log("Definindo modalidade:", appointment.modality);
           form.setValue("modality", appointment.modality, {
             shouldValidate: false,
             shouldDirty: false,
           });
+          console.log(
+            "Valor do form após setValue:",
+            form.getValues("modality"),
+          );
         }
       }, 100);
     }
