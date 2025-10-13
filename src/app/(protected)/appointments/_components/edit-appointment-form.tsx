@@ -193,7 +193,9 @@ const EditAppointmentForm = ({
     if (isOpen && appointmentModalitiesByCategory) {
       // Resetar formulário com valores do agendamento
       // Garantir que as modalidades foram carregadas antes de definir o valor
-      form.reset({
+      console.log("Modalidade do agendamento:", appointment.modality);
+      
+      const appointmentData = {
         patientId: appointment.patient.id,
         doctorId: appointment.doctor.id,
         appointmentPrice: appointment.appointmentPriceInCents / 100,
@@ -204,7 +206,20 @@ const EditAppointmentForm = ({
           .tz("America/Sao_Paulo")
           .format("HH:mm"),
         isReturn: appointment.isReturn || false,
-      });
+      };
+      
+      form.reset(appointmentData);
+      
+      // Garantir que a modalidade seja definida após o reset
+      // Usar setTimeout para garantir que o select foi renderizado
+      setTimeout(() => {
+        if (appointment.modality) {
+          form.setValue("modality", appointment.modality, {
+            shouldValidate: false,
+            shouldDirty: false,
+          });
+        }
+      }, 100);
     }
   }, [isOpen, appointment, form, appointmentModalitiesByCategory]);
 
@@ -313,7 +328,11 @@ const EditAppointmentForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Modalidade do Atendimento</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value || appointment.modality}
+                  defaultValue={appointment.modality}
+                >
                   <FormControl>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecione uma modalidade" />
