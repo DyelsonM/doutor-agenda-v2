@@ -297,7 +297,7 @@ const AddAppointmentForm = ({
                             ? category.modalities.map((modality) => (
                                 <SelectItem
                                   key={modality.code}
-                                  value={modality.name}
+                                  value={modality.code}
                                 >
                                   {modality.name}
                                 </SelectItem>

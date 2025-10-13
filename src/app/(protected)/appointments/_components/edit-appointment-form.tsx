@@ -13,9 +13,11 @@ import { NumericFormat } from "react-number-format";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { getAppointmentModalitiesByCategory } from "@/actions/get-appointment-modalities-by-category";
 import { updateAppointment } from "@/actions/update-appointment";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DialogContent,
   DialogDescription,
@@ -32,7 +34,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
   PopoverContent,
@@ -51,7 +52,7 @@ import { appointmentsTable, doctorsTable, patientsTable } from "@/db/schema";
 import { cn } from "@/lib/utils";
 
 import { getSpecialtyLabel } from "../../doctors/_constants";
-import { getAppointmentModalitiesByCategory } from "@/actions/get-appointment-modalities-by-category";
+import { getModalityLabel } from "../_constants/modalities";
 
 const formSchema = z.object({
   patientId: z.string().min(1, {
@@ -193,8 +194,6 @@ const EditAppointmentForm = ({
     if (isOpen && appointmentModalitiesByCategory) {
       // Resetar formulário com valores do agendamento
       // Garantir que as modalidades foram carregadas antes de definir o valor
-      console.log("Modalidade do agendamento:", appointment.modality);
-      
       const appointmentData = {
         patientId: appointment.patient.id,
         doctorId: appointment.doctor.id,
@@ -207,9 +206,9 @@ const EditAppointmentForm = ({
           .format("HH:mm"),
         isReturn: appointment.isReturn || false,
       };
-      
+
       form.reset(appointmentData);
-      
+
       // Garantir que a modalidade seja definida após o reset
       // Usar setTimeout para garantir que o select foi renderizado
       setTimeout(() => {
@@ -328,14 +327,18 @@ const EditAppointmentForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Modalidade do Atendimento</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
+                <Select
+                  onValueChange={field.onChange}
                   value={field.value || appointment.modality}
                   defaultValue={appointment.modality}
                 >
                   <FormControl>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecione uma modalidade" />
+                      <SelectValue placeholder="Selecione uma modalidade">
+                        {field.value
+                          ? getModalityLabel(field.value)
+                          : "Selecione uma modalidade"}
+                      </SelectValue>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -348,7 +351,7 @@ const EditAppointmentForm = ({
                             ? category.modalities.map((modality) => (
                                 <SelectItem
                                   key={modality.code}
-                                  value={modality.name}
+                                  value={modality.code}
                                 >
                                   {modality.name}
                                 </SelectItem>
