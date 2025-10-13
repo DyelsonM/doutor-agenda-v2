@@ -319,16 +319,28 @@ const EditAppointmentForm = ({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {appointmentModalitiesByCategory?.map((category) => (
-                      <SelectGroup key={category.categoryKey}>
-                        <SelectLabel>{category.categoryName}</SelectLabel>
-                        {category.modalities.map((modality) => (
-                          <SelectItem key={modality.code} value={modality.name}>
-                            {modality.name}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    ))}
+                    {appointmentModalitiesByCategory &&
+                    appointmentModalitiesByCategory.length > 0 ? (
+                      appointmentModalitiesByCategory.map((category) => (
+                        <SelectGroup key={category.categoryKey}>
+                          <SelectLabel>{category.categoryName}</SelectLabel>
+                          {category.modalities && category.modalities.length > 0
+                            ? category.modalities.map((modality) => (
+                                <SelectItem
+                                  key={modality.code}
+                                  value={modality.name}
+                                >
+                                  {modality.name}
+                                </SelectItem>
+                              ))
+                            : null}
+                        </SelectGroup>
+                      ))
+                    ) : (
+                      <SelectItem value="no-modalities" disabled>
+                        Nenhuma modalidade disponível
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
                 <FormMessage />

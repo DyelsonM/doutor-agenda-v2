@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { getAvailableTimes } from "@/actions/get-available-times";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getModalityLabel } from "../_constants/modalities";
 import {
   Select,
   SelectContent,
@@ -366,7 +367,7 @@ export function AppointmentsCalendar({
                       <div
                         key={appointment.id}
                         className="truncate rounded-lg border border-blue-300 bg-white/90 px-2 py-1.5 text-xs shadow-sm backdrop-blur-sm transition-all hover:bg-white"
-                        title={`${dayjs(appointment.date).utc().tz("America/Sao_Paulo").format("HH:mm")} - ${appointment.patient.name} ${formatPhoneNumber(appointment.patient.phoneNumber)} ${Boolean(appointment.isReturn) ? "(Retorno)" : ""}`}
+                        title={`${dayjs(appointment.date).utc().tz("America/Sao_Paulo").format("HH:mm")} - ${appointment.patient.name} ${formatPhoneNumber(appointment.patient.phoneNumber)} ${appointment.modality ? `- ${getModalityLabel(appointment.modality)}` : ""} ${Boolean(appointment.isReturn) ? "(Retorno)" : ""}`}
                       >
                         <div className="flex items-center gap-1.5">
                           <span className="font-bold text-blue-700">

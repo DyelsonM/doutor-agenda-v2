@@ -46,6 +46,7 @@ import { toast } from "sonner";
 import { deleteAppointment } from "@/actions/delete-appointment";
 import { getAvailableTimes } from "@/actions/get-available-times";
 import { getSpecialtyLabel } from "../../doctors/_constants";
+import { getModalityLabel } from "../_constants/modalities";
 import { cn } from "@/lib/utils";
 
 dayjs.extend(utc);
@@ -370,6 +371,11 @@ export function DayDetailsModal({
                                   appointment.patient.phoneNumber,
                                 )}
                               </div>
+                              {appointment.modality && (
+                                <div className="text-muted-foreground text-xs">
+                                  {getModalityLabel(appointment.modality)}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>

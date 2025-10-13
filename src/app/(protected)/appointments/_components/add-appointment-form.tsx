@@ -152,6 +152,13 @@ const AddAppointmentForm = ({
     }
   }, [selectedDoctorId, doctors, form]);
 
+  // Limpar horário quando a data mudar
+  useEffect(() => {
+    if (selectedDate) {
+      form.setValue("time", "");
+    }
+  }, [selectedDate, form]);
+
   useEffect(() => {
     if (isOpen) {
       form.reset({
@@ -197,6 +204,7 @@ const AddAppointmentForm = ({
   };
 
   const isDateTimeEnabled = selectedPatientId && selectedDoctorId;
+  const isTimeEnabled = selectedDoctorId && selectedDate;
 
   return (
     <DialogContent className="sm:max-w-[500px]">
@@ -408,7 +416,7 @@ const AddAppointmentForm = ({
                         ? "Carregando horários..."
                         : "Selecione um horário"
                     }
-                    disabled={!isDateTimeEnabled || !selectedDate}
+                    disabled={!isTimeEnabled}
                   >
                     {availableTimesError ? (
                       <div className="p-2 text-center text-sm">

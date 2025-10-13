@@ -108,7 +108,9 @@ export const getAppointmentsTableColumns = (
       header: "Modalidade",
       cell: (params) => {
         const appointment = params.row.original;
-        return appointment.modality || "-";
+        return appointment.modality
+          ? getModalityLabel(appointment.modality)
+          : "-";
       },
     },
     {
