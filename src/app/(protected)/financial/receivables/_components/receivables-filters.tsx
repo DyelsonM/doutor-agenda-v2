@@ -21,13 +21,13 @@ import { cn } from "@/lib/utils";
 
 interface ReceivablesFiltersProps {
   filters: {
-    status?: "pending" | "received" | "overdue" | "cancelled";
+    status?: "pending" | "received";
     category?: string;
     startDate?: Date;
     endDate?: Date;
   };
   onFiltersChange: (filters: {
-    status?: "pending" | "received" | "overdue" | "cancelled";
+    status?: "pending" | "received";
     category?: string;
     startDate?: Date;
     endDate?: Date;
@@ -49,8 +49,6 @@ const categoryLabels = {
 const statusLabels = {
   pending: "Pendente",
   received: "Recebido",
-  overdue: "Vencido",
-  cancelled: "Cancelado",
 };
 
 export function ReceivablesFilters({

@@ -22,6 +22,9 @@ export const createReceivableSchema = z.object({
   dueDate: z.date({
     errorMap: () => ({ message: "Data de vencimento é obrigatória" }),
   }),
+  doctorId: z
+    .union([z.string().uuid("ID do médico inválido"), z.literal("none")])
+    .optional(),
   patientName: z.string().optional(),
   patientDocument: z.string().optional(),
   invoiceNumber: z.string().optional(),
@@ -54,6 +57,9 @@ export const updateReceivableSchema = z.object({
     )
     .optional(),
   dueDate: z.date().optional(),
+  doctorId: z
+    .union([z.string().uuid("ID do médico inválido"), z.literal("none")])
+    .optional(),
   patientName: z.string().optional(),
   patientDocument: z.string().optional(),
   invoiceNumber: z.string().optional(),

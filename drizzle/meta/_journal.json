@@ -323,6 +323,13 @@
       "when": 1759794463849,
       "tag": "0045_secret_paibok",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1760323472734,
+      "tag": "0046_cloudy_boomer",
+      "breakpoints": true
     }
   ]
 }

@@ -4,7 +4,7 @@ import { formatCurrency } from "@/helpers/currency";
 import { ColumnDef } from "@tanstack/react-table";
 import dayjs from "dayjs";
 import "dayjs/locale/pt-br";
-import { MoreHorizontal, Pencil, Trash2, CheckCircle } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, CheckCircle, Eye } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -40,15 +40,20 @@ interface Receivable {
   description: string;
   amountInCents: number;
   category: string;
-  status: "pending" | "received" | "overdue" | "cancelled";
+  status: "pending" | "received";
   dueDate: Date;
   receivedDate?: Date | null;
+  doctorId?: string | null;
   patientName?: string | null;
   patientDocument?: string | null;
   invoiceNumber?: string | null;
   notes?: string | null;
   createdAt: Date;
   updatedAt: Date;
+  doctor?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 const categoryLabels = {
@@ -66,21 +71,21 @@ const categoryLabels = {
 const statusLabels = {
   pending: "Pendente",
   received: "Recebido",
-  overdue: "Vencido",
-  cancelled: "Cancelado",
 };
 
 const statusColors = {
   pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
   received: "bg-green-100 text-green-800 border-green-200",
-  overdue: "bg-red-100 text-red-800 border-red-200",
-  cancelled: "bg-gray-100 text-gray-800 border-gray-200",
 };
 
 export function receivablesTableColumns({
   onRefresh,
+  onView,
+  onEdit,
 }: {
   onRefresh: () => void;
+  onView: (receivable: Receivable) => void;
+  onEdit: (receivable: Receivable) => void;
 }): ColumnDef<Receivable>[] {
   return [
     {
@@ -93,7 +98,7 @@ export function receivablesTableColumns({
             <div className="truncate font-medium">{receivable.description}</div>
             {receivable.patientName && (
               <div className="text-muted-foreground truncate text-sm">
-                {receivable.patientName}
+                Cliente: {receivable.patientName}
               </div>
             )}
           </div>
@@ -121,6 +126,14 @@ export function receivablesTableColumns({
               category}
           </Badge>
         );
+      },
+    },
+    {
+      accessorKey: "doctorId",
+      header: "Profissional",
+      cell: ({ row }) => {
+        const receivable = row.original;
+        return <div className="text-sm">{receivable.doctor?.name || "-"}</div>;
       },
     },
     {
@@ -163,7 +176,12 @@ export function receivablesTableColumns({
         const receivable = row.original;
 
         return (
-          <ReceivableActions receivable={receivable} onRefresh={onRefresh} />
+          <ReceivableActions
+            receivable={receivable}
+            onRefresh={onRefresh}
+            onView={onView}
+            onEdit={onEdit}
+          />
         );
       },
     },
@@ -173,9 +191,13 @@ export function receivablesTableColumns({
 function ReceivableActions({
   receivable,
   onRefresh,
+  onView,
+  onEdit,
 }: {
   receivable: Receivable;
   onRefresh: () => void;
+  onView: (receivable: Receivable) => void;
+  onEdit: (receivable: Receivable) => void;
 }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -224,6 +246,15 @@ function ReceivableActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => onView(receivable)}>
+            <Eye className="mr-2 h-4 w-4" />
+            Visualizar
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onEdit(receivable)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Editar
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           {receivable.status === "pending" && (
             <DropdownMenuItem
               onClick={handleMarkAsReceived}

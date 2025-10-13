@@ -1,0 +1,2 @@
+ALTER TABLE "receivables" ADD COLUMN "doctor_id" uuid;--> statement-breakpoint
+ALTER TABLE "receivables" ADD CONSTRAINT "receivables_doctor_id_doctors_id_fk" FOREIGN KEY ("doctor_id") REFERENCES "public"."doctors"("id") ON DELETE set null ON UPDATE no action;

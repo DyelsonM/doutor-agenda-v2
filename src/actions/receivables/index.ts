@@ -13,7 +13,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 import { db } from "@/db";
-import { receivablesTable } from "@/db/schema";
+import { receivablesTable, doctorsTable } from "@/db/schema";
 import { getAuthSession } from "@/lib/auth-utils";
 
 import {
@@ -42,6 +42,7 @@ export const createReceivableAction = action
       .insert(receivablesTable)
       .values({
         clinicId: session.user.clinic.id,
+        doctorId: parsedInput.doctorId === "none" ? null : parsedInput.doctorId,
         description: parsedInput.description,
         amountInCents: parsedInput.amountInCents,
         category: parsedInput.category,
@@ -97,6 +98,7 @@ export const updateReceivableAction = action
         amountInCents: parsedInput.amountInCents,
         category: parsedInput.category,
         dueDate: parsedInput.dueDate,
+        doctorId: parsedInput.doctorId === "none" ? null : parsedInput.doctorId,
         patientName: parsedInput.patientName,
         patientDocument: parsedInput.patientDocument,
         invoiceNumber: parsedInput.invoiceNumber,
@@ -247,12 +249,33 @@ export const getReceivablesAction = action
       )!;
     }
 
-    const receivables = await db.query.receivablesTable.findMany({
-      where: whereConditions,
-      orderBy: [desc(receivablesTable.dueDate)],
-      limit: parsedInput.limit,
-      offset: (parsedInput.page - 1) * parsedInput.limit,
-    });
+    const receivables = await db
+      .select({
+        id: receivablesTable.id,
+        description: receivablesTable.description,
+        amountInCents: receivablesTable.amountInCents,
+        category: receivablesTable.category,
+        status: receivablesTable.status,
+        dueDate: receivablesTable.dueDate,
+        receivedDate: receivablesTable.receivedDate,
+        doctorId: receivablesTable.doctorId,
+        patientName: receivablesTable.patientName,
+        patientDocument: receivablesTable.patientDocument,
+        invoiceNumber: receivablesTable.invoiceNumber,
+        notes: receivablesTable.notes,
+        createdAt: receivablesTable.createdAt,
+        updatedAt: receivablesTable.updatedAt,
+        doctor: {
+          id: doctorsTable.id,
+          name: doctorsTable.name,
+        },
+      })
+      .from(receivablesTable)
+      .leftJoin(doctorsTable, eq(receivablesTable.doctorId, doctorsTable.id))
+      .where(whereConditions)
+      .orderBy(desc(receivablesTable.dueDate))
+      .limit(parsedInput.limit)
+      .offset((parsedInput.page - 1) * parsedInput.limit);
 
     const totalCount = await db
       .select({ count: count() })

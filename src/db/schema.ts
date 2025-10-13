@@ -193,6 +193,7 @@ export const doctorsTableRelations = relations(
     }),
     appointments: many(appointmentsTable),
     documents: many(documentsTable),
+    receivables: many(receivablesTable),
   }),
 );
 
@@ -534,6 +535,9 @@ export const receivablesTable = pgTable("receivables", {
   clinicId: uuid("clinic_id")
     .notNull()
     .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  doctorId: uuid("doctor_id").references(() => doctorsTable.id, {
+    onDelete: "set null",
+  }),
   description: text("description").notNull(),
   amountInCents: integer("amount_in_cents").notNull(),
   category: receivableCategoryEnum("category").notNull(),
@@ -556,6 +560,10 @@ export const receivablesTableRelations = relations(
     clinic: one(clinicsTable, {
       fields: [receivablesTable.clinicId],
       references: [clinicsTable.id],
+    }),
+    doctor: one(doctorsTable, {
+      fields: [receivablesTable.doctorId],
+      references: [doctorsTable.id],
     }),
   }),
 );

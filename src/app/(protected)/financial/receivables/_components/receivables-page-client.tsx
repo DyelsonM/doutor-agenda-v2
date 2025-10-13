@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/page-container";
 
 import { AddReceivableDialog } from "./add-receivable-dialog";
+import { EditReceivableDialog } from "./edit-receivable-dialog";
+import { ViewReceivableDialog } from "./view-receivable-dialog";
 import { ReceivablesFilters } from "./receivables-filters";
 import { receivablesTableColumns } from "./receivables-table-columns";
 
@@ -28,20 +30,41 @@ interface Receivable {
   description: string;
   amountInCents: number;
   category: string;
-  status: "pending" | "received" | "overdue" | "cancelled";
+  status: "pending" | "received";
   dueDate: Date;
   receivedDate?: Date | null;
+  doctorId?: string | null;
   patientName?: string | null;
   patientDocument?: string | null;
   invoiceNumber?: string | null;
   notes?: string | null;
   createdAt: Date;
   updatedAt: Date;
+  doctor?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
-export default function ReceivablesPageClient() {
+interface Doctor {
+  id: string;
+  name: string;
+  specialty?: string | null;
+}
+
+interface ReceivablesPageClientProps {
+  doctors: Doctor[];
+}
+
+export default function ReceivablesPageClient({
+  doctors,
+}: ReceivablesPageClientProps) {
   const router = useRouter();
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [selectedReceivable, setSelectedReceivable] =
+    useState<Receivable | null>(null);
   const [rows, setRows] = useState<Receivable[]>([]);
   const [pagination, setPagination] = useState<{
     page: number;
@@ -50,12 +73,7 @@ export default function ReceivablesPageClient() {
     totalPages: number;
   } | null>(null);
   const [filters, setFilters] = useState({
-    status: undefined as
-      | "pending"
-      | "received"
-      | "overdue"
-      | "cancelled"
-      | undefined,
+    status: undefined as "pending" | "received" | undefined,
     category: undefined as string | undefined,
     startDate: undefined as Date | undefined,
     endDate: undefined as Date | undefined,
@@ -107,6 +125,16 @@ export default function ReceivablesPageClient() {
     });
   };
 
+  const handleViewReceivable = (receivable: Receivable) => {
+    setSelectedReceivable(receivable);
+    setShowViewDialog(true);
+  };
+
+  const handleEditReceivable = (receivable: Receivable) => {
+    setSelectedReceivable(receivable);
+    setShowEditDialog(true);
+  };
+
   return (
     <PageContainer>
       <PageHeader>
@@ -144,7 +172,11 @@ export default function ReceivablesPageClient() {
         />
 
         <DataTable
-          columns={receivablesTableColumns({ onRefresh: handleRefresh })}
+          columns={receivablesTableColumns({
+            onRefresh: handleRefresh,
+            onView: handleViewReceivable,
+            onEdit: handleEditReceivable,
+          })}
           data={rows || []}
         />
       </PageContent>
@@ -152,6 +184,21 @@ export default function ReceivablesPageClient() {
       <AddReceivableDialog
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
+        onSuccess={handleRefresh}
+        doctors={doctors}
+      />
+
+      <ViewReceivableDialog
+        open={showViewDialog}
+        onOpenChange={setShowViewDialog}
+        receivable={selectedReceivable}
+      />
+
+      <EditReceivableDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        receivable={selectedReceivable}
+        doctors={doctors}
         onSuccess={handleRefresh}
       />
     </PageContainer>

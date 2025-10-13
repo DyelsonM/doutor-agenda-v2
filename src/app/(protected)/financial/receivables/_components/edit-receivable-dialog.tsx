@@ -2,13 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAction } from "next-safe-action/hooks";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { NumericFormat } from "react-number-format";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { createReceivableAction } from "@/actions/receivables";
+import { updateReceivableAction } from "@/actions/receivables";
 import { convertToCents } from "@/helpers/financial";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,7 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { createReceivableSchema } from "@/actions/receivables/schema";
+import { updateReceivableSchema } from "@/actions/receivables/schema";
 
 const categoryLabels = {
   consultation: "Consulta",
@@ -56,24 +56,44 @@ interface Doctor {
   specialty?: string | null;
 }
 
-interface AddReceivableDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
-  doctors: Doctor[];
+interface Receivable {
+  id: string;
+  description: string;
+  amountInCents: number;
+  category: string;
+  dueDate: Date;
+  doctorId?: string | null;
+  patientName?: string | null;
+  patientDocument?: string | null;
+  invoiceNumber?: string | null;
+  notes?: string | null;
+  doctor?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
-export function AddReceivableDialog({
+interface EditReceivableDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  receivable: Receivable | null;
+  doctors: Doctor[];
+  onSuccess?: () => void;
+}
+
+export function EditReceivableDialog({
   open,
   onOpenChange,
-  onSuccess,
+  receivable,
   doctors,
-}: AddReceivableDialogProps) {
+  onSuccess,
+}: EditReceivableDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<z.infer<typeof createReceivableSchema>>({
-    resolver: zodResolver(createReceivableSchema),
+  const form = useForm<z.infer<typeof updateReceivableSchema>>({
+    resolver: zodResolver(updateReceivableSchema),
     defaultValues: {
+      id: "",
       description: "",
       amountInCents: 0,
       category: "consultation",
@@ -86,24 +106,41 @@ export function AddReceivableDialog({
     },
   });
 
-  const { execute: createReceivable } = useAction(createReceivableAction, {
+  // Reset form when receivable changes
+  React.useEffect(() => {
+    if (receivable) {
+      form.reset({
+        id: receivable.id,
+        description: receivable.description,
+        amountInCents: receivable.amountInCents / 100, // Converter de centavos para reais
+        category: receivable.category as any,
+        dueDate: receivable.dueDate,
+        doctorId: receivable.doctorId || "none",
+        patientName: receivable.patientName || "",
+        patientDocument: receivable.patientDocument || "",
+        invoiceNumber: receivable.invoiceNumber || "",
+        notes: receivable.notes || "",
+      });
+    }
+  }, [receivable, form]);
+
+  const { execute: updateReceivable } = useAction(updateReceivableAction, {
     onSuccess: ({ data }) => {
       toast.success(data.message);
-      form.reset();
       onOpenChange(false);
-      onSuccess();
+      onSuccess?.();
     },
     onError: ({ error }) => {
-      toast.error(error.serverError || "Erro ao criar conta a receber");
+      toast.error(error.serverError || "Erro ao atualizar conta a receber");
     },
     onSettled: () => {
       setIsSubmitting(false);
     },
   });
 
-  const onSubmit = (values: z.infer<typeof createReceivableSchema>) => {
+  const onSubmit = (values: z.infer<typeof updateReceivableSchema>) => {
     setIsSubmitting(true);
-    createReceivable({
+    updateReceivable({
       ...values,
       amountInCents: convertToCents(values.amountInCents),
     });
@@ -116,13 +153,15 @@ export function AddReceivableDialog({
     }
   };
 
+  if (!receivable) return null;
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nova Conta a Receber</DialogTitle>
+          <DialogTitle>Editar Conta a Receber</DialogTitle>
           <DialogDescription>
-            Adicione uma nova conta a receber ao sistema.
+            Edite as informações da conta a receber
           </DialogDescription>
         </DialogHeader>
 
@@ -206,6 +245,31 @@ export function AddReceivableDialog({
 
               <FormField
                 control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Data de vencimento *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        {...field}
+                        value={
+                          field.value
+                            ? new Date(field.value).toISOString().split("T")[0]
+                            : ""
+                        }
+                        onChange={(e) =>
+                          field.onChange(new Date(e.target.value))
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="doctorId"
                 render={({ field }) => (
                   <FormItem>
@@ -237,31 +301,6 @@ export function AddReceivableDialog({
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="dueDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data de vencimento *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        {...field}
-                        value={
-                          field.value
-                            ? new Date(field.value).toISOString().split("T")[0]
-                            : ""
-                        }
-                        onChange={(e) =>
-                          field.onChange(new Date(e.target.value))
-                        }
-                      />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -339,7 +378,7 @@ export function AddReceivableDialog({
                 Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Criando..." : "Criar Conta"}
+                {isSubmitting ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </DialogFooter>
           </form>
