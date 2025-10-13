@@ -11,7 +11,7 @@ dayjs.extend(timezone);
 
 import { db } from "@/db";
 import { appointmentsTable, doctorsTable } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import {
   createAppointmentNotification,
   notifyDoctorsAboutAppointment,
@@ -19,7 +19,6 @@ import {
 import { auth } from "@/lib/auth";
 import { actionClient } from "@/lib/next-safe-action";
 
-import { getAvailableTimes } from "../get-available-times";
 import { addAppointmentSchema } from "./schema";
 
 export const addAppointment = actionClient
@@ -44,7 +43,6 @@ export const addAppointment = actionClient
     }
 
     // Validação adicional: verificar se o horário está dentro da disponibilidade do médico
-    // Converter horário local para UTC para comparação
     const appointmentHour = parseInt(parsedInput.time.split(":")[0]);
     const appointmentMinute = parseInt(parsedInput.time.split(":")[1]);
     const appointmentTimeInMinutes = appointmentHour * 60 + appointmentMinute;
@@ -64,21 +62,6 @@ export const addAppointment = actionClient
       throw new Error(
         `Horário fora da disponibilidade do médico (${doctor.availableFromTime} às ${doctor.availableToTime})`,
       );
-    }
-
-    // Validar horário disponível
-    const availableTimes = await getAvailableTimes({
-      doctorId: parsedInput.doctorId,
-      date: dayjs(parsedInput.date).format("YYYY-MM-DD"),
-    });
-    if (!availableTimes?.data) {
-      throw new Error("No available times");
-    }
-    const isTimeAvailable = availableTimes.data?.some(
-      (time) => time.value === parsedInput.time && time.available,
-    );
-    if (!isTimeAvailable) {
-      throw new Error("Time not available");
     }
 
     // Criar data/hora do agendamento corretamente

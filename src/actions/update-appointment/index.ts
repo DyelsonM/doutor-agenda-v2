@@ -15,7 +15,6 @@ import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { actionClient } from "@/lib/next-safe-action";
 
-import { getAvailableTimes } from "../get-available-times";
 import { updateAppointmentSchema } from "./schema";
 
 export const updateAppointment = actionClient
@@ -76,25 +75,6 @@ export const updateAppointment = actionClient
         throw new Error(
           `Horário fora da disponibilidade do médico (${doctor.availableFromTime} às ${doctor.availableToTime})`,
         );
-      }
-
-      // Validar horário disponível (excluindo o próprio agendamento)
-      const availableTimes = await getAvailableTimes({
-        doctorId: parsedInput.doctorId,
-        date: dayjs(parsedInput.date).format("YYYY-MM-DD"),
-        excludeAppointmentId: parsedInput.id,
-      });
-      if (!availableTimes?.data) {
-        throw new Error("No available times");
-      }
-      const isTimeAvailable = availableTimes.data?.some((time) => {
-        // Comparar apenas horas e minutos, ignorando segundos
-        const timeValue = time.value.substring(0, 5); // "HH:mm"
-        const inputTime = parsedInput.time.substring(0, 5); // "HH:mm"
-        return timeValue === inputTime && time.available;
-      });
-      if (!isTimeAvailable) {
-        throw new Error("Time not available");
       }
 
       // Criar data/hora do agendamento corretamente

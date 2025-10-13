@@ -14,8 +14,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { updateAppointment } from "@/actions/update-appointment";
-import { getAvailableTimes } from "@/actions/get-available-times";
-import { useDebouncedQuery } from "@/hooks/use-debounced-query";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -49,7 +47,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TimeSelect, TimeSelectItem } from "@/components/ui/time-select";
 import { appointmentsTable, doctorsTable, patientsTable } from "@/db/schema";
 import { cn } from "@/lib/utils";
 
@@ -129,29 +126,40 @@ const EditAppointmentForm = ({
   const selectedPatientId = form.watch("patientId");
   const selectedDate = form.watch("date");
 
-  const {
-    data: availableTimes,
-    isLoading: isLoadingTimes,
-    error: availableTimesError,
-    refetch,
-  } = useDebouncedQuery({
-    queryKey: [
-      "available-times",
-      selectedDate,
-      selectedDoctorId,
-      appointment.id,
-    ],
-    queryFn: () =>
-      getAvailableTimes({
-        date: dayjs(selectedDate).format("YYYY-MM-DD"),
-        doctorId: selectedDoctorId,
-        excludeAppointmentId: appointment.id,
-      }),
-    enabled: !!selectedDate && !!selectedDoctorId,
-    debounceMs: 500, // 500ms de debounce
-    staleTime: 60000, // 1 minuto de cache
-    gcTime: 300000, // 5 minutos de garbage collection
-  });
+  // Gerar horários disponíveis de 5 em 5 minutos baseado no horário de trabalho do médico
+  const generateTimeSlots = () => {
+    if (!selectedDoctorId) return [];
+
+    const doctor = doctors.find((d) => d.id === selectedDoctorId);
+    if (!doctor) return [];
+
+    const slots: string[] = [];
+    const [startHour, startMinute] = doctor.availableFromTime
+      .split(":")
+      .map(Number);
+    const [endHour, endMinute] = doctor.availableToTime.split(":").map(Number);
+
+    let currentHour = startHour;
+    let currentMinute = startMinute;
+
+    while (
+      currentHour < endHour ||
+      (currentHour === endHour && currentMinute < endMinute)
+    ) {
+      const timeString = `${String(currentHour).padStart(2, "0")}:${String(currentMinute).padStart(2, "0")}`;
+      slots.push(timeString);
+
+      currentMinute += 5;
+      if (currentMinute >= 60) {
+        currentMinute = 0;
+        currentHour += 1;
+      }
+    }
+
+    return slots;
+  };
+
+  const availableTimeSlots = generateTimeSlots();
 
   const { data: appointmentModalitiesByCategory } = useQuery({
     queryKey: ["appointment-modalities-by-category"],
@@ -182,8 +190,9 @@ const EditAppointmentForm = ({
   }, [selectedDoctorId, doctors, form, appointment.doctor.id]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && appointmentModalitiesByCategory) {
       // Resetar formulário com valores do agendamento
+      // Garantir que as modalidades foram carregadas antes de definir o valor
       form.reset({
         patientId: appointment.patient.id,
         doctorId: appointment.doctor.id,
@@ -197,15 +206,7 @@ const EditAppointmentForm = ({
         isReturn: appointment.isReturn || false,
       });
     }
-  }, [isOpen, appointment, form]);
-
-  // Limpar horário apenas quando a data ou médico mudar (não quando modal abrir)
-  useEffect(() => {
-    if (selectedDate && selectedDoctorId) {
-      // Limpar horário quando data ou médico mudar para permitir nova seleção
-      form.setValue("time", "");
-    }
-  }, [selectedDate, selectedDoctorId, form]);
+  }, [isOpen, appointment, form, appointmentModalitiesByCategory]);
 
   const updateAppointmentAction = useAction(updateAppointment, {
     onSuccess: () => {
@@ -438,52 +439,30 @@ const EditAppointmentForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Horário</FormLabel>
-                <FormControl>
-                  <TimeSelect
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    placeholder={
-                      isLoadingTimes
-                        ? "Carregando horários..."
-                        : "Selecione um horário"
-                    }
-                    disabled={!selectedDate || isLoadingTimes}
-                  >
-                    {availableTimesError ? (
-                      <div className="p-2 text-center text-sm">
-                        <div className="mb-2 text-red-500">
-                          Erro ao carregar horários.
-                        </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => refetch()}
-                        >
-                          Tentar Novamente
-                        </Button>
-                      </div>
-                    ) : availableTimes?.data &&
-                      Array.isArray(availableTimes.data) &&
-                      availableTimes.data.length > 0 ? (
-                      availableTimes.data.map((time) => (
-                        <TimeSelectItem
-                          key={time.value}
-                          value={time.value}
-                          disabled={!time.available}
-                        >
-                          {time.label} {!time.available && "(Indisponível)"}
-                        </TimeSelectItem>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  disabled={!selectedDate}
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecione um horário" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="max-h-[200px]">
+                    {availableTimeSlots.length > 0 ? (
+                      availableTimeSlots.map((time) => (
+                        <SelectItem key={time} value={time}>
+                          {time}
+                        </SelectItem>
                       ))
                     ) : (
-                      <div className="text-muted-foreground p-2 text-center text-sm">
-                        {isLoadingTimes
-                          ? "Carregando..."
-                          : "Nenhum horário disponível"}
-                      </div>
+                      <SelectItem value="no-time" disabled>
+                        Selecione um médico primeiro
+                      </SelectItem>
                     )}
-                  </TimeSelect>
-                </FormControl>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
