@@ -432,18 +432,9 @@ const AddAppointmentForm = ({
                           Tentar Novamente
                         </Button>
                       </div>
-                    ) : (availableTimes as any)?.data &&
-                      Array.isArray((availableTimes as any).data) ? (
-                      (availableTimes as any).data.map((time: any) => (
-                        <TimeSelectItem
-                          key={time.value}
-                          value={time.value}
-                          disabled={!time.available}
-                        >
-                          {time.label} {!time.available && "(Indisponível)"}
-                        </TimeSelectItem>
-                      ))
-                    ) : availableTimes && Array.isArray(availableTimes) ? (
+                    ) : availableTimes &&
+                      Array.isArray(availableTimes) &&
+                      availableTimes.length > 0 ? (
                       availableTimes.map((time: any) => (
                         <TimeSelectItem
                           key={time.value}

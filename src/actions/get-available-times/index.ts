@@ -48,7 +48,7 @@ export const getAvailableTimes = actionClient
           availableToTime: true,
         },
       });
-      
+
       if (!doctor) {
         throw new Error("Médico não encontrado");
       }
@@ -106,7 +106,7 @@ export const getAvailableTimes = actionClient
       // Gerar slots de tempo otimizados
       const timeSlots = generateTimeSlots();
 
-      // Filtrar horários do médico de forma mais eficiente
+      // Filtrar horários do médico
       const doctorTimeSlots = timeSlots.filter((time) => {
         const timeHour = Number(time.split(":")[0]);
         const timeMinute = Number(time.split(":")[1]);
@@ -138,7 +138,8 @@ export const getAvailableTimes = actionClient
         };
       });
 
-      return result;
+      // Garantir que sempre retornamos um array válido
+      return result.length > 0 ? result : [];
     } catch (error) {
       console.error("Erro em getAvailableTimes:", error);
       throw error;

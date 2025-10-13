@@ -109,7 +109,7 @@ const EditAppointmentForm = ({
   isOpen,
 }: EditAppointmentFormProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
-    shouldUnregister: true,
+    shouldUnregister: false, // Mudado para false para manter os valores
     resolver: zodResolver(formSchema),
     defaultValues: {
       patientId: appointment.patient.id,
@@ -183,6 +183,7 @@ const EditAppointmentForm = ({
 
   useEffect(() => {
     if (isOpen) {
+      // Resetar formulário com valores do agendamento
       form.reset({
         patientId: appointment.patient.id,
         doctorId: appointment.doctor.id,
@@ -196,15 +197,15 @@ const EditAppointmentForm = ({
         isReturn: appointment.isReturn || false,
       });
     }
-  }, [isOpen, form, appointment]);
+  }, [isOpen, appointment, form]);
 
-  // Limpar horário quando a data ou médico mudar para permitir nova seleção
+  // Limpar horário apenas quando a data ou médico mudar (não quando modal abrir)
   useEffect(() => {
-    if (isOpen) {
-      // Resetar horário quando modal abrir para permitir nova seleção
+    if (selectedDate && selectedDoctorId) {
+      // Limpar horário quando data ou médico mudar para permitir nova seleção
       form.setValue("time", "");
     }
-  }, [isOpen, form]);
+  }, [selectedDate, selectedDoctorId, form]);
 
   const updateAppointmentAction = useAction(updateAppointment, {
     onSuccess: () => {
@@ -261,10 +262,7 @@ const EditAppointmentForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Paciente</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecione um paciente" />
@@ -289,10 +287,7 @@ const EditAppointmentForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Médico</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecione um médico" />
@@ -317,10 +312,7 @@ const EditAppointmentForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Modalidade do Atendimento</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Selecione uma modalidade" />
@@ -459,8 +451,10 @@ const EditAppointmentForm = ({
                           Tentar Novamente
                         </Button>
                       </div>
-                    ) : availableTimes?.data && Array.isArray(availableTimes.data) ? (
-                      availableTimes.data.map((time) => (
+                    ) : availableTimes &&
+                      Array.isArray(availableTimes) &&
+                      availableTimes.length > 0 ? (
+                      availableTimes.map((time) => (
                         <TimeSelectItem
                           key={time.value}
                           value={time.value}
