@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAction } from "next-safe-action/hooks";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { PatternFormat } from "react-number-format";
 import { toast } from "sonner";
@@ -65,14 +65,17 @@ const UpsertGoldClientForm = ({
     goldClient?.dependents?.length || 0,
   );
 
-  const formatDateToString = (date: Date | null | undefined): string => {
-    if (!date) return "";
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
+  const formatDateToString = useCallback(
+    (date: Date | null | undefined): string => {
+      if (!date) return "";
+      const d = new Date(date);
+      const day = String(d.getUTCDate()).padStart(2, "0");
+      const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+      const year = d.getUTCFullYear();
+      return `${day}/${month}/${year}`;
+    },
+    [],
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     shouldUnregister: true,
@@ -118,7 +121,8 @@ const UpsertGoldClientForm = ({
       });
       setDependentsCount(goldClient?.dependents?.length || 0);
     }
-  }, [isOpen, form, goldClient, formatDateToString]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, goldClient]);
 
   const upsertGoldClientAction = useAction(upsertGoldClient, {
     onSuccess: () => {
