@@ -627,13 +627,13 @@ export const goldClientsTable = pgTable("gold_clients", {
   clinicId: uuid("clinic_id")
     .notNull()
     .references(() => clinicsTable.id, { onDelete: "cascade" }),
-  // Dados do titular
-  holderName: text("holder_name").notNull(),
-  holderCpf: text("holder_cpf").notNull(),
-  holderPhone: text("holder_phone").notNull(),
-  holderBirthDate: timestamp("holder_birth_date").notNull(),
-  holderAddress: text("holder_address").notNull(),
-  holderZipCode: text("holder_zip_code").notNull(),
+  // Dados do titular (todos opcionais)
+  holderName: text("holder_name"),
+  holderCpf: text("holder_cpf"),
+  holderPhone: text("holder_phone"),
+  holderBirthDate: timestamp("holder_birth_date"),
+  holderAddress: text("holder_address"),
+  holderZipCode: text("holder_zip_code"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -645,9 +645,9 @@ export const goldClientDependentsTable = pgTable("gold_client_dependents", {
   goldClientId: uuid("gold_client_id")
     .notNull()
     .references(() => goldClientsTable.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  phone: text("phone").notNull(),
-  birthDate: timestamp("birth_date").notNull(),
+  name: text("name"),
+  phone: text("phone"),
+  birthDate: timestamp("birth_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

@@ -83,15 +83,15 @@ const GoldClientsTableClient = ({
     if (!searchValue) return true;
 
     const searchLower = searchValue.toLowerCase();
-    const matchesName = goldClient.holderName
-      .toLowerCase()
-      .includes(searchLower);
-    const matchesCpf = goldClient.holderCpf.toLowerCase().includes(searchLower);
-    const matchesPhone = goldClient.holderPhone
-      .toLowerCase()
-      .includes(searchLower);
-    const matchesDependents = goldClient.dependents.some((dependent) =>
-      dependent.name.toLowerCase().includes(searchLower),
+    const matchesName =
+      goldClient.holderName?.toLowerCase().includes(searchLower) || false;
+    const matchesCpf =
+      goldClient.holderCpf?.toLowerCase().includes(searchLower) || false;
+    const matchesPhone =
+      goldClient.holderPhone?.toLowerCase().includes(searchLower) || false;
+    const matchesDependents = goldClient.dependents.some(
+      (dependent) =>
+        dependent.name?.toLowerCase().includes(searchLower) || false,
     );
 
     return matchesName || matchesCpf || matchesPhone || matchesDependents;
@@ -170,28 +170,28 @@ const GoldClientsTableClient = ({
                 {filteredGoldClients.map((goldClient) => (
                   <TableRow key={goldClient.id}>
                     <TableCell className="font-medium">
-                      {goldClient.holderName}
+                      {goldClient.holderName || "-"}
                     </TableCell>
-                    <TableCell>{goldClient.holderCpf}</TableCell>
-                    <TableCell>{goldClient.holderPhone}</TableCell>
-                     <TableCell>
-                       {goldClient.holderBirthDate
-                         ? (() => {
-                             const date = new Date(goldClient.holderBirthDate);
-                             const day = String(date.getUTCDate()).padStart(
-                               2,
-                               "0",
-                             );
-                             const month = String(
-                               date.getUTCMonth() + 1,
-                             ).padStart(2, "0");
-                             const year = date.getUTCFullYear();
-                             return `${day}/${month}/${year}`;
-                           })()
-                         : "-"}
-                     </TableCell>
-                    <TableCell>{goldClient.holderAddress}</TableCell>
-                    <TableCell>{goldClient.holderZipCode}</TableCell>
+                    <TableCell>{goldClient.holderCpf || "-"}</TableCell>
+                    <TableCell>{goldClient.holderPhone || "-"}</TableCell>
+                    <TableCell>
+                      {goldClient.holderBirthDate
+                        ? (() => {
+                            const date = new Date(goldClient.holderBirthDate);
+                            const day = String(date.getUTCDate()).padStart(
+                              2,
+                              "0",
+                            );
+                            const month = String(
+                              date.getUTCMonth() + 1,
+                            ).padStart(2, "0");
+                            const year = date.getUTCFullYear();
+                            return `${day}/${month}/${year}`;
+                          })()
+                        : "-"}
+                    </TableCell>
+                    <TableCell>{goldClient.holderAddress || "-"}</TableCell>
+                    <TableCell>{goldClient.holderZipCode || "-"}</TableCell>
                     <TableCell>
                       {goldClient.dependents.length > 0 ? (
                         <div className="space-y-1">
