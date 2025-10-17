@@ -4,7 +4,7 @@ export const dependentSchema = z.object({
   id: z.string().uuid().optional(),
   name: z.string().trim().optional().or(z.literal("")),
   phone: z.string().trim().optional().or(z.literal("")),
-  birthDate: z.date().optional(),
+  birthDate: z.string().trim().optional().or(z.literal("")),
 });
 
 export const upsertGoldClientSchema = z.object({
@@ -12,7 +12,7 @@ export const upsertGoldClientSchema = z.object({
   holderName: z.string().trim().optional().or(z.literal("")),
   holderCpf: z.string().trim().optional().or(z.literal("")),
   holderPhone: z.string().trim().optional().or(z.literal("")),
-  holderBirthDate: z.date().optional(),
+  holderBirthDate: z.string().trim().optional().or(z.literal("")),
   holderAddress: z.string().trim().optional().or(z.literal("")),
   holderZipCode: z.string().trim().optional().or(z.literal("")),
   dependents: z.array(dependentSchema).max(10, {

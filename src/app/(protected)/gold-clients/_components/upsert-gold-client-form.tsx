@@ -31,14 +31,14 @@ const dependentSchema = z.object({
   id: z.string().uuid().optional(),
   name: z.string().trim().optional().or(z.literal("")),
   phone: z.string().trim().optional().or(z.literal("")),
-  birthDate: z.date().optional(),
+  birthDate: z.string().trim().optional().or(z.literal("")),
 });
 
 const formSchema = z.object({
   holderName: z.string().trim().optional().or(z.literal("")),
   holderCpf: z.string().trim().optional().or(z.literal("")),
   holderPhone: z.string().trim().optional().or(z.literal("")),
-  holderBirthDate: z.date().optional(),
+  holderBirthDate: z.string().trim().optional().or(z.literal("")),
   holderAddress: z.string().trim().optional().or(z.literal("")),
   holderZipCode: z.string().trim().optional().or(z.literal("")),
   dependents: z.array(dependentSchema).max(10, {
@@ -65,6 +65,15 @@ const UpsertGoldClientForm = ({
     goldClient?.dependents?.length || 0,
   );
 
+  const formatDateToString = (date: Date | null | undefined): string => {
+    if (!date) return "";
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   const form = useForm<z.infer<typeof formSchema>>({
     shouldUnregister: true,
     resolver: zodResolver(formSchema),
@@ -72,7 +81,7 @@ const UpsertGoldClientForm = ({
       holderName: goldClient?.holderName ?? "",
       holderCpf: goldClient?.holderCpf ?? "",
       holderPhone: goldClient?.holderPhone ?? "",
-      holderBirthDate: goldClient?.holderBirthDate ?? undefined,
+      holderBirthDate: formatDateToString(goldClient?.holderBirthDate),
       holderAddress: goldClient?.holderAddress ?? "",
       holderZipCode: goldClient?.holderZipCode ?? "",
       dependents:
@@ -80,7 +89,7 @@ const UpsertGoldClientForm = ({
           id: dep.id,
           name: dep.name,
           phone: dep.phone,
-          birthDate: dep.birthDate,
+          birthDate: formatDateToString(dep.birthDate),
         })) ?? [],
     },
   });
@@ -96,7 +105,7 @@ const UpsertGoldClientForm = ({
         holderName: goldClient?.holderName ?? "",
         holderCpf: goldClient?.holderCpf ?? "",
         holderPhone: goldClient?.holderPhone ?? "",
-        holderBirthDate: goldClient?.holderBirthDate ?? undefined,
+        holderBirthDate: formatDateToString(goldClient?.holderBirthDate),
         holderAddress: goldClient?.holderAddress ?? "",
         holderZipCode: goldClient?.holderZipCode ?? "",
         dependents:
@@ -104,12 +113,12 @@ const UpsertGoldClientForm = ({
             id: dep.id,
             name: dep.name,
             phone: dep.phone,
-            birthDate: dep.birthDate,
+            birthDate: formatDateToString(dep.birthDate),
           })) ?? [],
       });
       setDependentsCount(goldClient?.dependents?.length || 0);
     }
-  }, [isOpen, form, goldClient]);
+  }, [isOpen, form, goldClient, formatDateToString]);
 
   const upsertGoldClientAction = useAction(upsertGoldClient, {
     onSuccess: () => {
@@ -133,7 +142,7 @@ const UpsertGoldClientForm = ({
       append({
         name: "",
         phone: "",
-        birthDate: new Date(),
+        birthDate: "",
       });
       setDependentsCount(dependentsCount + 1);
     }
@@ -234,18 +243,15 @@ const UpsertGoldClientForm = ({
                 <FormItem>
                   <FormLabel>Data de Nascimento (opcional)</FormLabel>
                   <FormControl>
-                    <Input
-                      type="date"
-                      value={
-                        field.value
-                          ? field.value.toISOString().split("T")[0]
-                          : ""
-                      }
-                      onChange={(e) => {
-                        field.onChange(
-                          e.target.value ? new Date(e.target.value) : undefined,
-                        );
+                    <PatternFormat
+                      format="##/##/####"
+                      mask="_"
+                      placeholder="DD/MM/AAAA"
+                      value={field.value}
+                      onValueChange={(value) => {
+                        field.onChange(value.value);
                       }}
+                      customInput={Input}
                     />
                   </FormControl>
                   <FormMessage />
@@ -373,20 +379,15 @@ const UpsertGoldClientForm = ({
                     <FormItem>
                       <FormLabel>Data de Nascimento (opcional)</FormLabel>
                       <FormControl>
-                        <Input
-                          type="date"
-                          value={
-                            field.value
-                              ? field.value.toISOString().split("T")[0]
-                              : ""
-                          }
-                          onChange={(e) => {
-                            field.onChange(
-                              e.target.value
-                                ? new Date(e.target.value)
-                                : undefined,
-                            );
+                        <PatternFormat
+                          format="##/##/####"
+                          mask="_"
+                          placeholder="DD/MM/AAAA"
+                          value={field.value}
+                          onValueChange={(value) => {
+                            field.onChange(value.value);
                           }}
+                          customInput={Input}
                         />
                       </FormControl>
                       <FormMessage />

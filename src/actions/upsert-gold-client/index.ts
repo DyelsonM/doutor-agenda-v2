@@ -24,13 +24,39 @@ export const upsertGoldClient = actionClient
       throw new Error("Clinic not found");
     }
 
+    // Função para converter string DD/MM/YYYY para Date
+    const parseDate = (dateString: string | undefined): Date | null => {
+      if (!dateString || dateString.length !== 10) return null;
+      
+      const [day, month, year] = dateString.split("/");
+      if (!day || !month || !year) return null;
+      
+      // Criar data no formato YYYY-MM-DD para evitar problemas de timezone
+      const date = new Date(`${year}-${month}-${day}`);
+      
+      // Validar se a data é válida
+      if (isNaN(date.getTime())) return null;
+      
+      return date;
+    };
+
     const { dependents, ...goldClientData } = parsedInput;
+
+    // Converter data de nascimento do titular
+    const holderBirthDate = parseDate(goldClientData.holderBirthDate);
+
+    // Converter datas de nascimento dos dependentes
+    const formattedDependents = dependents?.map((dep) => ({
+      ...dep,
+      birthDate: parseDate(dep.birthDate),
+    }));
 
     // Inserir ou atualizar o cliente ouro
     const [goldClient] = await db
       .insert(goldClientsTable)
       .values({
         ...goldClientData,
+        holderBirthDate,
         id: goldClientData.id,
         clinicId: session?.user.clinic?.id,
       })
@@ -38,12 +64,13 @@ export const upsertGoldClient = actionClient
         target: [goldClientsTable.id],
         set: {
           ...goldClientData,
+          holderBirthDate,
         },
       })
       .returning();
 
     // Se há dependentes, inserir/atualizar eles
-    if (dependents && dependents.length > 0) {
+    if (formattedDependents && formattedDependents.length > 0) {
       // Primeiro, deletar dependentes existentes se estivermos atualizando
       if (goldClientData.id) {
         await db
@@ -53,7 +80,7 @@ export const upsertGoldClient = actionClient
 
       // Inserir os novos dependentes
       await db.insert(goldClientDependentsTable).values(
-        dependents.map((dependent) => ({
+        formattedDependents.map((dependent) => ({
           ...dependent,
           goldClientId: goldClient.id,
         })),

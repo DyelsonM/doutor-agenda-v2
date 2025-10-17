@@ -174,13 +174,22 @@ const GoldClientsTableClient = ({
                     </TableCell>
                     <TableCell>{goldClient.holderCpf}</TableCell>
                     <TableCell>{goldClient.holderPhone}</TableCell>
-                    <TableCell>
-                      {goldClient.holderBirthDate
-                        ? new Date(
-                            goldClient.holderBirthDate,
-                          ).toLocaleDateString("pt-BR")
-                        : "-"}
-                    </TableCell>
+                     <TableCell>
+                       {goldClient.holderBirthDate
+                         ? (() => {
+                             const date = new Date(goldClient.holderBirthDate);
+                             const day = String(date.getUTCDate()).padStart(
+                               2,
+                               "0",
+                             );
+                             const month = String(
+                               date.getUTCMonth() + 1,
+                             ).padStart(2, "0");
+                             const year = date.getUTCFullYear();
+                             return `${day}/${month}/${year}`;
+                           })()
+                         : "-"}
+                     </TableCell>
                     <TableCell>{goldClient.holderAddress}</TableCell>
                     <TableCell>{goldClient.holderZipCode}</TableCell>
                     <TableCell>
