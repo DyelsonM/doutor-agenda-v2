@@ -30,7 +30,12 @@ import { goldClientsTable, goldClientDependentsTable } from "@/db/schema";
 const dependentSchema = z.object({
   id: z.string().uuid().optional(),
   name: z.string().trim().optional().or(z.literal("")),
-  phone: z.string().trim().optional().or(z.literal("")),
+  phone: z
+    .string()
+    .trim()
+    .optional()
+    .or(z.literal(""))
+    .transform((val) => (val === "" ? undefined : val)),
   birthDate: z.string().trim().optional().or(z.literal("")),
 });
 
