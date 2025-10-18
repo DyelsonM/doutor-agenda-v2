@@ -26,7 +26,8 @@ export const upsertGoldClient = actionClient
 
     // Função para converter string DD/MM/YYYY para Date
     const parseDate = (dateString: string | undefined): Date | null => {
-      if (!dateString || dateString.length !== 10) return null;
+      if (!dateString || dateString.trim() === "" || dateString.length !== 10)
+        return null;
 
       const [day, month, year] = dateString.split("/");
       if (!day || !month || !year) return null;
@@ -40,33 +41,57 @@ export const upsertGoldClient = actionClient
       return date;
     };
 
+    // Função auxiliar para converter string vazia em null
+    const emptyToNull = (value: string | undefined): string | null => {
+      if (!value || value.trim() === "") return null;
+      return value;
+    };
+
     const { dependents, ...goldClientData } = parsedInput;
 
     // Converter data de nascimento do titular
     const holderBirthDate = parseDate(goldClientData.holderBirthDate);
 
-    // Converter datas de nascimento dos dependentes e filtrar dependentes vazios
-    const formattedDependents = dependents
-      ?.map((dep) => ({
-        ...dep,
-        birthDate: parseDate(dep.birthDate),
-      }))
-      .filter((dep) => dep.name || dep.phone || dep.birthDate); // Manter apenas dependentes com pelo menos um campo preenchido
+    // Converter datas de nascimento dos dependentes e filtrar dependentes completamente vazios
+    const formattedDependents =
+      dependents && dependents.length > 0
+        ? dependents
+            .map((dep) => ({
+              name: emptyToNull(dep.name),
+              phone: emptyToNull(dep.phone),
+              birthDate: parseDate(dep.birthDate),
+              id: dep.id,
+            }))
+            .filter(
+              (dep) =>
+                dep.name !== null ||
+                dep.phone !== null ||
+                dep.birthDate !== null,
+            )
+        : []; // Manter apenas dependentes com pelo menos um campo preenchido
 
     // Inserir ou atualizar o cliente ouro
     const [goldClient] = await db
       .insert(goldClientsTable)
       .values({
-        ...goldClientData,
-        holderBirthDate,
         id: goldClientData.id,
         clinicId: session?.user.clinic?.id,
+        holderName: emptyToNull(goldClientData.holderName),
+        holderCpf: emptyToNull(goldClientData.holderCpf),
+        holderPhone: emptyToNull(goldClientData.holderPhone),
+        holderBirthDate,
+        holderAddress: emptyToNull(goldClientData.holderAddress),
+        holderZipCode: emptyToNull(goldClientData.holderZipCode),
       })
       .onConflictDoUpdate({
         target: [goldClientsTable.id],
         set: {
-          ...goldClientData,
+          holderName: emptyToNull(goldClientData.holderName),
+          holderCpf: emptyToNull(goldClientData.holderCpf),
+          holderPhone: emptyToNull(goldClientData.holderPhone),
           holderBirthDate,
+          holderAddress: emptyToNull(goldClientData.holderAddress),
+          holderZipCode: emptyToNull(goldClientData.holderZipCode),
         },
       })
       .returning();

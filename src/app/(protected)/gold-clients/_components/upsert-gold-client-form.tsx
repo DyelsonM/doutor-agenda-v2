@@ -41,9 +41,13 @@ const formSchema = z.object({
   holderBirthDate: z.string().trim().optional().or(z.literal("")),
   holderAddress: z.string().trim().optional().or(z.literal("")),
   holderZipCode: z.string().trim().optional().or(z.literal("")),
-  dependents: z.array(dependentSchema).max(10, {
-    message: "Máximo de 10 dependentes permitidos.",
-  }),
+  dependents: z
+    .array(dependentSchema)
+    .max(10, {
+      message: "Máximo de 10 dependentes permitidos.",
+    })
+    .optional()
+    .default([]),
 });
 
 type GoldClientWithDependents = typeof goldClientsTable.$inferSelect & {
@@ -135,10 +139,16 @@ const UpsertGoldClientForm = ({
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    console.log("Form submitted with values:", values);
     upsertGoldClientAction.execute({
       ...values,
       id: goldClient?.id,
+      dependents: values.dependents || [], // Garantir que sempre seja um array
     });
+  };
+
+  const onError = (errors: any) => {
+    console.log("Form validation errors:", errors);
   };
 
   const addDependent = () => {
@@ -170,7 +180,10 @@ const UpsertGoldClientForm = ({
         </DialogDescription>
       </DialogHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit, onError)}
+          className="space-y-6"
+        >
           {/* Dados do Titular */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Dados do Titular</h3>
@@ -253,7 +266,7 @@ const UpsertGoldClientForm = ({
                       placeholder="DD/MM/AAAA"
                       value={field.value}
                       onValueChange={(value) => {
-                        field.onChange(value.value);
+                        field.onChange(value.formattedValue);
                       }}
                       customInput={Input}
                     />
@@ -389,7 +402,7 @@ const UpsertGoldClientForm = ({
                           placeholder="DD/MM/AAAA"
                           value={field.value}
                           onValueChange={(value) => {
-                            field.onChange(value.value);
+                            field.onChange(value.formattedValue);
                           }}
                           customInput={Input}
                         />

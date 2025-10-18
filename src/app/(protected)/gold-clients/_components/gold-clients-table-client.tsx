@@ -55,6 +55,33 @@ const GoldClientsTableClient = ({
     setIsClient(true);
   }, []);
 
+  // Funções de formatação
+  const formatCPF = (cpf: string | null): string => {
+    if (!cpf) return "-";
+    const numbers = cpf.replace(/\D/g, "");
+    if (numbers.length !== 11) return cpf;
+    return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+  };
+
+  const formatPhone = (phone: string | null): string => {
+    if (!phone) return "-";
+    const numbers = phone.replace(/\D/g, "");
+    if (numbers.length === 11) {
+      return numbers.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+    }
+    if (numbers.length === 10) {
+      return numbers.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+    }
+    return phone;
+  };
+
+  const formatCEP = (cep: string | null): string => {
+    if (!cep) return "-";
+    const numbers = cep.replace(/\D/g, "");
+    if (numbers.length !== 8) return cep;
+    return numbers.replace(/(\d{5})(\d{3})/, "$1-$2");
+  };
+
   const deleteGoldClientAction = useAction(deleteGoldClient, {
     onSuccess: () => {
       toast.success("Cliente ouro deletado com sucesso.");
@@ -172,8 +199,8 @@ const GoldClientsTableClient = ({
                     <TableCell className="font-medium">
                       {goldClient.holderName || "-"}
                     </TableCell>
-                    <TableCell>{goldClient.holderCpf || "-"}</TableCell>
-                    <TableCell>{goldClient.holderPhone || "-"}</TableCell>
+                    <TableCell>{formatCPF(goldClient.holderCpf)}</TableCell>
+                    <TableCell>{formatPhone(goldClient.holderPhone)}</TableCell>
                     <TableCell>
                       {goldClient.holderBirthDate
                         ? (() => {
@@ -191,7 +218,7 @@ const GoldClientsTableClient = ({
                         : "-"}
                     </TableCell>
                     <TableCell>{goldClient.holderAddress || "-"}</TableCell>
-                    <TableCell>{goldClient.holderZipCode || "-"}</TableCell>
+                    <TableCell>{formatCEP(goldClient.holderZipCode)}</TableCell>
                     <TableCell>
                       {goldClient.dependents.length > 0 ? (
                         <div className="space-y-1">

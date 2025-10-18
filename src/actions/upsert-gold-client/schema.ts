@@ -15,9 +15,13 @@ export const upsertGoldClientSchema = z.object({
   holderBirthDate: z.string().trim().optional().or(z.literal("")),
   holderAddress: z.string().trim().optional().or(z.literal("")),
   holderZipCode: z.string().trim().optional().or(z.literal("")),
-  dependents: z.array(dependentSchema).max(10, {
-    message: "Máximo de 10 dependentes permitidos.",
-  }),
+  dependents: z
+    .array(dependentSchema)
+    .max(10, {
+      message: "Máximo de 10 dependentes permitidos.",
+    })
+    .optional()
+    .default([]),
 });
 
 export type UpsertGoldClientSchema = z.infer<typeof upsertGoldClientSchema>;
