@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 
 import {
   PageActions,
@@ -19,12 +19,13 @@ import GoldClientsTableClient from "./_components/gold-clients-table-client";
 const GoldClientsPage = async () => {
   const session = await getAuthSession();
 
-  // Buscar clientes ouro com seus dependentes
+  // Buscar clientes ouro com seus dependentes, ordenados alfabeticamente
   const goldClients = await db.query.goldClientsTable.findMany({
     where: eq(goldClientsTable.clinicId, session.user.clinic?.id ?? ""),
     with: {
       dependents: true,
     },
+    orderBy: [asc(goldClientsTable.holderName)],
   });
 
   return (
