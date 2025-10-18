@@ -4,11 +4,9 @@ export const dependentSchema = z.object({
   id: z.string().uuid().optional(),
   name: z.string().trim().optional().or(z.literal("")),
   phone: z
-    .string()
-    .trim()
+    .union([z.string().trim(), z.null(), z.undefined()])
     .optional()
-    .or(z.literal(""))
-    .transform((val) => (val === "" ? undefined : val)),
+    .transform((val) => (val === "" || val === null ? undefined : val)),
   birthDate: z.string().trim().optional().or(z.literal("")),
 });
 
