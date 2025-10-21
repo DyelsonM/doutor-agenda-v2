@@ -22,6 +22,7 @@ const openCashSchema = z.object({
     .min(0, "Valor inicial deve ser maior ou igual a zero"),
   openingNotes: z.string().optional(),
   identifier: z.string().optional().nullable(),
+  date: z.string().optional(), // Data no formato YYYY-MM-DD (opcional, default: hoje)
 });
 
 // Schema para fechamento de caixa
@@ -70,31 +71,47 @@ export const openCashAction = actionClient
         throw new Error("Clínica não encontrada");
       }
 
-      // Verificar se já existe caixa aberto para hoje
-      // Usar UTC para armazenamento consistente
-      const today = dayjs()
-        .tz("America/Sao_Paulo")
-        .startOf("day")
-        .utc()
-        .toDate();
-      const tomorrow = dayjs()
-        .tz("America/Sao_Paulo")
-        .add(1, "day")
-        .startOf("day")
-        .utc()
-        .toDate();
+      // Determinar a data do caixa (fornecida ou hoje)
+      let targetDate: Date;
+      let nextDay: Date;
+      
+      if (data.parsedInput.date) {
+        // Usar dayjs.tz para garantir que a string seja interpretada no timezone correto
+        const selectedDate = dayjs.tz(data.parsedInput.date, "America/Sao_Paulo").startOf("day");
+        
+        // Validar que a data não é muito futura (máximo 30 dias no futuro)
+        const maxFutureDate = dayjs().tz("America/Sao_Paulo").add(30, "days").startOf("day");
+        
+        if (selectedDate.isAfter(maxFutureDate)) {
+          throw new Error("Não é possível abrir caixa para uma data muito distante no futuro (máximo 30 dias)");
+        }
 
+        // Converter para UTC para armazenamento
+        targetDate = selectedDate.utc().toDate();
+        nextDay = selectedDate.add(1, "day").utc().toDate();
+      } else {
+        // Se não fornecida, usar hoje
+        const today = dayjs().tz("America/Sao_Paulo").startOf("day");
+        targetDate = today.utc().toDate();
+        nextDay = today.add(1, "day").utc().toDate();
+      }
+
+      // Verificar se já existe caixa (aberto ou fechado) para a data selecionada
       const existingCash = await db.query.dailyCashTable.findFirst({
         where: and(
           eq(dailyCashTable.clinicId, clinicId),
-          eq(dailyCashTable.status, "open"),
-          gte(dailyCashTable.date, today),
-          lte(dailyCashTable.date, tomorrow),
+          gte(dailyCashTable.date, targetDate),
+          lte(dailyCashTable.date, nextDay),
         ),
       });
 
       if (existingCash) {
-        throw new Error("Já existe um caixa aberto para hoje");
+        const dateStr = dayjs(targetDate).tz("America/Sao_Paulo").format("DD/MM/YYYY");
+        if (existingCash.status === "open") {
+          throw new Error(`Já existe um caixa aberto para ${dateStr}`);
+        } else {
+          throw new Error(`Já existe um caixa fechado para ${dateStr}. Não é possível criar outro caixa para a mesma data.`);
+        }
       }
 
       // Criar novo caixa
@@ -104,13 +121,21 @@ export const openCashAction = actionClient
           clinicId,
           userId,
           identifier: data.parsedInput.identifier,
-          date: today,
+          date: targetDate,
           openingTime: dayjs().tz("America/Sao_Paulo").utc().toDate(),
           openingAmount: data.parsedInput.openingAmount,
           openingNotes: data.parsedInput.openingNotes,
           status: "open",
         })
         .returning();
+
+      // Log para debug
+      console.log("Caixa criado:", {
+        id: newCash.id,
+        date: newCash.date,
+        dateFormatted: dayjs(newCash.date).tz("America/Sao_Paulo").format("DD/MM/YYYY"),
+        clinicId: newCash.clinicId,
+      });
 
       // Criar operação de abertura
       await db.insert(cashOperationsTable).values({

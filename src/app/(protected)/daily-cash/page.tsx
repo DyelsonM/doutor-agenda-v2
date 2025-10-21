@@ -198,6 +198,9 @@ const DailyCashPage = async () => {
                   <History className="h-5 w-5" />
                   Histórico Recente
                 </CardTitle>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  Últimos 7 dias • Para ver todos os caixas, acesse o Histórico completo
+                </p>
               </CardHeader>
               <CardContent>
                 <RecentCashHistory history={recentHistory} />
