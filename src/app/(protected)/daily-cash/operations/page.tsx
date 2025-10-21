@@ -6,7 +6,7 @@ import { ptBR } from "date-fns/locale";
 import { DollarSign, Loader2, Minus, Plus, Trash2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { NumericFormat, PatternFormat } from "react-number-format";
 import { toast } from "sonner";
@@ -123,7 +123,7 @@ const getPaymentMethodsLabels = (methods: string[]) => {
   return methods.map(getPaymentMethodLabel).join(", ");
 };
 
-export default function CashOperationsPage() {
+function CashOperationsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const cashId = searchParams.get("cashId");
@@ -906,5 +906,21 @@ export default function CashOperationsPage() {
         </div>
       </PageContent>
     </PageContainer>
+  );
+}
+
+export default function CashOperationsPage() {
+  return (
+    <Suspense
+      fallback={
+        <PageContainer>
+          <div className="flex h-64 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        </PageContainer>
+      }
+    >
+      <CashOperationsPageContent />
+    </Suspense>
   );
 }
