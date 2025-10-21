@@ -165,9 +165,18 @@ export function RecentCashHistory({ history }: RecentCashHistoryProps) {
             )}
           </div>
           <div className="flex items-center gap-2">
+            {/* Botões para caixas abertos */}
+            {cash.status === "open" && (
+              <Link href={`/daily-cash/operations?cashId=${cash.id}`}>
+                <Button variant="default" size="sm">
+                  Operações
+                </Button>
+              </Link>
+            )}
+            
             <Link href={`/daily-cash/details/${cash.id}`}>
               <Button variant="ghost" size="sm">
-                Ver
+                Ver Detalhes
               </Button>
             </Link>
 

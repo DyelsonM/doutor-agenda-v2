@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DollarSign, Loader2, Minus, Plus, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -12,7 +12,7 @@ import { NumericFormat, PatternFormat } from "react-number-format";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { getOpenCashAction } from "@/actions/daily-cash";
+import { getCashByIdAction, getOpenCashAction } from "@/actions/daily-cash";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -125,6 +125,9 @@ const getPaymentMethodsLabels = (methods: string[]) => {
 
 export default function CashOperationsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const cashId = searchParams.get("cashId");
+  
   const [cashData, setCashData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -141,9 +144,9 @@ export default function CashOperationsPage() {
     },
   });
 
-  const { execute: executeGetCash } = useAction(getOpenCashAction, {
+  // Action para buscar caixa aberto de hoje
+  const { execute: executeGetOpenCash } = useAction(getOpenCashAction, {
     onSuccess: ({ data }) => {
-      // A action retorna {success: true, data: {...}}
       const cashData = data?.data;
 
       if (cashData && cashData.status === "open") {
@@ -155,8 +158,35 @@ export default function CashOperationsPage() {
       setIsLoading(false);
     },
     onError: ({ error }) => {
-      console.error("Error loading cash data:", error); // Debug log
+      console.error("Error loading open cash:", error);
       toast.error(error.serverError || "Erro ao carregar dados do caixa");
+      setIsLoading(false);
+    },
+  });
+
+  // Action para buscar caixa específico por ID
+  const { execute: executeGetCashById } = useAction(getCashByIdAction, {
+    onSuccess: ({ data }) => {
+      const cashData = data?.data;
+
+      if (cashData) {
+        if (cashData.status !== "open") {
+          toast.error("Este caixa já foi fechado. Não é possível adicionar operações.");
+          router.push("/daily-cash");
+          setIsLoading(false);
+          return;
+        }
+        setCashData(cashData);
+      } else {
+        toast.error("Caixa não encontrado");
+        router.push("/daily-cash");
+      }
+      setIsLoading(false);
+    },
+    onError: ({ error }) => {
+      console.error("Error loading cash by ID:", error);
+      toast.error(error.serverError || "Erro ao carregar dados do caixa");
+      router.push("/daily-cash");
       setIsLoading(false);
     },
   });
@@ -178,13 +208,24 @@ export default function CashOperationsPage() {
           receiptNumber: "",
         });
         // Recarregar dados do caixa após operação
-        executeGetCash({});
+        loadCashData();
       },
     });
 
+  // Função para carregar os dados do caixa
+  const loadCashData = () => {
+    if (cashId) {
+      // Se tiver cashId na URL, buscar caixa específico
+      executeGetCashById({ cashId });
+    } else {
+      // Senão, buscar caixa aberto de hoje
+      executeGetOpenCash({});
+    }
+  };
+
   useEffect(() => {
-    executeGetCash({});
-  }, []);
+    loadCashData();
+  }, [cashId]);
 
   const onSubmit = (data: CashOperationForm) => {
     if (!cashData || !cashData.id) {
@@ -298,6 +339,45 @@ export default function CashOperationsPage() {
 
       <PageContent>
         <div className="mx-auto max-w-4xl space-y-6">
+          {/* Alerta quando for caixa de outra data */}
+          {cashData.date && 
+            format(new Date(cashData.date), "yyyy-MM-dd") !== format(new Date(), "yyyy-MM-dd") && (
+            <Card className="border-yellow-500 bg-yellow-50">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-full bg-yellow-500 p-1 text-white">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-yellow-900">
+                      Atenção: Caixa de Data Anterior
+                    </h3>
+                    <p className="text-sm text-yellow-800 mt-1">
+                      Você está adicionando operações em um caixa aberto de{" "}
+                      <strong>
+                        {format(new Date(cashData.date), "dd/MM/yyyy", {
+                          locale: ptBR,
+                        })}
+                      </strong>
+                      . Certifique-se de que as operações são realmente desta data.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Resumo atual do caixa */}
           <Card>
             <CardHeader>

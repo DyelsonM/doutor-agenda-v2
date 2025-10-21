@@ -507,6 +507,48 @@ export const getCashHistoryAction = actionClient
     };
   });
 
+// Schema para buscar caixa por ID
+const getCashByIdSchema = z.object({
+  cashId: z.string().min(1, "ID do caixa é obrigatório"),
+});
+
+// Action para buscar caixa por ID
+export const getCashByIdAction = actionClient
+  .schema(getCashByIdSchema)
+  .action(async (data) => {
+    const session = await getAuthSession();
+    const clinicId = session.user.clinic?.id;
+
+    if (!clinicId) {
+      throw new Error("Clínica não encontrada");
+    }
+
+    const cash = await db.query.dailyCashTable.findFirst({
+      where: and(
+        eq(dailyCashTable.id, data.parsedInput.cashId),
+        eq(dailyCashTable.clinicId, clinicId),
+      ),
+      with: {
+        operations: {
+          with: {
+            user: true,
+          },
+          orderBy: [desc(cashOperationsTable.createdAt)],
+        },
+        user: true,
+      },
+    });
+
+    if (!cash) {
+      throw new Error("Caixa não encontrado");
+    }
+
+    return {
+      success: true,
+      data: cash,
+    };
+  });
+
 // Schema para exclusão de caixa
 const deleteCashSchema = z.object({
   cashId: z.string().min(1, "ID do caixa é obrigatório"),
