@@ -66,8 +66,12 @@ export const openCashAction = actionClient
   .action(async (data) => {
     try {
       const session = await getAuthSession();
-      const clinicId = session.user.clinic.id;
+      const clinicId = session.user.clinic?.id;
       const userId = session.user.id;
+
+      if (!clinicId) {
+        throw new Error("Clínica não encontrada");
+      }
 
       // Verificar se já existe caixa aberto para hoje
       // Usar UTC para armazenamento consistente
@@ -313,11 +317,15 @@ export const getDailyCashAction = actionClient
   .schema(getDailyCashSchema)
   .action(async (data) => {
     const session = await getAuthSession();
-    const clinicId = session.user.clinic.id;
+    const clinicId = session.user.clinic?.id;
+
+    if (!clinicId) {
+      throw new Error("Clínica não encontrada");
+    }
 
     let targetDate: Date;
-    if (data.date) {
-      targetDate = dayjs(data.date)
+    if (data.parsedInput.date) {
+      targetDate = dayjs(data.parsedInput.date)
         .tz("America/Sao_Paulo")
         .startOf("day")
         .utc()
@@ -367,11 +375,15 @@ export const getOpenCashAction = actionClient
   .schema(getOpenCashSchema)
   .action(async (data) => {
     const session = await getAuthSession();
-    const clinicId = session.user.clinic.id;
+    const clinicId = session.user.clinic?.id;
+
+    if (!clinicId) {
+      throw new Error("Clínica não encontrada");
+    }
 
     let targetDate: Date;
-    if (data.date) {
-      targetDate = dayjs(data.date)
+    if (data.parsedInput.date) {
+      targetDate = dayjs(data.parsedInput.date)
         .tz("America/Sao_Paulo")
         .startOf("day")
         .utc()
@@ -440,7 +452,11 @@ export const getCashHistoryAction = actionClient
   )
   .action(async (data) => {
     const session = await getAuthSession();
-    const clinicId = session.user.clinic.id;
+    const clinicId = session.user.clinic?.id;
+
+    if (!clinicId) {
+      throw new Error("Clínica não encontrada");
+    }
 
     const cashHistory = await db.query.dailyCashTable.findMany({
       where: eq(dailyCashTable.clinicId, clinicId),
@@ -451,8 +467,8 @@ export const getCashHistoryAction = actionClient
         },
       },
       orderBy: [desc(dailyCashTable.date)],
-      limit: data.limit,
-      offset: data.offset,
+      limit: data.parsedInput.limit,
+      offset: data.parsedInput.offset,
     });
 
     const totalCount = await db
@@ -489,7 +505,11 @@ export const deleteCashAction = actionClient
 
       const session = await getAuthSession();
       const userId = session.user.id;
-      const clinicId = session.user.clinic.id;
+      const clinicId = session.user.clinic?.id;
+
+      if (!clinicId) {
+        throw new Error("Clínica não encontrada");
+      }
 
       // Verificar se o caixa existe e pertence à clínica do usuário
       const cash = await db.query.dailyCashTable.findFirst({
@@ -549,7 +569,11 @@ export const deleteCashOperationAction = actionClient
 
       const session = await getAuthSession();
       const userId = session.user.id;
-      const clinicId = session.user.clinic.id;
+      const clinicId = session.user.clinic?.id;
+
+      if (!clinicId) {
+        throw new Error("Clínica não encontrada");
+      }
 
       // Buscar a operação para verificar se existe e pertence à clínica do usuário
       const operation = await db.query.cashOperationsTable.findFirst({
@@ -617,7 +641,11 @@ export const debugCashAction = actionClient
   .schema(z.object({}))
   .action(async () => {
     const session = await getAuthSession();
-    const clinicId = session.user.clinic.id;
+    const clinicId = session.user.clinic?.id;
+
+    if (!clinicId) {
+      throw new Error("Clínica não encontrada");
+    }
 
     // Buscar caixas dos últimos 7 dias
     const sevenDaysAgo = new Date();

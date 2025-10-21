@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { NumericFormat } from "react-number-format";
+import { NumericFormat, PatternFormat } from "react-number-format";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -551,7 +551,7 @@ export default function CashOperationsPage() {
                           <FormItem>
                             <FormLabel>CPF do Cliente</FormLabel>
                             <FormControl>
-                              <NumericFormat
+                              <PatternFormat
                                 value={field.value}
                                 onValueChange={(value) => {
                                   field.onChange(value.value);
