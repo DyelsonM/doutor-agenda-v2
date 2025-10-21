@@ -3,14 +3,31 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import jsPDF from "jspdf";
-import { Download, DollarSign, FileText, Minus, Plus } from "lucide-react";
+import { Download, DollarSign, FileText, Minus, Plus, PlusCircle, MinusCircle, Trash2, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
+import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 import { formatCurrencyInCents } from "@/helpers/financial";
+import { deleteOperationFromClosedCashAction } from "@/actions/daily-cash";
+import { AddOperationToClosedCashForm } from "./add-operation-to-closed-cash-form";
+import { CloseCashDialog } from "./close-cash-dialog";
 
 interface CashReportProps {
   cashData: {
@@ -44,6 +61,48 @@ interface CashReportProps {
 }
 
 export function CashReport({ cashData }: CashReportProps) {
+  const router = useRouter();
+  const [addOperationOpen, setAddOperationOpen] = useState(false);
+  const [operationType, setOperationType] = useState<"cash_in" | "cash_out">("cash_in");
+  const [deletingOperationId, setDeletingOperationId] = useState<string | null>(null);
+  const [closeCashOpen, setCloseCashOpen] = useState(false);
+
+  const { execute: executeDeleteOperation } = useAction(deleteOperationFromClosedCashAction, {
+    onSuccess: ({ data }) => {
+      console.log("Operation deleted successfully:", data);
+      toast.success("Operação excluída com sucesso! Os totais foram recalculados.");
+      setDeletingOperationId(null);
+      router.refresh();
+    },
+    onError: ({ error }) => {
+      console.error("Error deleting operation:", error);
+      const errorMessage =
+        error?.serverError ||
+        error?.validationErrors ||
+        "Erro ao excluir operação";
+
+      toast.error(
+        typeof errorMessage === "string"
+          ? errorMessage
+          : "Erro de validação. Verifique os dados.",
+      );
+      setDeletingOperationId(null);
+    },
+  });
+
+  const handleDeleteOperation = (operationId: string) => {
+    setDeletingOperationId(operationId);
+    executeDeleteOperation({ operationId });
+  };
+
+  const handleAddOperationSuccess = () => {
+    router.refresh();
+  };
+
+  const handleCloseCashSuccess = () => {
+    router.refresh();
+  };
+
   const handleExportPDF = () => {
     if (!cashData) return;
 
@@ -335,36 +394,143 @@ export function CashReport({ cashData }: CashReportProps) {
   };
 
   const statusInfo = getStatusInfo();
+  const isClosed = cashData.status === "closed";
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Relatório de Caixa
-            {cashData.identifier && (
-              <span className="text-muted-foreground">
-                {" "}
-                - {cashData.identifier}
-              </span>
-            )}
-            {" - "}
-            {cashData.date
-              ? format(new Date(cashData.date), "dd/MM/yyyy", { locale: ptBR })
-              : "Data não disponível"}
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
-            <Button onClick={handleExportPDF} size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              Exportar PDF
-            </Button>
-          </div>
-        </CardTitle>
-      </CardHeader>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Relatório de Caixa
+              {cashData.identifier && (
+                <span className="text-muted-foreground">
+                  {" "}
+                  - {cashData.identifier}
+                </span>
+              )}
+              {" - "}
+              {cashData.date
+                ? format(new Date(cashData.date), "dd/MM/yyyy", { locale: ptBR })
+                : "Data não disponível"}
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+              
+              {/* Botão de fechar caixa quando estiver aberto */}
+              {!isClosed && (
+                <Button
+                  onClick={() => setCloseCashOpen(true)}
+                  size="sm"
+                  variant="default"
+                >
+                  <Lock className="mr-2 h-4 w-4" />
+                  Fechar Caixa
+                </Button>
+              )}
+
+              {/* Botões de adicionar operações quando estiver fechado */}
+              {isClosed && (
+                <>
+                  <Button
+                    onClick={() => {
+                      setOperationType("cash_in");
+                      setAddOperationOpen(true);
+                    }}
+                    size="sm"
+                    variant="outline"
+                    className="text-green-600 hover:text-green-700"
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Entrada
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setOperationType("cash_out");
+                      setAddOperationOpen(true);
+                    }}
+                    size="sm"
+                    variant="outline"
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <MinusCircle className="mr-2 h-4 w-4" />
+                    Saída
+                  </Button>
+                </>
+              )}
+
+              <Button onClick={handleExportPDF} size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                Exportar PDF
+              </Button>
+            </div>
+          </CardTitle>
+        </CardHeader>
       <CardContent>
         <div className="space-y-6">
+          {/* Mensagem informativa para caixas abertos */}
+          {!isClosed && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="h-5 w-5 text-blue-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-medium text-blue-800">
+                    Caixa Aberto - Esqueceu de Fechar?
+                  </h4>
+                  <p className="mt-1 text-sm text-blue-700">
+                    Use o botão <strong>"Fechar Caixa"</strong> no cabeçalho acima para fechar este caixa. Após o fechamento, você poderá adicionar operações esquecidas usando os botões "Entrada" e "Saída".
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Mensagem informativa para caixas fechados */}
+          {isClosed && (
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="h-5 w-5 text-green-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-medium text-green-800">
+                    Adicionar Operações Esquecidas
+                  </h4>
+                  <p className="mt-1 text-sm text-green-700">
+                    Use os botões <strong>"Entrada"</strong> e <strong>"Saída"</strong> no cabeçalho acima para adicionar operações que foram esquecidas. Os totais serão recalculados automaticamente.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Resumo */}
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div className="text-center">
@@ -461,15 +627,34 @@ export function CashReport({ cashData }: CashReportProps) {
                     }
                   };
 
+                  const isOpeningOrClosing = operation.type === "opening" || operation.type === "closing";
+                  const canDelete = isClosed && !isOpeningOrClosing;
+
+                  // Verificar se a operação foi adicionada após o fechamento
+                  let addedToClosedCash = false;
+                  try {
+                    const metadata = JSON.parse(operation.metadata || "{}");
+                    addedToClosedCash = metadata.addedToClosedCash === true;
+                  } catch (e) {
+                    // Ignorar erro de parsing
+                  }
+
                   return (
                     <div
                       key={operation.id}
                       className="flex items-center justify-between rounded-lg border p-4"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 flex-1">
                         {getTypeIcon()}
-                        <div>
-                          <p className="font-medium">{operation.description}</p>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{operation.description}</p>
+                            {addedToClosedCash && (
+                              <Badge variant="outline" className="text-xs">
+                                Adicionado após fechamento
+                              </Badge>
+                            )}
+                          </div>
                           <div className="text-muted-foreground flex items-center gap-4 text-sm">
                             <span>{typeLabel}</span>
                             <span>
@@ -522,15 +707,53 @@ export function CashReport({ cashData }: CashReportProps) {
                             })()}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p
-                          className={`font-semibold ${
-                            isCashIn ? "text-green-600" : "text-red-600"
-                          }`}
-                        >
-                          {isCashIn ? "+" : "-"}
-                          {formatCurrencyInCents(operation.amountInCents)}
-                        </p>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <p
+                            className={`font-semibold ${
+                              isCashIn ? "text-green-600" : "text-red-600"
+                            }`}
+                          >
+                            {isCashIn ? "+" : "-"}
+                            {formatCurrencyInCents(operation.amountInCents)}
+                          </p>
+                        </div>
+                        {canDelete && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                disabled={deletingOperationId === operation.id}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Excluir Operação</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Tem certeza que deseja excluir esta operação? Os totais do caixa serão recalculados automaticamente.
+                                  <br />
+                                  <br />
+                                  <strong>Descrição:</strong> {operation.description}
+                                  <br />
+                                  <strong>Valor:</strong> {formatCurrencyInCents(operation.amountInCents)}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteOperation(operation.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  {deletingOperationId === operation.id ? "Excluindo..." : "Excluir"}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
                       </div>
                     </div>
                   );
@@ -541,5 +764,26 @@ export function CashReport({ cashData }: CashReportProps) {
         </div>
       </CardContent>
     </Card>
+
+    <AddOperationToClosedCashForm
+      dailyCashId={cashData.id}
+      open={addOperationOpen}
+      onOpenChange={setAddOperationOpen}
+      defaultType={operationType}
+      onSuccess={handleAddOperationSuccess}
+    />
+
+    <CloseCashDialog
+      cashData={{
+        id: cashData.id,
+        openingAmount: cashData.openingAmount,
+        totalCashIn: cashData.totalCashIn,
+        totalCashOut: cashData.totalCashOut,
+      }}
+      open={closeCashOpen}
+      onOpenChange={setCloseCashOpen}
+      onSuccess={handleCloseCashSuccess}
+    />
+    </>
   );
 }

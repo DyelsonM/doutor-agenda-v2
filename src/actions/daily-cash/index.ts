@@ -27,10 +27,7 @@ const openCashSchema = z.object({
 // Schema para fechamento de caixa
 const closeCashSchema = z.object({
   dailyCashId: z.string().min(1, "ID do caixa é obrigatório"),
-  closingAmount: z
-    .number()
-    .min(-999999999, "Valor muito baixo")
-    .max(999999999, "Valor muito alto"),
+  closingAmount: z.number(),
   closingNotes: z.string().optional(),
 });
 
@@ -632,6 +629,277 @@ export const deleteCashOperationAction = actionClient
       };
     } catch (error) {
       console.error("Error deleting cash operation:", error);
+      throw error;
+    }
+  });
+
+// Schema para adicionar operação em caixa fechado
+const addOperationToClosedCashSchema = z.object({
+  dailyCashId: z.string().min(1, "ID do caixa é obrigatório"),
+  type: z.enum(["cash_in", "cash_out", "adjustment"]),
+  amountInCents: z
+    .number()
+    .min(1, "Valor deve ser maior que zero")
+    .int("Valor deve ser um número inteiro"),
+  description: z.string().min(1, "Descrição é obrigatória"),
+  paymentMethods: z
+    .array(z.enum(["credit_card", "debit_card", "stripe", "cash", "pix", "bank_transfer", "other"]))
+    .min(1, "Selecione pelo menos uma forma de pagamento"),
+  transactionId: z.string().uuid().optional(),
+  metadata: z.string().optional(),
+});
+
+// Action para adicionar operação em caixa fechado e recalcular totais
+export const addOperationToClosedCashAction = actionClient
+  .schema(addOperationToClosedCashSchema)
+  .action(async (data) => {
+    try {
+      // Extrair dados do parsedInput
+      const {
+        dailyCashId,
+        type,
+        amountInCents,
+        description,
+        paymentMethods,
+        transactionId,
+        metadata,
+      } = data.parsedInput;
+
+      const session = await getAuthSession();
+      const userId = session.user.id;
+      const clinicId = session.user.clinic?.id;
+
+      if (!clinicId) {
+        throw new Error("Clínica não encontrada");
+      }
+
+      // Buscar o caixa (permitir caixas fechados)
+      const cash = await db.query.dailyCashTable.findFirst({
+        where: and(
+          eq(dailyCashTable.id, dailyCashId),
+          eq(dailyCashTable.clinicId, clinicId),
+        ),
+        with: {
+          operations: {
+            with: {
+              user: true,
+            },
+          },
+        },
+      });
+
+      if (!cash) {
+        throw new Error("Caixa não encontrado ou você não tem permissão");
+      }
+
+      // Criar operação - armazenar múltiplas formas de pagamento como JSON
+      const [operation] = await db
+        .insert(cashOperationsTable)
+        .values({
+          dailyCashId: dailyCashId,
+          userId,
+          type: type,
+          amountInCents: amountInCents || 0,
+          description: description,
+          paymentMethod: paymentMethods[0] || "cash",
+          transactionId: transactionId,
+          metadata: JSON.stringify({
+            ...(metadata ? JSON.parse(metadata) : {}),
+            paymentMethods: paymentMethods,
+            addedToClosedCash: cash.status === "closed", // Marcar se foi adicionado após fechamento
+          }),
+        })
+        .returning();
+
+      // Atualizar totais do caixa
+      if (type === "cash_in") {
+        await db
+          .update(dailyCashTable)
+          .set({
+            totalCashIn: sql`${dailyCashTable.totalCashIn} + ${amountInCents}`,
+          })
+          .where(eq(dailyCashTable.id, dailyCashId));
+      } else if (type === "cash_out") {
+        await db
+          .update(dailyCashTable)
+          .set({
+            totalCashOut: sql`${dailyCashTable.totalCashOut} + ${amountInCents}`,
+          })
+          .where(eq(dailyCashTable.id, dailyCashId));
+      }
+
+      // Se o caixa estiver fechado, recalcular os totais E ajustar o valor final
+      if (cash.status === "closed") {
+        // Buscar todas as operações atualizadas
+        const allOperations = await db.query.cashOperationsTable.findMany({
+          where: eq(cashOperationsTable.dailyCashId, dailyCashId),
+        });
+
+        // Recalcular totais
+        const totalCashIn = allOperations
+          .filter((op) => op.type === "cash_in")
+          .reduce((sum, op) => sum + op.amountInCents, 0);
+
+        const totalCashOut = allOperations
+          .filter((op) => op.type === "cash_out")
+          .reduce((sum, op) => sum + op.amountInCents, 0);
+
+        const expectedAmount = cash.openingAmount + totalCashIn - totalCashOut;
+        
+        // Ajustar o valor final (closingAmount) baseado nas operações adicionadas
+        // Se for entrada, aumenta o valor final. Se for saída, diminui o valor final
+        let newClosingAmount = cash.closingAmount || 0;
+        if (type === "cash_in") {
+          newClosingAmount += amountInCents;
+        } else if (type === "cash_out") {
+          newClosingAmount -= amountInCents;
+        }
+        
+        const difference = newClosingAmount - expectedAmount;
+
+        const totalRevenue = totalCashIn;
+        const totalExpenses = totalCashOut;
+
+        // Atualizar o caixa com os novos totais E o novo valor final
+        await db
+          .update(dailyCashTable)
+          .set({
+            closingAmount: newClosingAmount,
+            expectedAmount,
+            difference,
+            totalRevenue,
+            totalExpenses,
+            totalCashIn,
+            totalCashOut,
+          })
+          .where(eq(dailyCashTable.id, dailyCashId));
+      }
+
+      return {
+        success: true,
+        data: operation,
+      };
+    } catch (error) {
+      console.error("Error adding operation to closed cash:", error);
+      throw error;
+    }
+  });
+
+// Action para excluir operação de caixa fechado e recalcular
+export const deleteOperationFromClosedCashAction = actionClient
+  .schema(deleteCashOperationSchema)
+  .action(async (data) => {
+    try {
+      const { operationId } = data.parsedInput;
+
+      const session = await getAuthSession();
+      const clinicId = session.user.clinic?.id;
+
+      if (!clinicId) {
+        throw new Error("Clínica não encontrada");
+      }
+
+      // Buscar a operação
+      const operation = await db.query.cashOperationsTable.findFirst({
+        where: eq(cashOperationsTable.id, operationId),
+        with: {
+          dailyCash: true,
+        },
+      });
+
+      if (!operation) {
+        throw new Error("Operação não encontrada");
+      }
+
+      // Verificar permissão
+      if (operation.dailyCash.clinicId !== clinicId) {
+        throw new Error("Você não tem permissão para excluir esta operação");
+      }
+
+      // Não permitir exclusão de operações de abertura/fechamento
+      if (operation.type === "opening" || operation.type === "closing") {
+        throw new Error(
+          "Não é possível excluir operações de abertura ou fechamento",
+        );
+      }
+
+      // Deletar a operação
+      await db
+        .delete(cashOperationsTable)
+        .where(eq(cashOperationsTable.id, operationId));
+
+      // Atualizar totais do caixa
+      if (operation.type === "cash_in") {
+        await db
+          .update(dailyCashTable)
+          .set({
+            totalCashIn: sql`${dailyCashTable.totalCashIn} - ${operation.amountInCents}`,
+          })
+          .where(eq(dailyCashTable.id, operation.dailyCashId));
+      } else if (operation.type === "cash_out") {
+        await db
+          .update(dailyCashTable)
+          .set({
+            totalCashOut: sql`${dailyCashTable.totalCashOut} - ${operation.amountInCents}`,
+          })
+          .where(eq(dailyCashTable.id, operation.dailyCashId));
+      }
+
+      // Se o caixa estiver fechado, recalcular os totais E ajustar o valor final
+      if (operation.dailyCash.status === "closed") {
+        const cash = operation.dailyCash;
+
+        // Buscar todas as operações restantes
+        const allOperations = await db.query.cashOperationsTable.findMany({
+          where: eq(cashOperationsTable.dailyCashId, operation.dailyCashId),
+        });
+
+        // Recalcular totais
+        const totalCashIn = allOperations
+          .filter((op) => op.type === "cash_in")
+          .reduce((sum, op) => sum + op.amountInCents, 0);
+
+        const totalCashOut = allOperations
+          .filter((op) => op.type === "cash_out")
+          .reduce((sum, op) => sum + op.amountInCents, 0);
+
+        const expectedAmount = cash.openingAmount + totalCashIn - totalCashOut;
+        
+        // Ajustar o valor final (closingAmount) baseado na operação removida
+        // Se era entrada, diminui o valor final. Se era saída, aumenta o valor final
+        let newClosingAmount = cash.closingAmount || 0;
+        if (operation.type === "cash_in") {
+          newClosingAmount -= operation.amountInCents;
+        } else if (operation.type === "cash_out") {
+          newClosingAmount += operation.amountInCents;
+        }
+        
+        const difference = newClosingAmount - expectedAmount;
+
+        const totalRevenue = totalCashIn;
+        const totalExpenses = totalCashOut;
+
+        // Atualizar o caixa com os novos totais E o novo valor final
+        await db
+          .update(dailyCashTable)
+          .set({
+            closingAmount: newClosingAmount,
+            expectedAmount,
+            difference,
+            totalRevenue,
+            totalExpenses,
+            totalCashIn,
+            totalCashOut,
+          })
+          .where(eq(dailyCashTable.id, operation.dailyCashId));
+      }
+
+      return {
+        success: true,
+        data: { deletedOperationId: operationId },
+      };
+    } catch (error) {
+      console.error("Error deleting operation from closed cash:", error);
       throw error;
     }
   });
