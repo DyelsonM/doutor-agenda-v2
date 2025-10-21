@@ -323,6 +323,8 @@ export const paymentStatusEnum = pgEnum("payment_status", [
 ]);
 
 export const paymentMethodEnum = pgEnum("payment_method", [
+  "credit_card",
+  "debit_card",
   "stripe",
   "cash",
   "pix",

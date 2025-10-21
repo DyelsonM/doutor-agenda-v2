@@ -61,7 +61,7 @@ const cashOperationSchema = z.object({
   amount: z.number().min(0.01, "Valor deve ser maior que zero"),
   description: z.string().min(1, "Descrição é obrigatória"),
   paymentMethods: z
-    .array(z.enum(["stripe", "cash", "pix", "bank_transfer", "other"]))
+    .array(z.enum(["credit_card", "debit_card", "cash", "pix", "bank_transfer", "other"]))
     .min(1, "Selecione pelo menos uma forma de pagamento"),
   customerName: z.string().optional(),
   customerCpf: z.string().optional(),
@@ -103,6 +103,10 @@ const getPaymentMethodLabel = (method: string) => {
       return "Dinheiro";
     case "pix":
       return "PIX";
+    case "credit_card":
+      return "Cartão(crédito)";
+    case "debit_card":
+      return "Cartão(débito)";
     case "stripe":
       return "Cartão";
     case "bank_transfer":
@@ -462,16 +466,17 @@ export default function CashOperationsPage() {
                         <FormItem>
                           <FormLabel>Formas de Pagamento</FormLabel>
                           <div className="space-y-2">
-                            {[
+                            {([
                               { value: "cash", label: "Dinheiro" },
                               { value: "pix", label: "PIX" },
-                              { value: "stripe", label: "Cartão" },
+                              { value: "credit_card", label: "Cartão(crédito)" },
+                              { value: "debit_card", label: "Cartão(débito)" },
                               {
                                 value: "bank_transfer",
                                 label: "Transferência",
                               },
                               { value: "other", label: "Outro" },
-                            ].map((method) => (
+                            ] as const).map((method) => (
                               <FormField
                                 key={method.value}
                                 control={form.control}

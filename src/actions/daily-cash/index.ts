@@ -44,7 +44,7 @@ const cashOperationSchema = z.object({
     .int("Valor deve ser um número inteiro"),
   description: z.string().min(1, "Descrição é obrigatória"),
   paymentMethods: z
-    .array(z.enum(["stripe", "cash", "pix", "bank_transfer", "other"]))
+    .array(z.enum(["credit_card", "debit_card", "stripe", "cash", "pix", "bank_transfer", "other"]))
     .min(1, "Selecione pelo menos uma forma de pagamento"),
   transactionId: z.string().uuid().optional(),
   metadata: z.string().optional(),
