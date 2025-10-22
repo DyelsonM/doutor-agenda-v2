@@ -586,8 +586,6 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "payable_due",
   "payable_overdue",
   "system_update",
-  "backup_completed",
-  "backup_failed",
 ]);
 
 // Tabela de notificações - usando a estrutura existente

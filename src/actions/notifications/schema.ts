@@ -12,8 +12,6 @@ export const createNotificationSchema = z.object({
     "payable_due",
     "payable_overdue",
     "system_update",
-    "backup_completed",
-    "backup_failed",
   ]),
   title: z.string().min(1),
   message: z.string().min(1),
